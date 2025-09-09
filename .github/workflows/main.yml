@@ -30,10 +30,4 @@ jobs:
           npm install
 
       - name: Run Jest tests
-<<<<<<< HEAD
         run: npm run test
-  
-=======
-        run: npm run test:frontend
-  
->>>>>>> 4fcbc27a21411542ae4432d40f36c8dccf0a2928
