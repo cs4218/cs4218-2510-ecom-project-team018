@@ -6,7 +6,6 @@ import { useCart } from "../context/cart";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
-import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
 
 const HomePage = () => {
@@ -43,6 +42,7 @@ const HomePage = () => {
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
       setLoading(false);
       setProducts(data.products);
+
     } catch (error) {
       setLoading(false);
       console.log(error);
@@ -76,7 +76,7 @@ const HomePage = () => {
     }
   };
 
-  // filter by cat
+  // filter by category
   const handleFilter = (value, id) => {
     let all = [...checked];
     if (value) {
@@ -86,6 +86,7 @@ const HomePage = () => {
     }
     setChecked(all);
   };
+  
   useEffect(() => {
     if (!checked.length || !radio.length) getAllProducts();
   }, [checked.length, radio.length]);
@@ -101,7 +102,8 @@ const HomePage = () => {
         checked,
         radio,
       });
-      setProducts(data?.products);
+      setProducts(data?.products || []);
+      console.log("filtered products", products);
     } catch (error) {
       console.log(error);
     }
@@ -153,9 +155,9 @@ const HomePage = () => {
           <h1 className="text-center">All Products</h1>
           <div className="d-flex flex-wrap">
             {products?.map((p) => (
-              <div className="card m-2" key={p._id}>
+              <div className="card m-2" key={String(p._id)}>
                 <img
-                  src={`/api/v1/product/product-photo/${p._id}`}
+                  src={`/api/v1/product/product-photo/${String(p._id)}`}
                   className="card-img-top"
                   alt={p.name}
                 />
@@ -206,14 +208,6 @@ const HomePage = () => {
                   setPage(page + 1);
                 }}
               >
-                {loading ? (
-                  "Loading ..."
-                ) : (
-                  <>
-                    {" "}
-                    Loadmore <AiOutlineReload />
-                  </>
-                )}
               </button>
             )}
           </div>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
@@ -20,7 +21,7 @@ jest.mock('../../context/auth', () => ({
     
 jest.mock('../../context/search', () => ({
     useSearch: jest.fn(() => [{ keyword: '' }, jest.fn()]) // Mock useSearch hook to return null state and a mock function
-  }));  
+  }));
 
   Object.defineProperty(window, 'localStorage', {
     value: {
