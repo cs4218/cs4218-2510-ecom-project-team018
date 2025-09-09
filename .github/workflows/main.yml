@@ -21,11 +21,19 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install client dependencies
+        run: npm install
+
       - name: Install dependencies
         run: |
           cd client
           npm install
 
       - name: Run Jest tests
+<<<<<<< HEAD
         run: npm run test
   
+=======
+        run: npm run test:frontend
+  
+>>>>>>> 4fcbc27a21411542ae4432d40f36c8dccf0a2928
