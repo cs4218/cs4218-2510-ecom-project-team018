@@ -21,6 +21,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install client dependencies
+        run: npm install
+
       - name: Install dependencies
         run: |
           cd client
