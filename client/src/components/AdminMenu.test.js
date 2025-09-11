@@ -29,4 +29,29 @@ describe("AdminMenu", () => {
     expect(screen.getByText("Products")).toBeInTheDocument();
     expect(screen.getByText("Orders")).toBeInTheDocument();
   });
+
+  test("navigation routes", () => {
+    // ensure that each navlink points to the correct route
+    render(
+      <MemoryRouter>
+        <AdminMenu />
+      </MemoryRouter>
+    );
+
+    const createCategoryLink = screen.getByText("Create Category");
+    const createProductLink = screen.getByText("Create Product");
+    const productsLink = screen.getByText("Products");
+    const ordersLink = screen.getByText("Orders");
+
+    expect(createCategoryLink).toHaveAttribute(
+      "href",
+      "/dashboard/admin/create-category"
+    );
+    expect(createProductLink).toHaveAttribute(
+      "href",
+      "/dashboard/admin/create-product"
+    );
+    expect(productsLink).toHaveAttribute("href", "/dashboard/admin/products");
+    expect(ordersLink).toHaveAttribute("href", "/dashboard/admin/orders");
+  });
 });
