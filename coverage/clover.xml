@@ -1,61 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1757432792242" clover="3.2.0">
-  <project timestamp="1757432792243" name="All files">
-    <metrics statements="49" coveredstatements="46" conditionals="12" coveredconditionals="10" methods="14" coveredmethods="13" elements="75" coveredelements="69" complexity="0" loc="49" ncloc="49" packages="1" files="2" classes="2"/>
-    <file name="Login.js" path="C:\Users\Brendan\Desktop\cs4218-2510-ecom-project-team018\client\src\pages\Auth\Login.js">
-      <metrics statements="22" coveredstatements="20" conditionals="8" coveredconditionals="7" methods="5" coveredmethods="4"/>
-      <line num="9" count="1" type="stmt"/>
-      <line num="10" count="11" type="stmt"/>
-      <line num="11" count="11" type="stmt"/>
-      <line num="12" count="11" type="stmt"/>
-      <line num="15" count="11" type="stmt"/>
-      <line num="16" count="11" type="stmt"/>
-      <line num="20" count="11" type="stmt"/>
-      <line num="21" count="2" type="stmt"/>
-      <line num="22" count="2" type="stmt"/>
-      <line num="23" count="2" type="stmt"/>
-      <line num="27" count="1" type="cond" truecount="3" falsecount="1"/>
-      <line num="28" count="1" type="cond" truecount="2" falsecount="0"/>
-      <line num="36" count="1" type="stmt"/>
-      <line num="41" count="1" type="stmt"/>
-      <line num="42" count="1" type="cond" truecount="2" falsecount="0"/>
-      <line num="44" count="0" type="stmt"/>
-      <line num="47" count="1" type="stmt"/>
-      <line num="48" count="1" type="stmt"/>
-      <line num="51" count="11" type="stmt"/>
-      <line num="62" count="3" type="stmt"/>
-      <line num="73" count="3" type="stmt"/>
-      <line num="85" count="0" type="stmt"/>
-    </file>
-    <file name="Register.js" path="C:\Users\Brendan\Desktop\cs4218-2510-ecom-project-team018\client\src\pages\Auth\Register.js">
-      <metrics statements="27" coveredstatements="26" conditionals="4" coveredconditionals="3" methods="9" coveredmethods="9"/>
-      <line num="7" count="1" type="stmt"/>
-      <line num="8" count="16" type="stmt"/>
-      <line num="9" count="16" type="stmt"/>
-      <line num="10" count="16" type="stmt"/>
-      <line num="11" count="16" type="stmt"/>
-      <line num="12" count="16" type="stmt"/>
-      <line num="13" count="16" type="stmt"/>
-      <line num="14" count="16" type="stmt"/>
-      <line num="15" count="16" type="stmt"/>
-      <line num="18" count="16" type="stmt"/>
-      <line num="19" count="2" type="stmt"/>
-      <line num="20" count="2" type="stmt"/>
-      <line num="21" count="2" type="stmt"/>
-      <line num="30" count="1" type="cond" truecount="3" falsecount="1"/>
-      <line num="31" count="1" type="stmt"/>
-      <line num="32" count="1" type="stmt"/>
-      <line num="34" count="0" type="stmt"/>
-      <line num="37" count="1" type="stmt"/>
-      <line num="38" count="1" type="stmt"/>
-      <line num="42" count="16" type="stmt"/>
-      <line num="51" count="2" type="stmt"/>
-      <line num="63" count="2" type="stmt"/>
-      <line num="74" count="2" type="stmt"/>
-      <line num="85" count="2" type="stmt"/>
-      <line num="96" count="2" type="stmt"/>
-      <line num="107" count="2" type="stmt"/>
-      <line num="118" count="2" type="stmt"/>
-    </file>
+<coverage generated="1757615514540" clover="3.2.0">
+  <project timestamp="1757615514540" name="All files">
+    <metrics statements="79" coveredstatements="59" conditionals="19" coveredconditionals="11" methods="26" coveredmethods="17" elements="124" coveredelements="87" complexity="0" loc="79" ncloc="79" packages="2" files="9" classes="9"/>
+    <package name="components">
+      <metrics statements="30" coveredstatements="13" conditionals="7" coveredconditionals="1" methods="12" coveredmethods="4"/>
+      <file name="AdminMenu.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\AdminMenu.js">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="4" type="stmt"/>
+      </file>
+      <file name="Footer.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\Footer.js">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="4" count="2" type="stmt"/>
+        <line num="5" count="27" type="stmt"/>
+      </file>
+      <file name="Header.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\Header.js">
+        <metrics statements="10" coveredstatements="6" conditionals="4" coveredconditionals="1" methods="3" coveredmethods="1"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="11" count="27" type="stmt"/>
+        <line num="12" count="27" type="stmt"/>
+        <line num="13" count="27" type="stmt"/>
+        <line num="14" count="27" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="23" count="27" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+      </file>
+      <file name="Layout.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\Layout.js">
+        <metrics statements="3" coveredstatements="3" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="27" type="stmt"/>
+        <line num="28" count="2" type="stmt"/>
+      </file>
+      <file name="Prices.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\Prices.js">
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="1" count="0" type="stmt"/>
+      </file>
+      <file name="Spinner.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\Spinner.js">
+        <metrics statements="10" coveredstatements="0" conditionals="3" coveredconditionals="0" methods="5" coveredmethods="0"/>
+        <line num="3" count="0" type="cond" truecount="0" falsecount="1"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="12" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+      </file>
+      <file name="UserMenu.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\components\UserMenu.js">
+        <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="pages.Auth">
+      <metrics statements="49" coveredstatements="46" conditionals="12" coveredconditionals="10" methods="14" coveredmethods="13"/>
+      <file name="Login.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\pages\Auth\Login.js">
+        <metrics statements="22" coveredstatements="20" conditionals="8" coveredconditionals="7" methods="5" coveredmethods="4"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="11" type="stmt"/>
+        <line num="11" count="11" type="stmt"/>
+        <line num="12" count="11" type="stmt"/>
+        <line num="15" count="11" type="stmt"/>
+        <line num="16" count="11" type="stmt"/>
+        <line num="20" count="11" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="22" count="2" type="stmt"/>
+        <line num="23" count="2" type="stmt"/>
+        <line num="27" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="28" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="41" count="1" type="stmt"/>
+        <line num="42" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="47" count="1" type="stmt"/>
+        <line num="48" count="1" type="stmt"/>
+        <line num="51" count="11" type="stmt"/>
+        <line num="62" count="3" type="stmt"/>
+        <line num="73" count="3" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+      </file>
+      <file name="Register.js" path="C:\Users\kenvy\OneDrive\Desktop\cs4218-2510-ecom-project-team018\client\src\pages\Auth\Register.js">
+        <metrics statements="27" coveredstatements="26" conditionals="4" coveredconditionals="3" methods="9" coveredmethods="9"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="16" type="stmt"/>
+        <line num="9" count="16" type="stmt"/>
+        <line num="10" count="16" type="stmt"/>
+        <line num="11" count="16" type="stmt"/>
+        <line num="12" count="16" type="stmt"/>
+        <line num="13" count="16" type="stmt"/>
+        <line num="14" count="16" type="stmt"/>
+        <line num="15" count="16" type="stmt"/>
+        <line num="18" count="16" type="stmt"/>
+        <line num="19" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="21" count="2" type="stmt"/>
+        <line num="30" count="1" type="cond" truecount="3" falsecount="1"/>
+        <line num="31" count="1" type="stmt"/>
+        <line num="32" count="1" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="37" count="1" type="stmt"/>
+        <line num="38" count="1" type="stmt"/>
+        <line num="42" count="16" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="63" count="2" type="stmt"/>
+        <line num="74" count="2" type="stmt"/>
+        <line num="85" count="2" type="stmt"/>
+        <line num="96" count="2" type="stmt"/>
+        <line num="107" count="2" type="stmt"/>
+        <line num="118" count="2" type="stmt"/>
+      </file>
+    </package>
   </project>
 </coverage>
