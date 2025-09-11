@@ -31,7 +31,7 @@ describe("AdminMenu", () => {
   });
 
   test("navigation routes", () => {
-    // ensure that each navlink points to the correct route
+    // ensure that each navlink maps to the correct route
     render(
       <MemoryRouter>
         <AdminMenu />
@@ -53,5 +53,19 @@ describe("AdminMenu", () => {
     );
     expect(productsLink).toHaveAttribute("href", "/dashboard/admin/products");
     expect(ordersLink).toHaveAttribute("href", "/dashboard/admin/orders");
+  });
+
+  test("links accessibility", () => {
+    // ensure that each link is accessible
+    render(
+      <MemoryRouter>
+        <AdminMenu />
+      </MemoryRouter>
+    );
+
+    const links = screen.getAllByRole("link");
+
+    expect(links).toHaveLength(4);
+    links.forEach((link) => expect(link).toBeVisible());
   });
 });
