@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import axios from 'axios';
-import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
 import Login from './Login';
@@ -87,16 +87,28 @@ describe('Login Component', () => {
         expect(getByPlaceholderText('Enter Your Password').value).toBe('password123');
       });
 
-      it('should navigate to forgot password page', () => {
+      it("should navigate to forgot password page", () => {
+        let testLocation;
+        const LocationDisplay = () => {
+          const location = useLocation();
+          testLocation = location;
+          return null;
+        };
+
         const { getByText } = render(
-          <MemoryRouter initialEntries={['/login']}>
+          <MemoryRouter initialEntries={["/login"]}>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route
+                path="/forgot-password"
+                element={<div>Forgot Password Page</div>}
+              />
             </Routes>
+            <LocationDisplay />
           </MemoryRouter>
         );
-        fireEvent.click(getByText('Forgot Password'));
-        expect(window.location.pathname).toBe('/forgot-password');
+        fireEvent.click(getByText("Forgot Password"));
+        expect(testLocation.pathname).toBe("/forgot-password");
       });
       
     it('should login the user successfully', async () => {
