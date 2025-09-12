@@ -10,6 +10,8 @@ import Login from './Login';
 jest.mock('axios');
 jest.mock('react-hot-toast');
 
+jest.mock("../../hooks/useCategory", () => jest.fn(() => [])); // Mock useCategory hook to return an empty array
+
 jest.mock('../../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()]) // Mock useAuth hook to return null state and a mock function for setAuth
   }));
@@ -72,7 +74,7 @@ describe('Login Component', () => {
       });
     
       it('should allow typing email and password', () => {
-        const { getByText, getByPlaceholderText } = render(
+        const { getByPlaceholderText } = render(
           <MemoryRouter initialEntries={['/login']}>
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -83,6 +85,18 @@ describe('Login Component', () => {
         fireEvent.change(getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
         expect(getByPlaceholderText('Enter Your Email').value).toBe('test@example.com');
         expect(getByPlaceholderText('Enter Your Password').value).toBe('password123');
+      });
+
+      it('should navigate to forgot password page', () => {
+        const { getByText } = render(
+          <MemoryRouter initialEntries={['/login']}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+            </Routes>
+          </MemoryRouter>
+        );
+        fireEvent.click(getByText('Forgot Password'));
+        expect(window.location.pathname).toBe('/forgot-password');
       });
       
     it('should login the user successfully', async () => {
@@ -117,7 +131,7 @@ describe('Login Component', () => {
         });
     });
 
-    it('should display error message on failed login', async () => {
+    it('should display error message on thrown error', async () => {
         axios.post.mockRejectedValueOnce({ message: 'Invalid credentials' });
 
         const { getByPlaceholderText, getByText } = render(
@@ -134,5 +148,24 @@ describe('Login Component', () => {
 
         await waitFor(() => expect(axios.post).toHaveBeenCalled());
         expect(toast.error).toHaveBeenCalledWith('Something went wrong');
+    });
+
+    it('should display error message on unsuccessful login', async () => {
+        axios.post.mockResolvedValueOnce({ data: { success: false, message: 'Unsuccessful login' } });
+
+        const { getByPlaceholderText, getByText } = render(
+            <MemoryRouter initialEntries={['/login']}>
+                <Routes>
+                    <Route path="/login" element={<Login />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        fireEvent.change(getByPlaceholderText('Enter Your Email'), { target: { value: 'test@example.com' } });
+        fireEvent.change(getByPlaceholderText('Enter Your Password'), { target: { value: 'password123' } });
+        fireEvent.click(getByText('LOGIN'));
+
+        await waitFor(() => expect(axios.post).toHaveBeenCalled());
+        expect(toast.error).toHaveBeenCalledWith('Unsuccessful login');
     });
 });
