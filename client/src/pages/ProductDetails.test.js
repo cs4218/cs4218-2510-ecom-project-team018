@@ -342,4 +342,40 @@ describe("ProductDetails Component", () => {
 
     expect(toast.success).toHaveBeenCalledWith("Item added to cart");
   });
+
+  it("should not add product to cart and show error toast if already in cart", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "existing",
+            name: "Existing Product",
+            description: "Already in cart",
+            price: 80,
+            category: { _id: "cat1", name: "Category" },
+          },
+        },
+      })
+      .mockResolvedValueOnce({ data: { products: [] } });
+
+    render(
+      <MemoryRouter initialEntries={["/product/existing-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+    expect(await screen.findByText(/Existing Product/)).toBeInTheDocument();
+
+    const mainButton = screen.getByTestId("main-add-to-cart");
+    fireEvent.click(mainButton);
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Item already in cart")
+    );
+    expect(mockSetCart).not.toHaveBeenCalled();
+    expect(window.localStorage.setItem).not.toHaveBeenCalledWith(
+      "cart",
+      expect.stringContaining("Existing Product")
+    );
+  });
 });
