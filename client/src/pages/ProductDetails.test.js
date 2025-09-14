@@ -17,6 +17,13 @@ jest.mock("../context/search", () => ({
 jest.mock("../hooks/useCategory", () => jest.fn(() => []));
 jest.spyOn(console, "error").mockImplementation(() => {});
 
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+  useParams: () => ({ slug: "test-product" }),
+}));
+
 describe("ProductDetails Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -236,5 +243,46 @@ describe("ProductDetails Component", () => {
     expect(
       await screen.findByText(/No Similar Products found/i)
     ).toBeInTheDocument();
+  });
+
+  it("should navigate to related product details when button is clicked", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "123",
+            name: "Test Product",
+            description: "This is a test product",
+            price: 100,
+            category: { _id: "cat1", name: "Electronics" },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          products: [
+            {
+              _id: "456",
+              name: "Related Product",
+              description: "This is related",
+              price: 50,
+              slug: "related-product",
+            },
+          ],
+        },
+      });
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const button = await screen.findByText("More Details");
+    fireEvent.click(button);
+
+    expect(mockNavigate).toHaveBeenCalledWith("/product/related-product");
   });
 });
