@@ -14,13 +14,30 @@ jest.mock("../context/cart", () => ({
 jest.mock("../context/search", () => ({
   useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]),
 }));
+jest.mock("../hooks/useCategory", () => jest.fn(() => []));
+jest.spyOn(console, "error").mockImplementation(() => {});
 
 describe("ProductDetails Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("should render product details correctly", async () => {
+  it("should render 'No Such Product Found' when product does not exist", async () => {
+    axios.get.mockRejectedValue({ response: { status: 404 } });
+    render(
+      <MemoryRouter initialEntries={["/product/non-existent-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(/No Such Product Found./i)
+    ).toBeInTheDocument();
+  });
+
+  it("should render product details correctly if product exists", async () => {
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/product/get-product/test-product") {
         return Promise.resolve({
@@ -57,7 +74,7 @@ describe("ProductDetails Component", () => {
     expect(await screen.findByText(/Test Category/)).toBeInTheDocument();
   });
 
-  it("should render similar products details correctly", async () => {
+  it("should render similar products details correctly when available", async () => {
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/product/get-product/test-product") {
         return Promise.resolve({
