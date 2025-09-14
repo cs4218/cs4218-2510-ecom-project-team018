@@ -1,16 +1,29 @@
 import React from "react";
 import axios from "axios";
-import { render, screen, fireEvent } from "@testing-library/react";
+import toast from "react-hot-toast";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProductDetails from "./ProductDetails";
 
 jest.mock("axios");
+jest.mock("react-hot-toast");
 jest.mock("../context/auth", () => ({
   useAuth: jest.fn(() => [null, jest.fn()]),
 }));
+const mockSetCart = jest.fn();
 jest.mock("../context/cart", () => ({
-  useCart: jest.fn(() => [[], jest.fn()]),
+  useCart: () => [[{ _id: "existing" }], mockSetCart],
 }));
+
+Object.defineProperty(window, "localStorage", {
+  value: {
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+  writable: true,
+});
+
 jest.mock("../context/search", () => ({
   useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]),
 }));
@@ -284,5 +297,49 @@ describe("ProductDetails Component", () => {
     fireEvent.click(button);
 
     expect(mockNavigate).toHaveBeenCalledWith("/product/related-product");
+  });
+
+  it("should add product to cart and show success toast if not already in cart", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "123",
+            name: "Test Product",
+            description: "This is a test product",
+            price: 100,
+            category: { _id: "cat1", name: "Electronics" },
+          },
+        },
+      })
+      .mockResolvedValueOnce({ data: { products: [] } });
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
+
+    const mainButton = screen.getByTestId("main-add-to-cart");
+    fireEvent.click(mainButton);
+
+    await waitFor(() =>
+      expect(mockSetCart).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ _id: "123", name: "Test Product" }),
+        ])
+      )
+    );
+
+    expect(window.localStorage.setItem).toHaveBeenCalledWith(
+      "cart",
+      expect.stringContaining("Test Product")
+    );
+
+    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
   });
 });
