@@ -134,4 +134,38 @@ describe("ProductDetails Component", () => {
     ).toBeInTheDocument();
     expect(await screen.findByText(/\$75.00/)).toBeInTheDocument();
   });
+
+  it("should render 'No Similar Products found' when there are no similar products", async () => {
+    axios.get.mockImplementation((url) => {
+      if (url === "/api/v1/product/get-product/test-product") {
+        return Promise.resolve({
+          data: {
+            product: {
+              _id: "123",
+              name: "Test Product",
+              description: "This is a test product",
+              price: 100,
+              category: { _id: "cat1", name: "Test Category" },
+              slug: "test-product",
+            },
+          },
+        });
+      } else if (url.startsWith("/api/v1/product/related-product")) {
+        return Promise.resolve({ data: { products: [] } });
+      }
+      return Promise.resolve({ data: {} });
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(/No Similar Products found/i)
+    ).toBeInTheDocument();
+  });
 });
