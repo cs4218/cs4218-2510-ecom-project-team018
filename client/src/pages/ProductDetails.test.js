@@ -78,6 +78,36 @@ describe("ProductDetails Component", () => {
     ).toBeInTheDocument();
   });
 
+  it("should render 'No Similar Products found' when API call fails", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "123",
+            name: "Test Product",
+            description: "This is a test product",
+            price: 100,
+            category: { _id: "cat1", name: "Test Category" },
+            slug: "test-product",
+          },
+        },
+      })
+      .mockRejectedValueOnce(new Error("Network Error"));
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/No Similar Products found/i)
+    ).toBeInTheDocument();
+  });
+
   it("should render product details correctly if product exists", async () => {
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/product/get-product/test-product") {
