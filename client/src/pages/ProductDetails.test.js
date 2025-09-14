@@ -500,4 +500,53 @@ describe("ProductDetails Component", () => {
       expect.stringContaining("Related Product 1")
     );
   });
+
+  it("should not break if cart is initially empty", async () => {
+    // Override mock for empty cart
+    jest.doMock("../context/cart", () => ({
+      useCart: () => [[], mockSetCart],
+    }));
+
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "123",
+            name: "Test Product",
+            description: "This is a test product",
+            price: 100,
+            category: { _id: "cat1", name: "Electronics" },
+          },
+        },
+      })
+      .mockResolvedValueOnce({ data: { products: [] } });
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
+
+    const mainButton = screen.getByTestId("main-add-to-cart");
+    fireEvent.click(mainButton);
+
+    await waitFor(() =>
+      expect(mockSetCart).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ _id: "123", name: "Test Product" }),
+        ])
+      )
+    );
+
+    expect(window.localStorage.setItem).toHaveBeenCalledWith(
+      "cart",
+      expect.stringContaining("Test Product")
+    );
+
+    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+  });
 });
