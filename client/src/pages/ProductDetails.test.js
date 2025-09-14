@@ -63,6 +63,21 @@ describe("ProductDetails Component", () => {
     ).toBeInTheDocument();
   });
 
+  it("should render error message when API call fails to fetch product", async () => {
+    axios.get.mockRejectedValue(new Error("Network Error"));
+    render(
+      <MemoryRouter initialEntries={["/product/error-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(/Failed to load product details/i)
+    ).toBeInTheDocument();
+  });
+
   it("should render product details correctly if product exists", async () => {
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/product/get-product/test-product") {
