@@ -66,12 +66,25 @@ describe("ProductDetails Component", () => {
       </MemoryRouter>
     );
 
+    expect(screen.getByText(/Product Details/i)).toBeInTheDocument();
     expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
     expect(
       await screen.findByText(/This is a test product/)
     ).toBeInTheDocument();
     expect(await screen.findByText(/\$100.00/)).toBeInTheDocument();
     expect(await screen.findByText(/Test Category/)).toBeInTheDocument();
+    const productImage = await screen.findByAltText("Test Product");
+    expect(productImage).toBeInTheDocument();
+    expect(productImage).toHaveAttribute(
+      "src",
+      "/api/v1/product/product-photo/123"
+    );
+
+    const addToCartButton = screen.getByRole("button", {
+      name: /add to cart/i,
+    });
+    expect(addToCartButton).toBeInTheDocument();
+
   });
 
   it("should render similar products details correctly when available", async () => {
