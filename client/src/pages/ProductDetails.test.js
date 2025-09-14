@@ -1,7 +1,13 @@
 import React from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProductDetails from "./ProductDetails";
 
@@ -377,5 +383,63 @@ describe("ProductDetails Component", () => {
       "cart",
       expect.stringContaining("Existing Product")
     );
+  });
+
+  it("should add related product to cart if not already in cart", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: {
+          product: {
+            _id: "123",
+            name: "Test Product",
+            description: "This is a test product",
+            price: 100,
+            category: { _id: "cat1", name: "Electronics" },
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          products: [
+            {
+              _id: "rel-1",
+              name: "Related Product 1",
+              description: "This is a related product",
+              price: 50,
+              category: { _id: "cat1", name: "Electronics" },
+              slug: "related-product-1",
+            },
+          ],
+        },
+      });
+
+    render(
+      <MemoryRouter initialEntries={["/product/test-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const mainProductName = await screen.findByText(/Test Product/);
+    expect(mainProductName).toBeInTheDocument();
+
+    const similarSection = screen.getByTestId("similar-products");
+    const relatedButton = within(similarSection).getByText(/ADD TO CART/i);
+    fireEvent.click(relatedButton);
+
+    await waitFor(() => {
+      expect(mockSetCart).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ _id: "rel-1", name: "Related Product 1" }),
+        ])
+      );
+    });
+
+    expect(window.localStorage.setItem).toHaveBeenCalledWith(
+      "cart",
+      expect.stringContaining("Related Product 1")
+    );
+    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
   });
 });
