@@ -10,6 +10,8 @@ import Register from './Register';
 jest.mock('axios');
 jest.mock('react-hot-toast');
 
+jest.mock("../../hooks/useCategory", () => jest.fn(() => [])); // Mock useCategory hook to return an empty array
+
 jest.mock('../../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()]) // Mock useAuth hook to return null state and a mock function for setAuth
   }));
