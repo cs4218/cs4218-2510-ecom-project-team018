@@ -1,6 +1,6 @@
 import React from "react";
 import axios from "axios";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProductDetails from "./ProductDetails";
 
@@ -84,7 +84,63 @@ describe("ProductDetails Component", () => {
       name: /add to cart/i,
     });
     expect(addToCartButton).toBeInTheDocument();
+  });
 
+  it("should render placeholder image if product has no _id", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        product: {
+          name: "Product Without ID",
+          description: "No id here",
+          price: 50,
+          category: { _id: "cat1", name: "Category" },
+          slug: "no-id-product",
+        },
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/product/no-id-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const img = await screen.findByAltText("Product Without ID");
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute("src", "/images/placeholder.png");
+  });
+
+  it("should fall back to placeholder image on image load error", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        product: {
+          _id: "123",
+          name: "Broken Image Product",
+          description: "Image should fail",
+          price: 75,
+          category: { _id: "cat1", name: "Category" },
+          slug: "broken-img-product",
+        },
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/product/broken-img-product"]}>
+        <Routes>
+          <Route path="/product/:slug" element={<ProductDetails />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    const img = await screen.findByAltText("Broken Image Product");
+    expect(img).toBeInTheDocument();
+
+    // Simulate image load error
+    fireEvent.error(img);
+
+    expect(img).toHaveAttribute("src", "/images/placeholder.png");
   });
 
   it("should render similar products details correctly when available", async () => {
