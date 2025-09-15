@@ -18,8 +18,6 @@ const ProductDetails = () => {
 
   // Fetch single product
   const getProduct = useCallback(async () => {
-    if (!params?.slug) return;
-
     try {
       setLoading(true);
       setError("");
