@@ -118,110 +118,57 @@ describe("ProductDetails Component", () => {
     });
   });
 
-  it("should render product details correctly if product exists", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/get-product/test-product") {
-        return Promise.resolve({
-          data: {
-            product: {
-              _id: "123",
-              name: "Test Product",
-              description: "This is a test product",
-              price: 100,
-              category: { _id: "cat1", name: "Test Category" },
-              slug: "test-product",
-            },
-          },
-        });
-      } else if (url.startsWith("/api/v1/product/related-product")) {
-        return Promise.resolve({ data: { products: [] } });
-      }
-      return Promise.resolve({ data: {} });
+  // Main Product
+  describe("Main product rendering", () => {
+    it("renders product details correctly", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: [] } });
+
+      renderWithRouter();
+
+      expect(screen.getByText(/Product Details/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(new RegExp(MAIN_PRODUCT.name))
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(new RegExp(MAIN_PRODUCT.description))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`\\$${MAIN_PRODUCT.price}.00`))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(MAIN_PRODUCT.category.name))
+      ).toBeInTheDocument();
+      expect(screen.getByAltText(MAIN_PRODUCT.name)).toHaveAttribute(
+        "src",
+        `/api/v1/product/product-photo/${MAIN_PRODUCT._id}`
+      );
+      expect(
+        screen.getByRole("button", { name: /add to cart/i })
+      ).toBeInTheDocument();
     });
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it("renders placeholder image if product has no _id", async () => {
+      axios.get.mockResolvedValueOnce({
+        data: { product: { ...MAIN_PRODUCT, _id: undefined } },
+      });
 
-    expect(screen.getByText(/Product Details/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
-    expect(
-      await screen.findByText(/This is a test product/)
-    ).toBeInTheDocument();
-    expect(await screen.findByText(/\$100.00/)).toBeInTheDocument();
-    expect(await screen.findByText(/Test Category/)).toBeInTheDocument();
-    const productImage = await screen.findByAltText("Test Product");
-    expect(productImage).toBeInTheDocument();
-    expect(productImage).toHaveAttribute(
-      "src",
-      "/api/v1/product/product-photo/123"
-    );
-
-    const addToCartButton = screen.getByRole("button", {
-      name: /add to cart/i,
-    });
-    expect(addToCartButton).toBeInTheDocument();
-  });
-
-  it("should render placeholder image if product has no _id", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: {
-        product: {
-          name: "Product Without ID",
-          description: "No id here",
-          price: 50,
-          category: { _id: "cat1", name: "Category" },
-          slug: "no-id-product",
-        },
-      },
+      renderWithRouter("/product/no-id");
+      const img = await screen.findByAltText(MAIN_PRODUCT.name);
+      expect(img).toHaveAttribute("src", "/images/placeholder.png");
     });
 
-    render(
-      <MemoryRouter initialEntries={["/product/no-id-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it("falls back to placeholder image if image load fails", async () => {
+      axios.get.mockResolvedValueOnce({
+        data: { product: { ...MAIN_PRODUCT, name: "Broken Image Product" } },
+      });
 
-    const img = await screen.findByAltText("Product Without ID");
-    expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute("src", "/images/placeholder.png");
-  });
-
-  it("should fall back to placeholder image on image load error", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: {
-        product: {
-          _id: "123",
-          name: "Broken Image Product",
-          description: "Image should fail",
-          price: 75,
-          category: { _id: "cat1", name: "Category" },
-          slug: "broken-img-product",
-        },
-      },
+      renderWithRouter("/product/broken-img");
+      const img = await screen.findByAltText("Broken Image Product");
+      fireEvent.error(img);
+      expect(img).toHaveAttribute("src", "/images/placeholder.png");
     });
-
-    render(
-      <MemoryRouter initialEntries={["/product/broken-img-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const img = await screen.findByAltText("Broken Image Product");
-    expect(img).toBeInTheDocument();
-
-    // Simulate image load error
-    fireEvent.error(img);
-
-    expect(img).toHaveAttribute("src", "/images/placeholder.png");
   });
 
   it("should render similar products details correctly when available", async () => {
