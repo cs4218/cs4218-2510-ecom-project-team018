@@ -27,4 +27,19 @@ describe("Admin Dashboard", () => {
       jest.fn(), // mock setAuth
     ]);
   });
+
+  test("all admin properties correct", () => {
+    // this test ensures that admin details are rendered correctly
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Admin Name/i)).toHaveTextContent("Mock Admin");
+    expect(screen.getByText(/Admin Email/i)).toHaveTextContent(
+      "mockadmin@example.com"
+    );
+    expect(screen.getByText(/Admin Contact/i)).toHaveTextContent("12345");
+  });
 });
