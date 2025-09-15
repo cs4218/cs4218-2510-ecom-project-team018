@@ -75,6 +75,30 @@ const ProductDetails = () => {
     toast.success("Item added to cart");
   };
 
+  if (loading) {
+    return (
+      <Layout>
+        <div className="text-center p-5">Loading product details...</div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="text-center text-danger p-5">{error}</div>
+      </Layout>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Layout>
+        <div className="text-center p-5">No Such Product Found.</div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="row container product-details">
@@ -84,7 +108,7 @@ const ProductDetails = () => {
             className="card-img-top"
             alt={product.name}
             height="300"
-            width={"350px"}
+            width="350"
           />
         </div>
         <div className="col-md-6 product-details-info">
@@ -110,10 +134,13 @@ const ProductDetails = () => {
         </div>
       </div>
       <hr />
-      <div className="row container similar-products">
+      <div
+        className="row container similar-products"
+        data-testid="similar-products"
+      >
         <h4>Similar Products ➡️</h4>
         {relatedProducts.length < 1 && (
-          <p className="text-center">No Similar Products found</p>
+          <p className="text-center">No similar products found</p>
         )}
         <div className="d-flex flex-wrap">
           {relatedProducts?.map((p) => (
@@ -133,9 +160,7 @@ const ProductDetails = () => {
                     })}
                   </h5>
                 </div>
-                <p className="card-text ">
-                  {p.description.substring(0, 60)}...
-                </p>
+                <p className="card-text">{p.description.substring(0, 60)}...</p>
                 <div className="card-name-price">
                   <button
                     className="btn btn-info ms-1"
