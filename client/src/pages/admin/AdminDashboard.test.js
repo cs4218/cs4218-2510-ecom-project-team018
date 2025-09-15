@@ -42,4 +42,29 @@ describe("Admin Dashboard", () => {
     );
     expect(screen.getByText(/Admin Contact/i)).toHaveTextContent("12345");
   });
+
+  test("no admin properties", () => {
+    // this test ensures that the labels are still shown when there's no admin user data
+    // mock no admin user data
+    useAuth.mockReturnValue([
+      {
+        user: null,
+        token: "",
+      },
+      jest.fn(),
+    ]);
+
+    render(
+      <MemoryRouter>
+        <AdminDashboard />
+      </MemoryRouter>
+    );
+
+    // expected to see labels but without data
+    expect(screen.getByText(/Admin Name/i)).toHaveTextContent("Admin Name :");
+    expect(screen.getByText(/Admin Email/i)).toHaveTextContent("Admin Email :");
+    expect(screen.getByText(/Admin Contact/i)).toHaveTextContent(
+      "Admin Contact :"
+    );
+  });
 });
