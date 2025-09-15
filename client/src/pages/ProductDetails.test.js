@@ -92,6 +92,7 @@ const mockProductApi = (product = MAIN_PRODUCT, related = []) => {
 describe("ProductDetails Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    axios.get.mockReset();
   });
 
   // API Errors
@@ -198,6 +199,29 @@ describe("ProductDetails Component", () => {
       const img = await screen.findByAltText("Broken Image Product");
       fireEvent.error(img);
       expect(img).toHaveAttribute("src", "/images/placeholder.png");
+    });
+
+    it("renders placeholder values if product fields are missing", async () => {
+      const incompleteProduct = {
+        _id: "999",
+        name: "",
+        description: "",
+        price: null,
+        category: {},
+        slug: "incomplete-product",
+      };
+      mockProductApi(incompleteProduct, []);
+
+      renderWithRouter("/product/incomplete-product");
+
+      expect(await screen.findByText(/No Name Available/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/No Description Available/i)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/\$0.00/)).toBeInTheDocument();
+      expect(screen.getByText(/Uncategorized/i)).toBeInTheDocument();
+      const img = await screen.findByAltText(/Product/i);
+      expect(img).toHaveAttribute("src", `/api/v1/product/product-photo/999`);
     });
   });
 
