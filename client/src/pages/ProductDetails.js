@@ -84,6 +84,10 @@ const ProductDetails = () => {
     toast.success("Item added to cart");
   };
 
+  const handleImgError = (e) => {
+    e.target.src = "/images/placeholder.png";
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -118,7 +122,7 @@ const ProductDetails = () => {
             alt={product?.name || "Product"}
             height="300"
             width="350"
-            onError={(e) => (e.target.src = "/images/placeholder.png")}
+            onError={handleImgError}
           />
         </div>
         <div className="col-md-6 product-details-info">
@@ -153,7 +157,7 @@ const ProductDetails = () => {
                 src={getImageUrl(p._id)}
                 className="card-img-top"
                 alt={p.name}
-                onError={(e) => (e.target.src = "/images/placeholder.png")}
+                onError={handleImgError}
               />
               <div className="card-body">
                 <div className="card-name-price">
