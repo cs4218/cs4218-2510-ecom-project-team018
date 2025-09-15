@@ -85,64 +85,37 @@ describe("ProductDetails Component", () => {
     jest.clearAllMocks();
   });
 
-  it("should render 'No Such Product Found' when product does not exist", async () => {
-    axios.get.mockRejectedValue({ response: { status: 404 } });
-    render(
-      <MemoryRouter initialEntries={["/product/non-existent-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+  // API Errors
+  describe("API errors", () => {
+    it("renders 'No Such Product Found' for 404", async () => {
+      axios.get.mockRejectedValue({ response: { status: 404 } });
+      renderWithRouter("/product/non-existent");
+      expect(
+        await screen.findByText(/No Such Product Found./i)
+      ).toBeInTheDocument();
+    });
 
-    expect(
-      await screen.findByText(/No Such Product Found./i)
-    ).toBeInTheDocument();
-  });
+    it("renders error message for network failure", async () => {
+      axios.get.mockRejectedValue(new Error("Network Error"));
+      renderWithRouter("/product/error-product");
+      expect(
+        await screen.findByText(/Failed to load product details/i)
+      ).toBeInTheDocument();
+    });
 
-  it("should render error message when API call fails to fetch product", async () => {
-    axios.get.mockRejectedValue(new Error("Network Error"));
-    render(
-      <MemoryRouter initialEntries={["/product/error-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it("shows 'No Similar Products found' if similar products fetch fails", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockRejectedValueOnce(new Error("Network Error"));
 
-    expect(
-      await screen.findByText(/Failed to load product details/i)
-    ).toBeInTheDocument();
-  });
-
-  it("should render 'No Similar Products found' when API call fails", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "This is a test product",
-            price: 100,
-            category: { _id: "cat1", name: "Test Category" },
-            slug: "test-product",
-          },
-        },
-      })
-      .mockRejectedValueOnce(new Error("Network Error"));
-
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
-    expect(
-      await screen.findByText(/No Similar Products found/i)
-    ).toBeInTheDocument();
+      renderWithRouter();
+      expect(
+        await screen.findByText(new RegExp(MAIN_PRODUCT.name))
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(/No similar products found/i)
+      ).toBeInTheDocument();
+    });
   });
 
   it("should render product details correctly if product exists", async () => {
