@@ -7,6 +7,11 @@ import { AuthProvider, useAuth } from "./auth";
 // Mock axios
 jest.mock("axios");
 
+const MOCK_AUTH_DATA = {
+  user: { id: 1, name: "John Doe", email: "john@example.com", role: "user" },
+  token: "mock-token-123",
+};
+
 // Test component to access the auth context
 // Ref: https://stackoverflow.com/questions/56828017/testing-usecontext-with-react-testing-library
 const TestComponent = ({ onAuthChange }) => {
@@ -64,12 +69,7 @@ describe("Auth Context", () => {
     });
 
     it("should load auth data from localStorage on initialization", () => {
-      const mockAuthData = {
-        user: { id: 1, name: "John Doe", email: "john@example.com" },
-        token: "mock-token-123",
-      };
-
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockAuthData));
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(MOCK_AUTH_DATA));
 
       const { getByTestId } = render(
         <AuthProvider>
@@ -78,18 +78,17 @@ describe("Auth Context", () => {
       );
 
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith("auth");
-      expect(getByTestId("user-name")).toHaveTextContent(mockAuthData.user.name);
-      expect(getByTestId("user-email")).toHaveTextContent(mockAuthData.user.email);
-      expect(getByTestId("token")).toHaveTextContent(mockAuthData.token);
+      expect(getByTestId("user-name")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.name
+      );
+      expect(getByTestId("user-email")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.email
+      );
+      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
     });
 
     it("should set axios authorization header when token is present", () => {
-      const mockAuthData = {
-        user: { id: 1, name: "John Doe", email: "john@example.com" },
-        token: "mock-token-123",
-      };
-
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockAuthData));
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(MOCK_AUTH_DATA));
 
       render(
         <AuthProvider>
@@ -98,7 +97,7 @@ describe("Auth Context", () => {
       );
 
       expect(axios.defaults.headers.common["Authorization"]).toBe(
-        "mock-token-123"
+        MOCK_AUTH_DATA.token
       );
     });
 
@@ -121,10 +120,7 @@ describe("Auth Context", () => {
 
       // Update auth state
       act(() => {
-        authContext.setAuth({
-          user: { id: 1, name: "Jane Doe", email: "jane@example.com" },
-          token: "new-token-456",
-        });
+        authContext.setAuth(MOCK_AUTH_DATA);
       });
 
       rerender(
@@ -138,7 +134,7 @@ describe("Auth Context", () => {
       );
 
       expect(axios.defaults.headers.common["Authorization"]).toBe(
-        "new-token-456"
+        MOCK_AUTH_DATA.token
       );
     });
   });
@@ -184,10 +180,7 @@ describe("Auth Context", () => {
 
       // Update auth state
       act(() => {
-        authContext.setAuth({
-          user: { id: 1, name: "Test User", email: "test@example.com" },
-          token: "test-token",
-        });
+        authContext.setAuth(MOCK_AUTH_DATA);
       });
 
       rerender(
@@ -200,25 +193,19 @@ describe("Auth Context", () => {
         </AuthProvider>
       );
 
-      expect(getByTestId("user-name")).toHaveTextContent("Test User");
-      expect(getByTestId("user-email")).toHaveTextContent("test@example.com");
-      expect(getByTestId("token")).toHaveTextContent("test-token");
+      expect(getByTestId("user-name")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.name
+      );
+      expect(getByTestId("user-email")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.email
+      );
+      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
     });
   });
 
   describe("localStorage integration", () => {
     it("should parse localStorage data correctly", () => {
-      const mockAuthData = {
-        user: {
-          id: 2,
-          name: "Alice Smith",
-          email: "alice@example.com",
-          role: "user",
-        },
-        token: "alice-token-789",
-      };
-
-      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(mockAuthData));
+      mockLocalStorage.getItem.mockReturnValue(JSON.stringify(MOCK_AUTH_DATA));
 
       const { getByTestId } = render(
         <AuthProvider>
@@ -227,9 +214,13 @@ describe("Auth Context", () => {
       );
 
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith("auth");
-      expect(getByTestId("user-name")).toHaveTextContent("Alice Smith");
-      expect(getByTestId("user-email")).toHaveTextContent("alice@example.com");
-      expect(getByTestId("token")).toHaveTextContent("alice-token-789");
+      expect(getByTestId("user-name")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.name
+      );
+      expect(getByTestId("user-email")).toHaveTextContent(
+        MOCK_AUTH_DATA.user.email
+      );
+      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
     });
 
     it("should handle empty localStorage", () => {
