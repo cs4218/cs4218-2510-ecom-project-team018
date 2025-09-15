@@ -82,6 +82,12 @@ const renderWithRouter = (route = "/product/test-product") =>
     </MemoryRouter>
   );
 
+const mockProductApi = (product = MAIN_PRODUCT, related = []) => {
+  axios.get
+    .mockResolvedValueOnce({ data: { product } }) // Main product
+    .mockResolvedValueOnce({ data: { products: related } }); // Related products
+};
+
 // Tests
 describe("ProductDetails Component", () => {
   beforeEach(() => {
@@ -124,9 +130,7 @@ describe("ProductDetails Component", () => {
   // Main Product
   describe("Main product rendering", () => {
     it("renders product details correctly", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({ data: { products: [] } });
+      mockProductApi();
 
       renderWithRouter();
 
@@ -163,8 +167,9 @@ describe("ProductDetails Component", () => {
     });
 
     it("falls back to placeholder image if image load fails", async () => {
-      axios.get.mockResolvedValueOnce({
-        data: { product: { ...MAIN_PRODUCT, name: "Broken Image Product" } },
+      mockProductApi({
+        ...MAIN_PRODUCT,
+        name: "Broken Image Product",
       });
 
       renderWithRouter("/product/broken-img");
@@ -177,11 +182,7 @@ describe("ProductDetails Component", () => {
   // Similar Products
   describe("Similar products", () => {
     it("renders similar products correctly", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({
-          data: { products: [SIMILAR_PRODUCT_1, SIMILAR_PRODUCT_2] },
-        });
+      mockProductApi(MAIN_PRODUCT, [SIMILAR_PRODUCT_1, SIMILAR_PRODUCT_2]);
 
       renderWithRouter();
 
@@ -194,9 +195,7 @@ describe("ProductDetails Component", () => {
     });
 
     it("shows 'No similar products found' if list is empty", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({ data: { products: [] } });
+      mockProductApi(MAIN_PRODUCT, []);
 
       renderWithRouter();
       expect(
@@ -205,9 +204,7 @@ describe("ProductDetails Component", () => {
     });
 
     it("navigates to similar product details on click", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({ data: { products: [SIMILAR_PRODUCT_1] } });
+      mockProductApi(MAIN_PRODUCT, [SIMILAR_PRODUCT_1]);
 
       renderWithRouter();
       fireEvent.click(await screen.findByText("More Details"));
@@ -220,9 +217,7 @@ describe("ProductDetails Component", () => {
   // Cart Interactions
   describe("Cart interactions", () => {
     it("adds main product to cart if not already in cart", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({ data: { products: [] } });
+      mockProductApi(MAIN_PRODUCT, []);
 
       renderWithRouter();
 
@@ -238,11 +233,10 @@ describe("ProductDetails Component", () => {
     });
 
     it("prevents duplicate main product in cart", async () => {
-      axios.get
-        .mockResolvedValueOnce({
-          data: { product: { ...MAIN_PRODUCT, _id: "existing" } },
-        })
-        .mockResolvedValueOnce({ data: { products: [] } });
+      mockProductApi({
+        ...MAIN_PRODUCT,
+        _id: "existing",
+      });
 
       renderWithRouter();
       fireEvent.click(await screen.findByTestId("main-add-to-cart"));
@@ -254,9 +248,7 @@ describe("ProductDetails Component", () => {
     });
 
     it("adds similar product to cart", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({ data: { products: [SIMILAR_PRODUCT_1] } });
+      mockProductApi(MAIN_PRODUCT, [SIMILAR_PRODUCT_1]);
 
       renderWithRouter();
       fireEvent.click(
@@ -276,11 +268,10 @@ describe("ProductDetails Component", () => {
     });
 
     it("prevents adding duplicate main product to cart", async () => {
-      axios.get
-        .mockResolvedValueOnce({
-          data: { product: { ...MAIN_PRODUCT, _id: "existing" } },
-        })
-        .mockResolvedValueOnce({ data: { products: [] } });
+      mockProductApi({
+        ...MAIN_PRODUCT,
+        _id: "existing",
+      });
 
       renderWithRouter();
       fireEvent.click(await screen.findByTestId("main-add-to-cart"));
@@ -291,11 +282,7 @@ describe("ProductDetails Component", () => {
     });
 
     it("prevents duplicate similar product in cart", async () => {
-      axios.get
-        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
-        .mockResolvedValueOnce({
-          data: { products: [{ ...SIMILAR_PRODUCT_1, _id: "existing" }] },
-        });
+      mockProductApi(MAIN_PRODUCT, [{ ...SIMILAR_PRODUCT_1, _id: "existing" }]);
 
       renderWithRouter();
       fireEvent.click(
