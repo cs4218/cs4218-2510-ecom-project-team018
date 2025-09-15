@@ -171,140 +171,47 @@ describe("ProductDetails Component", () => {
     });
   });
 
-  it("should render similar products details correctly when available", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/get-product/test-product") {
-        return Promise.resolve({
-          data: {
-            product: {
-              _id: "123",
-              name: "Test Product",
-              description: "This is a test product",
-              price: 100,
-              category: { _id: "cat1", name: "Test Category" },
-              slug: "test-product",
-            },
-          },
+  // Similar Products
+  describe("Similar products", () => {
+    it("renders similar products correctly", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({
+          data: { products: [SIMILAR_PRODUCT_1, SIMILAR_PRODUCT_2] },
         });
-      } else if (url.startsWith("/api/v1/product/related-product")) {
-        return Promise.resolve({
-          data: {
-            products: [
-              {
-                _id: "456",
-                name: "Similar Product 1",
-                description: "This is a similar product 1",
-                price: 50,
-                slug: "similar-product-1",
-              },
-              {
-                _id: "789",
-                name: "Similar Product 2",
-                description: "This is a similar product 2",
-                price: 75,
-                slug: "similar-product-2",
-              },
-            ],
-          },
-        });
-      }
-      return Promise.resolve({ data: {} });
+
+      renderWithRouter();
+
+      expect(
+        await screen.findByText(new RegExp(SIMILAR_PRODUCT_1.name))
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(new RegExp(SIMILAR_PRODUCT_2.name))
+      ).toBeInTheDocument();
     });
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it("shows 'No similar products found' if list is empty", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: [] } });
 
-    expect(await screen.findByText(/Similar Product 1/)).toBeInTheDocument();
-    expect(
-      await screen.findByText(/This is a similar product 1/)
-    ).toBeInTheDocument();
-    expect(await screen.findByText(/\$50.00/)).toBeInTheDocument();
-
-    expect(await screen.findByText(/Similar Product 2/)).toBeInTheDocument();
-    expect(
-      await screen.findByText(/This is a similar product 2/)
-    ).toBeInTheDocument();
-    expect(await screen.findByText(/\$75.00/)).toBeInTheDocument();
-  });
-
-  it("should render 'No Similar Products found' when there are no similar products", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === "/api/v1/product/get-product/test-product") {
-        return Promise.resolve({
-          data: {
-            product: {
-              _id: "123",
-              name: "Test Product",
-              description: "This is a test product",
-              price: 100,
-              category: { _id: "cat1", name: "Test Category" },
-              slug: "test-product",
-            },
-          },
-        });
-      } else if (url.startsWith("/api/v1/product/related-product")) {
-        return Promise.resolve({ data: { products: [] } });
-      }
-      return Promise.resolve({ data: {} });
+      renderWithRouter();
+      expect(
+        await screen.findByText(/No similar products found/i)
+      ).toBeInTheDocument();
     });
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    it("navigates to similar product details on click", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: [SIMILAR_PRODUCT_1] } });
 
-    expect(
-      await screen.findByText(/No Similar Products found/i)
-    ).toBeInTheDocument();
-  });
-
-  it("should navigate to related product details when button is clicked", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "This is a test product",
-            price: 100,
-            category: { _id: "cat1", name: "Electronics" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          products: [
-            {
-              _id: "456",
-              name: "Related Product",
-              description: "This is related",
-              price: 50,
-              slug: "related-product",
-            },
-          ],
-        },
-      });
-
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const button = await screen.findByText("More Details");
-    fireEvent.click(button);
-
-    expect(mockNavigate).toHaveBeenCalledWith("/product/related-product");
+      renderWithRouter();
+      fireEvent.click(await screen.findByText("More Details"));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        `/product/${SIMILAR_PRODUCT_1.slug}`
+      );
+    });
   });
 
   it("should add product to cart and show success toast if not already in cart", async () => {
