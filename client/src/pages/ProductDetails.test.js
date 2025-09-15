@@ -104,6 +104,14 @@ describe("ProductDetails Component", () => {
       ).toBeInTheDocument();
     });
 
+    it("renders 'No Such Product Found' if product data is null", async () => {
+      axios.get.mockResolvedValue({ data: { product: null } });
+      renderWithRouter("/product/null-product");
+      expect(
+        await screen.findByText(/No Such Product Found./i)
+      ).toBeInTheDocument();
+    });
+
     it("renders error message for network failure", async () => {
       axios.get.mockRejectedValue(new Error("Network Error"));
       renderWithRouter("/product/error-product");
@@ -112,10 +120,24 @@ describe("ProductDetails Component", () => {
       ).toBeInTheDocument();
     });
 
-    it("shows 'No Similar Products found' if similar products fetch fails", async () => {
+    it("shows 'No similar products found' if similar products fetch fails", async () => {
       axios.get
         .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
         .mockRejectedValueOnce(new Error("Network Error"));
+
+      renderWithRouter();
+      expect(
+        await screen.findByText(new RegExp(MAIN_PRODUCT.name))
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(/No similar products found/i)
+      ).toBeInTheDocument();
+    });
+
+    it("shows 'No similar products found' if similar products is null", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: null } });
 
       renderWithRouter();
       expect(
