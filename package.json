@@ -1,6 +1,7 @@
 {
   "name": "ecom",
   "version": "1.0.0",
+  "type": "module",
   "description": "ecommerce rest api",
   "main": "server.js",
   "scripts": {
@@ -39,6 +40,7 @@
     "@babel/preset-env": "^7.24.5",
     "@babel/preset-react": "^7.24.1",
     "@playwright/test": "^1.44.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
     "identity-obj-proxy": "^3.0.0",
