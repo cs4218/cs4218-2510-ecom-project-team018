@@ -44,6 +44,32 @@ jest.mock("react-router-dom", () => ({
   useParams: () => ({ slug: "test-product" }),
 }));
 
+// Test Data
+const MAIN_PRODUCT = {
+  _id: "123",
+  name: "Test Product",
+  description: "This is a test product",
+  price: 100,
+  category: { _id: "cat1", name: "Test Category" },
+  slug: "test-product",
+};
+
+const SIMILAR_PRODUCT_1 = {
+  _id: "456",
+  name: "Similar Product 1",
+  description: "This is a similar product 1",
+  price: 50,
+  slug: "similar-product-1",
+};
+
+const SIMILAR_PRODUCT_2 = {
+  _id: "789",
+  name: "Similar Product 2",
+  description: "This is a similar product 2",
+  price: 75,
+  slug: "similar-product-2",
+};
+
 // Helper functions
 const renderWithRouter = (route = "/product/test-product") =>
   render(
