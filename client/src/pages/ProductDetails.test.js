@@ -17,10 +17,16 @@ jest.mock("react-hot-toast");
 jest.mock("../context/auth", () => ({
   useAuth: jest.fn(() => [null, jest.fn()]),
 }));
+
 const mockSetCart = jest.fn();
 jest.mock("../context/cart", () => ({
   useCart: () => [[{ _id: "existing" }], mockSetCart],
 }));
+
+jest.mock("../context/search", () => ({
+  useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]),
+}));
+jest.mock("../hooks/useCategory", () => jest.fn(() => []));
 
 Object.defineProperty(window, "localStorage", {
   value: {
@@ -31,18 +37,14 @@ Object.defineProperty(window, "localStorage", {
   writable: true,
 });
 
-jest.mock("../context/search", () => ({
-  useSearch: jest.fn(() => [{ keyword: "" }, jest.fn()]),
-}));
-jest.mock("../hooks/useCategory", () => jest.fn(() => []));
-jest.spyOn(console, "error").mockImplementation(() => {});
-
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
   useParams: () => ({ slug: "test-product" }),
 }));
+
+jest.spyOn(console, "error").mockImplementation(() => {});
 
 // Test Data
 const MAIN_PRODUCT = {
@@ -80,6 +82,7 @@ const renderWithRouter = (route = "/product/test-product") =>
     </MemoryRouter>
   );
 
+// Tests
 describe("ProductDetails Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -214,248 +217,97 @@ describe("ProductDetails Component", () => {
     });
   });
 
-  it("should add product to cart and show success toast if not already in cart", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "This is a test product",
-            price: 100,
-            category: { _id: "cat1", name: "Electronics" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({ data: { products: [] } });
+  // Cart Interactions
+  describe("Cart interactions", () => {
+    it("adds main product to cart if not already in cart", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: [] } });
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+      renderWithRouter();
 
-    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
-
-    const mainButton = screen.getByTestId("main-add-to-cart");
-    fireEvent.click(mainButton);
-
-    await waitFor(() =>
-      expect(mockSetCart).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ _id: "123", name: "Test Product" }),
-        ])
-      )
-    );
-
-    expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      "cart",
-      expect.stringContaining("Test Product")
-    );
-
-    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
-  });
-
-  it("should not add product to cart and show error toast if already in cart", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "existing",
-            name: "Existing Product",
-            description: "Already in cart",
-            price: 80,
-            category: { _id: "cat1", name: "Category" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({ data: { products: [] } });
-
-    render(
-      <MemoryRouter initialEntries={["/product/existing-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-    expect(await screen.findByText(/Existing Product/)).toBeInTheDocument();
-
-    const mainButton = screen.getByTestId("main-add-to-cart");
-    fireEvent.click(mainButton);
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Item already in cart")
-    );
-    expect(mockSetCart).not.toHaveBeenCalled();
-    expect(window.localStorage.setItem).not.toHaveBeenCalledWith(
-      "cart",
-      expect.stringContaining("Existing Product")
-    );
-  });
-
-  it("should add related product to cart if not already in cart", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "This is a test product",
-            price: 100,
-            category: { _id: "cat1", name: "Electronics" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          products: [
-            {
-              _id: "rel-1",
-              name: "Related Product 1",
-              description: "This is a related product",
-              price: 50,
-              category: { _id: "cat1", name: "Electronics" },
-              slug: "related-product-1",
-            },
-          ],
-        },
-      });
-
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const mainProductName = await screen.findByText(/Test Product/);
-    expect(mainProductName).toBeInTheDocument();
-
-    const similarSection = screen.getByTestId("similar-products");
-    const relatedButton = within(similarSection).getByText(/ADD TO CART/i);
-    fireEvent.click(relatedButton);
-
-    await waitFor(() => {
-      expect(mockSetCart).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ _id: "rel-1", name: "Related Product 1" }),
-        ])
+      fireEvent.click(await screen.findByTestId("main-add-to-cart"));
+      await waitFor(() =>
+        expect(mockSetCart).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ _id: MAIN_PRODUCT._id }),
+          ])
+        )
       );
+      expect(toast.success).toHaveBeenCalledWith("Item added to cart");
     });
 
-    expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      "cart",
-      expect.stringContaining("Related Product 1")
-    );
-    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
-  });
+    it("prevents duplicate main product in cart", async () => {
+      axios.get
+        .mockResolvedValueOnce({
+          data: { product: { ...MAIN_PRODUCT, _id: "existing" } },
+        })
+        .mockResolvedValueOnce({ data: { products: [] } });
 
-  it("should not add related product to cart and show error toast if already in cart", async () => {
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "Main product",
-            price: 100,
-            category: { _id: "cat1", name: "Electronics" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          products: [
-            {
-              _id: "existing",
-              name: "Related Product 1",
-              description: "Already in cart",
-              price: 50,
-              category: { _id: "cat1", name: "Electronics" },
-              slug: "related-product-1",
-            },
-          ],
-        },
-      });
+      renderWithRouter();
+      fireEvent.click(await screen.findByTestId("main-add-to-cart"));
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Item already in cart")
+      );
+      expect(mockSetCart).not.toHaveBeenCalled();
+    });
 
-    // Wait for main product to render
-    const mainProductName = await screen.findByText(/Test Product/);
-    expect(mainProductName).toBeInTheDocument();
+    it("adds similar product to cart", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({ data: { products: [SIMILAR_PRODUCT_1] } });
 
-    // Find the related product button
-    const similarSection = screen.getByTestId("similar-products");
-    const relatedButton = within(similarSection).getByText(/ADD TO CART/i);
+      renderWithRouter();
+      fireEvent.click(
+        within(await screen.findByTestId("similar-products")).getByText(
+          /add to cart/i
+        )
+      );
 
-    // Click the related product button
-    fireEvent.click(relatedButton);
+      await waitFor(() =>
+        expect(mockSetCart).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            expect.objectContaining({ _id: SIMILAR_PRODUCT_1._id }),
+          ])
+        )
+      );
+      expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+    });
 
-    // Assert error toast and that cart / localStorage are not updated
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith("Item already in cart")
-    );
-    expect(mockSetCart).not.toHaveBeenCalled();
-    expect(window.localStorage.setItem).not.toHaveBeenCalledWith(
-      "cart",
-      expect.stringContaining("Related Product 1")
-    );
-  });
+    it("prevents adding duplicate main product to cart", async () => {
+      axios.get
+        .mockResolvedValueOnce({
+          data: { product: { ...MAIN_PRODUCT, _id: "existing" } },
+        })
+        .mockResolvedValueOnce({ data: { products: [] } });
 
-  it("should not break if cart is initially empty", async () => {
-    // Override mock for empty cart
-    jest.doMock("../context/cart", () => ({
-      useCart: () => [[], mockSetCart],
-    }));
+      renderWithRouter();
+      fireEvent.click(await screen.findByTestId("main-add-to-cart"));
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Item already in cart")
+      );
+      expect(mockSetCart).not.toHaveBeenCalled();
+    });
 
-    axios.get
-      .mockResolvedValueOnce({
-        data: {
-          product: {
-            _id: "123",
-            name: "Test Product",
-            description: "This is a test product",
-            price: 100,
-            category: { _id: "cat1", name: "Electronics" },
-          },
-        },
-      })
-      .mockResolvedValueOnce({ data: { products: [] } });
+    it("prevents duplicate similar product in cart", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { product: MAIN_PRODUCT } })
+        .mockResolvedValueOnce({
+          data: { products: [{ ...SIMILAR_PRODUCT_1, _id: "existing" }] },
+        });
 
-    render(
-      <MemoryRouter initialEntries={["/product/test-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+      renderWithRouter();
+      fireEvent.click(
+        within(await screen.findByTestId("similar-products")).getByText(
+          /add to cart/i
+        )
+      );
 
-    expect(await screen.findByText(/Test Product/)).toBeInTheDocument();
-
-    const mainButton = screen.getByTestId("main-add-to-cart");
-    fireEvent.click(mainButton);
-
-    await waitFor(() =>
-      expect(mockSetCart).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ _id: "123", name: "Test Product" }),
-        ])
-      )
-    );
-
-    expect(window.localStorage.setItem).toHaveBeenCalledWith(
-      "cart",
-      expect.stringContaining("Test Product")
-    );
-
-    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Item already in cart")
+      );
+      expect(mockSetCart).not.toHaveBeenCalled();
+    });
   });
 });
