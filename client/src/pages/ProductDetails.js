@@ -3,12 +3,15 @@ import Layout from "./../components/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
+import { useCart } from "../context/cart";
+import toast from "react-hot-toast";
 
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState({});
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [cart, setCart] = useCart();
 
   //initalp details
   useEffect(() => {
@@ -37,6 +40,18 @@ const ProductDetails = () => {
       console.log(error);
     }
   };
+
+  const addToCart = (p) => {
+    const alreadyInCart = cart.findIndex((item) => item._id === p._id) !== -1;
+    if (alreadyInCart) {
+      toast.error("Item already in cart");
+      return;
+    }
+    setCart([...cart, p]);
+    localStorage.setItem("cart", JSON.stringify([...cart, p]));
+    toast.success("Item added to cart");
+  };
+
   return (
     <Layout>
       <div className="row container product-details">
@@ -62,7 +77,13 @@ const ProductDetails = () => {
             })}
           </h6>
           <h6>Category : {product?.category?.name}</h6>
-          <button className="btn btn-secondary ms-1">ADD TO CART</button>
+          <button
+            className="btn btn-secondary ms-1"
+            onClick={() => addToCart(product)}
+            data-testid="main-add-to-cart"
+          >
+            ADD TO CART
+          </button>
         </div>
       </div>
       <hr />
@@ -99,19 +120,12 @@ const ProductDetails = () => {
                   >
                     More Details
                   </button>
-                  {/* <button
-                  className="btn btn-dark ms-1"
-                  onClick={() => {
-                    setCart([...cart, p]);
-                    localStorage.setItem(
-                      "cart",
-                      JSON.stringify([...cart, p])
-                    );
-                    toast.success("Item Added to cart");
-                  }}
-                >
-                  ADD TO CART
-                </button> */}
+                  <button
+                    className="btn btn-dark ms-1"
+                    onClick={() => addToCart(p)}
+                  >
+                    ADD TO CART
+                  </button>
                 </div>
               </div>
             </div>
