@@ -64,6 +64,14 @@ const ProductDetails = () => {
     getProduct();
   }, [getProduct]);
 
+  // Helper functions
+  const formatPrice = (price) => {
+    return price.toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+  };
+
   const addToCart = (p) => {
     const alreadyInCart = cart.findIndex((item) => item._id === p._id) !== -1;
     if (alreadyInCart) {
@@ -104,11 +112,12 @@ const ProductDetails = () => {
       <div className="row container product-details">
         <div className="col-md-6">
           <img
-            src={`/api/v1/product/product-photo/${product._id}`}
+            src={getImageUrl(product._id)}
             className="card-img-top"
-            alt={product.name}
+            alt={product?.name || "Product"}
             height="300"
             width="350"
+            onError={(e) => (e.target.src = "/images/placeholder.png")}
           />
         </div>
         <div className="col-md-6 product-details-info">
@@ -116,14 +125,8 @@ const ProductDetails = () => {
           <hr />
           <h6>Name : {product.name}</h6>
           <h6>Description : {product.description}</h6>
-          <h6>
-            Price :
-            {product?.price?.toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-            })}
-          </h6>
-          <h6>Category : {product?.category?.name}</h6>
+          <h6>Price : {formatPrice(product.price)}</h6>
+          <h6>Category : {product.category?.name || "Uncategorized"}</h6>
           <button
             className="btn btn-secondary ms-1"
             onClick={() => addToCart(product)}
@@ -139,25 +142,23 @@ const ProductDetails = () => {
         data-testid="similar-products"
       >
         <h4>Similar Products ➡️</h4>
-        {relatedProducts.length < 1 && (
+        {!relatedProducts?.length >= 1 && (
           <p className="text-center">No similar products found</p>
         )}
         <div className="d-flex flex-wrap">
           {relatedProducts?.map((p) => (
             <div className="card m-2" key={p._id}>
               <img
-                src={`/api/v1/product/product-photo/${p._id}`}
+                src={getImageUrl(p._id)}
                 className="card-img-top"
                 alt={p.name}
+                onError={(e) => (e.target.src = "/images/placeholder.png")}
               />
               <div className="card-body">
                 <div className="card-name-price">
                   <h5 className="card-title">{p.name}</h5>
                   <h5 className="card-title card-price">
-                    {p.price.toLocaleString("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                    })}
+                    {formatPrice(p.price)}
                   </h5>
                 </div>
                 <p className="card-text">{p.description.substring(0, 60)}...</p>
