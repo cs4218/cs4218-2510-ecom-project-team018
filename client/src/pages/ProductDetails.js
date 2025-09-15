@@ -72,6 +72,9 @@ const ProductDetails = () => {
     });
   };
 
+  const getImageUrl = (id) =>
+    id ? `/api/v1/product/product-photo/${id}` : "/images/placeholder.png";
+
   const addToCart = (p) => {
     const alreadyInCart = cart.findIndex((item) => item._id === p._id) !== -1;
     if (alreadyInCart) {
