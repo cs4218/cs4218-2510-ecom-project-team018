@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Layout from "./../components/Layout";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
@@ -9,37 +9,60 @@ import toast from "react-hot-toast";
 const ProductDetails = () => {
   const params = useParams();
   const navigate = useNavigate();
-  const [product, setProduct] = useState({});
-  const [relatedProducts, setRelatedProducts] = useState([]);
   const [cart, setCart] = useCart();
 
-  //initalp details
-  useEffect(() => {
-    if (params?.slug) getProduct();
-  }, [params?.slug]);
-  //getProduct
-  const getProduct = async () => {
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch single product
+  const getProduct = useCallback(async () => {
+    if (!params?.slug) return;
+
     try {
+      setLoading(true);
+      setError("");
       const { data } = await axios.get(
         `/api/v1/product/get-product/${params.slug}`
       );
-      setProduct(data?.product);
-      getSimilarProduct(data?.product._id, data?.product.category._id);
-    } catch (error) {
-      console.log(error);
+
+      setProduct(data?.product || null);
+
+      if (data?.product?._id && data?.product?.category?._id) {
+        await getSimilarProducts(data.product._id, data.product.category._id);
+      } else {
+        setRelatedProducts([]);
+      }
+    } catch (err) {
+      console.error("Error fetching product:", err);
+
+      if (err.response?.status === 404) {
+        setProduct(null);
+      } else {
+        setError("Failed to load product details. Please try again later.");
+      }
+    } finally {
+      setLoading(false);
     }
-  };
-  //get similar product
-  const getSimilarProduct = async (pid, cid) => {
+  }, [params?.slug]);
+
+  // Fetch similar products
+  const getSimilarProducts = async (pid, cid) => {
     try {
       const { data } = await axios.get(
         `/api/v1/product/related-product/${pid}/${cid}`
       );
-      setRelatedProducts(data?.products);
-    } catch (error) {
-      console.log(error);
+      setRelatedProducts(data?.products || []);
+    } catch (err) {
+      console.error("Error fetching related products:", err);
+      setRelatedProducts([]);
     }
   };
+
+  useEffect(() => {
+    getProduct();
+  }, [getProduct]);
 
   const addToCart = (p) => {
     const alreadyInCart = cart.findIndex((item) => item._id === p._id) !== -1;
