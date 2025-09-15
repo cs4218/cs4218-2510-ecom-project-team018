@@ -78,9 +78,9 @@ describe("Auth Context", () => {
       );
 
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith("auth");
-      expect(getByTestId("user-name")).toHaveTextContent("John Doe");
-      expect(getByTestId("user-email")).toHaveTextContent("john@example.com");
-      expect(getByTestId("token")).toHaveTextContent("mock-token-123");
+      expect(getByTestId("user-name")).toHaveTextContent(mockAuthData.user.name);
+      expect(getByTestId("user-email")).toHaveTextContent(mockAuthData.user.email);
+      expect(getByTestId("token")).toHaveTextContent(mockAuthData.token);
     });
 
     it("should set axios authorization header when token is present", () => {
