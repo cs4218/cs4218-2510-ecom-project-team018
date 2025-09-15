@@ -11,6 +11,7 @@ import {
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProductDetails from "./ProductDetails";
 
+// Mocks
 jest.mock("axios");
 jest.mock("react-hot-toast");
 jest.mock("../context/auth", () => ({
@@ -42,6 +43,16 @@ jest.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,
   useParams: () => ({ slug: "test-product" }),
 }));
+
+// Helper functions
+const renderWithRouter = (route = "/product/test-product") =>
+  render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/product/:slug" element={<ProductDetails />} />
+      </Routes>
+    </MemoryRouter>
+  );
 
 describe("ProductDetails Component", () => {
   beforeEach(() => {
