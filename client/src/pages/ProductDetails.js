@@ -4,7 +4,12 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/ProductDetailsStyles.css";
 import { useCart } from "../context/cart";
-import toast from "react-hot-toast";
+import {
+  formatPrice,
+  getImageUrl,
+  addToCart,
+  handleImgError,
+} from "../utils/productUtils";
 
 const ProductDetails = () => {
   const params = useParams();
@@ -62,32 +67,6 @@ const ProductDetails = () => {
     getProduct();
   }, [getProduct]);
 
-  // Helper functions
-  const formatPrice = (price) => {
-    return price.toLocaleString("en-US", {
-      style: "currency",
-      currency: "USD",
-    });
-  };
-
-  const getImageUrl = (id) =>
-    id ? `/api/v1/product/product-photo/${id}` : "/images/placeholder.png";
-
-  const addToCart = (p) => {
-    const alreadyInCart = cart.findIndex((item) => item._id === p._id) !== -1;
-    if (alreadyInCart) {
-      toast.error("Item already in cart");
-      return;
-    }
-    setCart([...cart, p]);
-    localStorage.setItem("cart", JSON.stringify([...cart, p]));
-    toast.success("Item added to cart");
-  };
-
-  const handleImgError = (e) => {
-    e.target.src = "/images/placeholder.png";
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -138,7 +117,7 @@ const ProductDetails = () => {
           <h6>Category : {product.category?.name || "Uncategorized"}</h6>
           <button
             className="btn btn-secondary ms-1"
-            onClick={() => addToCart(product)}
+            onClick={() => addToCart(cart, setCart, product)}
             data-testid="main-add-to-cart"
           >
             ADD TO CART
@@ -151,7 +130,7 @@ const ProductDetails = () => {
         data-testid="similar-products"
       >
         <h4>Similar Products ➡️</h4>
-        {!relatedProducts?.length >= 1 && (
+        {relatedProducts?.length === 0 && (
           <p className="text-center">No similar products found</p>
         )}
         <div className="d-flex flex-wrap">
@@ -180,7 +159,7 @@ const ProductDetails = () => {
                   </button>
                   <button
                     className="btn btn-dark ms-1"
-                    onClick={() => addToCart(p)}
+                    onClick={() => addToCart(cart, setCart, p)}
                   >
                     ADD TO CART
                   </button>
