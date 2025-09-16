@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import axios from 'axios';
+import { render } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { useSearch } from '../context/search';
 import '@testing-library/jest-dom/extend-expect';
@@ -40,9 +39,9 @@ describe('Search Component', () => {
 
         const { findByText } = render(
             <MemoryRouter initialEntries={["/search"]}>
-            <Routes>
-                <Route path="/search" element={<Search />} />
-            </Routes>
+                <Routes>
+                    <Route path="/search" element={<Search />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -66,9 +65,9 @@ describe('Search Component', () => {
 
         const { findByText } = render(
             <MemoryRouter initialEntries={["/search"]}>
-            <Routes>
-                <Route path="/search" element={<Search />} />
-            </Routes>
+                <Routes>
+                    <Route path="/search" element={<Search />} />
+                </Routes>
             </MemoryRouter>
         );
 
