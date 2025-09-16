@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // display name
   displayName: "backend",
 
