@@ -4,6 +4,18 @@ import "@testing-library/jest-dom";
 import CategoryForm from "./CategoryForm";
 
 describe("Category Form", () => {
+  test("renders input field and button", () => {
+    render(
+      <CategoryForm handleSubmit={jest.fn()} value="" setValue={jest.fn()} />
+    );
+
+    const input = screen.getByPlaceholderText("Enter new category");
+    const button = screen.getByRole("button", { name: /submit/i });
+
+    expect(input).toBeInTheDocument();
+    expect(button).toBeInTheDocument();
+  });
+
   test("renders input field with placeholder", () => {
     // if no value entered, placeholder value shows
     render(
