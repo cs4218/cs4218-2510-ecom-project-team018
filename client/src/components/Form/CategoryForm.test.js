@@ -14,4 +14,19 @@ describe("Category Form", () => {
       screen.getByPlaceholderText("Enter new category")
     ).toBeInTheDocument();
   });
+
+  test("renders input field with given input", () => {
+    // when editing an existing category, category form should render with given input
+    render(
+      <CategoryForm
+        handleSubmit={jest.fn()}
+        value="Electronics"
+        setValue={jest.fn()}
+      />
+    );
+
+    expect(screen.getByPlaceholderText("Enter new category")).toHaveValue(
+      "Electronics"
+    );
+  });
 });
