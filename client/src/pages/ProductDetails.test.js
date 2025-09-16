@@ -278,7 +278,7 @@ describe("ProductDetails Component", () => {
       expect(toast.success).toHaveBeenCalledWith("Item added to cart");
     });
 
-    it("prevents duplicate main product in cart", async () => {
+    it("prevents adding duplicate main product in cart", async () => {
       mockProductApi({
         ...MAIN_PRODUCT,
         _id: "existing",
@@ -311,20 +311,6 @@ describe("ProductDetails Component", () => {
         )
       );
       expect(toast.success).toHaveBeenCalledWith("Item added to cart");
-    });
-
-    it("prevents adding duplicate main product to cart", async () => {
-      mockProductApi({
-        ...MAIN_PRODUCT,
-        _id: "existing",
-      });
-
-      renderWithRouter();
-      fireEvent.click(await screen.findByTestId("main-add-to-cart"));
-      await waitFor(() =>
-        expect(toast.error).toHaveBeenCalledWith("Item already in cart")
-      );
-      expect(mockSetCart).not.toHaveBeenCalled();
     });
 
     it("prevents duplicate similar product in cart", async () => {
