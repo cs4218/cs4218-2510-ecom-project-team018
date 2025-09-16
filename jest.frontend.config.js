@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   // name displayed during tests
   displayName: "frontend",
 
@@ -26,7 +26,7 @@ export default {
   collectCoverage: true,
   
   collectCoverageFrom: ["client/src/!(_*)/**", "!client/src/**/*.test.js"],
-  
+
   coverageThreshold: {
     global: {
       lines: 90,
