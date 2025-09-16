@@ -22,6 +22,13 @@ jest.mock("../context/cart", () => ({
   useCart: jest.fn(() => [null, jest.fn()]),
 }));
 
+jest.mock("../hooks/useCategory", () =>
+  jest.fn(() => [
+    { _id: "c1", name: "Electronics", slug: "electronics" },
+    { _id: "c2", name: "Books", slug: "books" },
+  ])
+);
+
 describe('Search Component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
