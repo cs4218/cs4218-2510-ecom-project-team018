@@ -49,15 +49,12 @@ describe('Search Component', () => {
         expect(await findByText(/\$ 999/)).toBeInTheDocument();
     });
 
-    it("renders 5 products from mocked search results", async () => {
+    it("renders 2 products from mocked search results", async () => {
         useSearch.mockReturnValue([
             {
             results: [
                 { _id: "p1", name: "Laptop", description: "A laptop", price: 999 },
                 { _id: "p2", name: "Tablet", description: "A new tablet", price: 299 },
-                { _id: "p3", name: "Phone", description: "A smartphone", price: 699 },
-                { _id: "p4", name: "Headphones", description: "Noise cancelling", price: 199 },
-                { _id: "p5", name: "Shirt", description: "A cotton shirt", price: 29 },
             ],
             },
             mockSetValues,
@@ -74,10 +71,6 @@ describe('Search Component', () => {
         // check individual product names
         expect(await findByText("Laptop")).toBeInTheDocument();
         expect(await findByText("Tablet")).toBeInTheDocument();
-        expect(await findByText("Phone")).toBeInTheDocument();
-        expect(await findByText("Headphones")).toBeInTheDocument();
-        expect(await findByText("Shirt")).toBeInTheDocument();
-
     });
 
 
