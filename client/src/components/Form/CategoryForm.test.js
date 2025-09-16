@@ -1,6 +1,7 @@
-import React from "react";
-import { render, screen } from "@testing-library/react";
+import React, { useState } from "react";
+import { render, screen, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import userEvent from "@testing-library/user-event";
 import CategoryForm from "./CategoryForm";
 
 describe("Category Form", () => {
@@ -28,5 +29,31 @@ describe("Category Form", () => {
     expect(screen.getByPlaceholderText("Enter new category")).toHaveValue(
       "Electronics"
     );
+  });
+
+  test("set input field value when typing", async () => {
+    // simulate typing into the input field and checking if updated correctly
+    // arrange
+    const TestWrapper = () => {
+      const [value, setValue] = useState("");
+      return (
+        <CategoryForm
+          handleSubmit={jest.fn()}
+          value={value}
+          setValue={setValue}
+        />
+      );
+    };
+
+    render(<TestWrapper />);
+
+    // act
+    const input = screen.getByPlaceholderText("Enter new category");
+    await act(async () => {
+      await userEvent.type(input, "Books");
+    });
+
+    // assert
+    expect(input).toHaveValue("Books");
   });
 });
