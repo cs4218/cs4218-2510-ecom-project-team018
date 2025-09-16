@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import userEvent from "@testing-library/user-event";
 import CategoryForm from "./CategoryForm";
 
 describe("Category Form", () => {
@@ -31,7 +30,7 @@ describe("Category Form", () => {
     );
   });
 
-  test("set input field value when typing", async () => {
+  test("set input field value when typing", () => {
     // simulate typing into the input field and checking if updated correctly
     // arrange
     const TestWrapper = () => {
@@ -49,11 +48,37 @@ describe("Category Form", () => {
 
     // act
     const input = screen.getByPlaceholderText("Enter new category");
-    await act(async () => {
-      await userEvent.type(input, "Books");
-    });
+    fireEvent.change(input, { target: { value: "Books" } });
 
     // assert
     expect(input).toHaveValue("Books");
+  });
+
+  test("calls handleSubmit when form is submitted", () => {
+    // when the 'CategoryForm' is submitted, check that 'handleSubmit' is called
+    // note: since the actual functionality is to be passed to this 'CategoryForm' component,
+    // this test only checks if its called and not test the functionality
+
+    // arrange
+    const mockHandleSubmit = jest.fn();
+    const TestWrapper = () => {
+      const [value, setValue] = useState("");
+      return (
+        <CategoryForm
+          handleSubmit={mockHandleSubmit}
+          value={value}
+          setValue={setValue}
+        />
+      );
+    };
+
+    render(<TestWrapper />);
+
+    // act
+    const form = screen.getByTestId("category-form");
+    fireEvent.submit(form);
+
+    // assert
+    expect(mockHandleSubmit).toHaveBeenCalled();
   });
 });
