@@ -31,6 +31,6 @@ module.exports = {
   //     lines: 90,
   //     functions: 90,
   //   },
-  },
+  // },
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
 };
