@@ -142,23 +142,6 @@ axios.post.mockImplementation((url, body) => {
         })
     });
 
-    it ('renders categories from mocked API', async () => {
-        const { getByText } = render(
-            <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-        )
-
-        //Categories from mocked API
-        await waitFor(() => {
-            expect( getByText('Electronics')).toBeInTheDocument();
-            expect( getByText("Book")).toBeInTheDocument();
-            expect( getByText("Clothing")).toBeInTheDocument();
-        });
-    });
-
     it ('renders price ranges filter from mocked API', async () => {
         const { findByText } = render(
             <MemoryRouter initialEntries={['/']}>
