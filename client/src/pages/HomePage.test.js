@@ -426,9 +426,11 @@ axios.post.mockImplementation((url, body) => {
             </MemoryRouter>
         );
 
-        expect(screen.queryByRole('checkbox', { name: 'Electronics' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('checkbox', { name: 'Book' })).not.toBeInTheDocument();
-        expect(screen.queryByRole('checkbox', { name: 'Clothing' })).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByRole('checkbox', { name: 'Electronics' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('checkbox', { name: 'Book' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('checkbox', { name: 'Clothing' })).not.toBeInTheDocument();
+        });
     });
 
     it("should load more products when Loadmore is clicked", async () => {
@@ -481,8 +483,10 @@ axios.post.mockImplementation((url, body) => {
         );
 
         // Wait for first 3 products
-        const initialProducts = await screen.findAllByTestId("product-name");
-        expect(initialProducts).toHaveLength(3);
+        await waitFor(async () => {
+            const initialProducts = await screen.findAllByTestId("product-name");
+            expect(initialProducts).toHaveLength(3);
+        });
 
         // Click loadmore
         const loadMoreBtn = await screen.findByRole("button", { name: /Loadmore/i });
@@ -651,8 +655,10 @@ axios.post.mockImplementation((url, body) => {
             await userEvent.click(electronicsCheckbox);
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
-        expect(consoleSpy.mock.calls[0][0].message).toBe("Filter API failed");
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+            expect(consoleSpy.mock.calls[0][0].message).toBe("Filter API failed");
+        });
 
         consoleSpy.mockRestore();
     });
@@ -731,7 +737,9 @@ axios.post.mockImplementation((url, body) => {
         expect((await screen.findAllByTestId('product-name'))).toHaveLength(3);
 
         const electronicCheckbox = await screen.findByRole('checkbox', { name: 'Electronics' });
-        await userEvent.click(electronicCheckbox);
+        await act(async () => {
+            await userEvent.click(electronicCheckbox);
+        });
 
         // Wait for the grid to update to "no items"
         await waitFor(() => {

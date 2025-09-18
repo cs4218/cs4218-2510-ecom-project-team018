@@ -42,9 +42,9 @@ const HomePage = () => {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
       setProducts(data.products);
+      setLoading(false);
     } catch (err) {
       console.log(err);
-    } finally {
       setLoading(false);
     }
   };
