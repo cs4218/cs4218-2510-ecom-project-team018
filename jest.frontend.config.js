@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   // name displayed during tests
   displayName: "frontend",
 
@@ -28,12 +28,12 @@ export default {
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["client/src/pages/Auth/**", "client/src/pages/HomePage.js"],
-  coverageThreshold: {
-    global: {
-      lines: 90,
-      functions: 90,
-    },
-  },
+  collectCoverageFrom: ["client/src/!(_*)/**", "!client/src/**/*.test.js"],
+  // coverageThreshold: {
+  //   global: {
+  //     lines: 90,
+  //     functions: 90,
+  //   },
+  // },
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
 };

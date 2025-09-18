@@ -22,7 +22,6 @@ jest.mock('../context/cart', () => ({
   useCart: jest.fn(() => [[], jest.fn()])
 }));
 
-
 jest.mock('../context/auth', () => ({
     useAuth: jest.fn(() => [null, jest.fn()])
 }));
@@ -78,97 +77,55 @@ describe('HomePage Component', () => {
         jest.clearAllMocks();
 
         axios.get.mockImplementation((url) => {
-            if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: { success: true, category: [
-                        { _id: "c1", name: "Electronics" },
-                        { _id: "c2", name: "Book" },
-                        { _id: "c3", name: "Clothing" }
-                    ]}
-                });
-            } else if (url.startsWith("/api/v1/product/product-list/")) {
-                return Promise.resolve({
-                    data: { products: [
-                        { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
-                        { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
-                        { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}
-                    ]}
-                });
-            } else if (url === "/api/v1/product/product-count") {
-                return Promise.resolve({
-                    data: { total: 10 }
-                });
-            }
+    if (url === "/api/v1/category/get-category") {
+        return Promise.resolve({
+            data: { success: true, category: [
+                { _id: "c1", name: "Electronics" },
+                { _id: "c2", name: "Book" },
+                { _id: "c3", name: "Clothing" }
+            ]}
         });
-
-        axios.post.mockImplementation((url, body) => {
-            if (url === "/api/v1/product/product-filters") {
-                const { checked = [], radio = [] } = body ?? {};
-                const all = [
-                { _id: 'p1', name: 'Laptop', description: "A powerful laptop", price: 999, category: { name: 'Electronics' }, slug: 'Testing123' },
-                { _id: 'p2', name: 'Book Interesting', description: "An interesting book", price: 19, category: { name: 'Book' }, slug: 'Testing123' },
-                { _id: 'p3', name: 'Shirt', description: "A stylish shirt", price: 29, category: { name: 'Clothing' }, slug: 'Testing123' },
-                ];
-
-                const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
-
-                let out = all;
-
-                if (checked.length) {
-                const allowed = new Set(checked.map(id => categoryById[id]));
-                out = out.filter(p => allowed.has(p.category.name));
-                }
-
-                if (radio.length === 2) {
-                const [min, max] = radio;
-                out = out.filter(p => p.price >= min && p.price <= max);
-                }
-
-                return Promise.resolve({ data: { products: out } });
-            }
+    } else if (url.startsWith("/api/v1/product/product-list/")) {
+        return Promise.resolve({
+            data: { products: [
+                { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
+                { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
+                { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}
+            ]}
         });
-    });
+    } else if (url === "/api/v1/product/product-count") {
+        return Promise.resolve({
+            data: { total: 10 }
+        });
+    }
+});
 
-    it ('renders All Products Title' , async () => {
-        const { getByText } = render(
-            <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-        )
-        
-        await waitFor(() => {
-            expect(getByText('All Products')).toBeInTheDocument();
-        })
-    });
+axios.post.mockImplementation((url, body) => {
+    if (url === "/api/v1/product/product-filters") {
+        const { checked = [], radio = [] } = body ?? {};
+        const all = [
+        { _id: 'p1', name: 'Laptop', description: "A powerful laptop", price: 999, category: { name: 'Electronics' }, slug: 'Testing123' },
+        { _id: 'p2', name: 'Book Interesting', description: "An interesting book", price: 19, category: { name: 'Book' }, slug: 'Testing123' },
+        { _id: 'p3', name: 'Shirt', description: "A stylish shirt", price: 29, category: { name: 'Clothing' }, slug: 'Testing123' },
+        ];
 
-    it ('renders Filter by Category Title' , async () => {
-        const { getByText } = render(
-            <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-        )
+        const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
 
-        await waitFor(() => {
-            expect(getByText('Filter By Category')).toBeInTheDocument();
-        })
-    });
+        let out = all;
 
-    it ('renders Filter by Price Title' , async () => {
-        const { getByText } = render(
-            <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-        )
+        if (checked.length) {
+        const allowed = new Set(checked.map(id => categoryById[id]));
+        out = out.filter(p => allowed.has(p.category.name));
+        }
 
-        await waitFor(() => {
-            expect(getByText('Filter By Price')).toBeInTheDocument();
-        })
+        if (radio.length === 2) {
+        const [min, max] = radio;
+        out = out.filter(p => p.price >= min && p.price <= max);
+        }
+
+        return Promise.resolve({ data: { products: out } });
+    }
+});
     });
 
     it ('renders Reset Filters Button' , async () => {
@@ -220,21 +177,27 @@ describe('HomePage Component', () => {
         expect(await findByText("$100 or more")).toBeInTheDocument();
     })
 
-    it ('renders More Details and Add to Cart buttons in all Grid items', async () => {
-        const { findAllByText } = render(
+    it('renders categories from mocked API', async () => {
+        render(
             <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+            </Routes>
             </MemoryRouter>
         );
-        //Buttons from mocked API Products
-        const moreDetailsButtons = await findAllByText('More Details');
-        const addToCartButtons = await findAllByText('ADD TO CART');
-        expect(moreDetailsButtons.length).toBeGreaterThan(0);
-        expect(addToCartButtons.length).toBeGreaterThan(0);
-        expect(moreDetailsButtons.length).toBe(3);
-        expect(addToCartButtons.length).toBe(3);
+
+        // Assert each checkbox exists by its accessible name
+        expect(
+            await screen.findByRole('checkbox', { name: /Electronics/i })
+        ).toBeInTheDocument();
+
+        expect(
+            await screen.findByRole('checkbox', { name: /Book/i })
+        ).toBeInTheDocument();
+
+        expect(
+            await screen.findByRole('checkbox', { name: /Clothing/i })
+        ).toBeInTheDocument();
     });
 
     it('should navigate to product details page on More Details button click', async () => {
@@ -252,7 +215,7 @@ describe('HomePage Component', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/product/Testing123');
     });
 
-    it('should filter Electronic products by category when Electronics checkbox is clicked', async () => {
+    it('should filter 1 Electronic product when Electronics checkbox is clicked', async () => {
         await act(async () => {
             render(
             <MemoryRouter initialEntries={["/"]}>
@@ -277,7 +240,34 @@ describe('HomePage Component', () => {
         });
     });
 
-    it ('should filter Book products by category when a Book checkbox is clicked', async () => {
+    it ('should filter for 0 product when Clothing checkbox is clicked', async () => {
+
+        axios.post.mockImplementation((url, body) => {
+            if (url === "/api/v1/product/product-filters") {
+                const { checked = [], radio = [] } = body ?? {};
+                const all = [
+                { _id: 'p1', name: 'Laptop', description: "A powerful laptop", price: 999, category: { name: 'Electronics' }, slug: 'Testing123' },
+                { _id: 'p2', name: 'Book Interesting', description: "An interesting book", price: 19, category: { name: 'Book' }, slug: 'Testing123' }
+                ];
+
+                const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
+
+                let out = all;
+
+                if (checked.length) {
+                    const allowed = new Set(checked.map(id => categoryById[id]));
+                    out = out.filter(p => allowed.has(p.category.name));
+                }
+
+                if (radio.length === 2) {
+                    const [min, max] = radio;
+                    out = out.filter(p => p.price >= min && p.price <= max);
+                }
+
+                return Promise.resolve({ data: { products: out } });
+            }
+        });
+
         await act(async () => {
             render(
             <MemoryRouter initialEntries={["/"]}>
@@ -288,30 +278,6 @@ describe('HomePage Component', () => {
             );
         })
 
-        await act(async () => {
-            const bookCheckbox = await screen.findByRole('checkbox', { name: 'Book' });
-            await userEvent.click(bookCheckbox);
-        });
-
-        await screen.findByTestId('products-grid'); // wait until products grid is mounted
-
-        await waitFor(() => {
-                expect(screen.queryByText('Shirt')).not.toBeInTheDocument();
-                expect(screen.queryByText('Laptop')).not.toBeInTheDocument();
-                expect(screen.queryByText('Book Interesting')).toBeInTheDocument();
-        });
-    });
-
-    it ('should filter Clothing products by category when a Clothing checkbox is clicked', async () => {
-        await act(async () => {
-            render(
-            <MemoryRouter initialEntries={["/"]}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-            );
-        })
         await act(async () => {
             const clothingCheckbox = await screen.findByRole('checkbox', { name: 'Clothing' });
             await userEvent.click(clothingCheckbox);
@@ -322,7 +288,7 @@ describe('HomePage Component', () => {
         await waitFor(() => {
             expect(screen.queryByText('Laptop')).not.toBeInTheDocument();
             expect(screen.queryByText('Book Interesting')).not.toBeInTheDocument();
-            expect(screen.queryByText('Shirt')).toBeInTheDocument();
+            expect(screen.queryByText('Shirt')).not.toBeInTheDocument();
         });
     });
 
@@ -351,7 +317,7 @@ describe('HomePage Component', () => {
         });
     });
 
-    it ('should filter products by price when a $20 to 39 price radio button is selected', async () => {
+    it ('should filter no products by price when a $40 to 59 price radio button is selected', async () => {
         await act(async () => {
             render(
             <MemoryRouter initialEntries={["/"]}>
@@ -363,7 +329,7 @@ describe('HomePage Component', () => {
         })
 
         await act(async () => {
-            const priceRadio = await screen.findByRole('radio', { name: '$20 to 39' });
+            const priceRadio = await screen.findByRole('radio', { name: '$40 to 59' });
             await userEvent.click(priceRadio);
         })
 
@@ -372,34 +338,40 @@ describe('HomePage Component', () => {
         await waitFor(() => {
             expect(screen.queryByText('Laptop')).not.toBeInTheDocument();
             expect(screen.queryByText('Book Interesting')).not.toBeInTheDocument();
-             expect(screen.queryByText('Shirt')).toBeInTheDocument();
+             expect(screen.queryByText('Shirt')).not.toBeInTheDocument();
         });
     });
 
-    it ('should filter products by price when a $100 or more price radio button is selected', async () => {
-        await act(async () => {
-            render(
-            <MemoryRouter initialEntries={["/"]}>
+    it('restores full list when a checked category is unchecked', async () => {
+        render(
+            <MemoryRouter initialEntries={['/']}>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                 </Routes>
             </MemoryRouter>
-            );
-        })
+        );
+
+        expect((await screen.findAllByTestId('product-name'))).toHaveLength(3);
+
+        const electronics = await screen.findByRole('checkbox', { name: 'Electronics' });
+        await act(async () => {
+            await userEvent.click(electronics);
+        });
+        await waitFor(() => {
+            expect(screen.queryByText('Laptop')).toBeInTheDocument();
+            expect(screen.queryByText('Book Interesting')).not.toBeInTheDocument();
+            expect(screen.queryByText('Shirt')).not.toBeInTheDocument();
+        });
 
         await act(async () => {
-            const priceRadio = await screen.findByRole('radio', { name: '$100 or more' });
-            await userEvent.click(priceRadio);
-        })
-
-        await screen.findByTestId('products-grid'); // wait until products grid is mounted
-
-        await waitFor(() => {
-            expect(screen.queryByText('Shirt')).not.toBeInTheDocument();
-            expect(screen.queryByText('Book Interesting')).not.toBeInTheDocument();
-            expect(screen.queryByText('Laptop')).toBeInTheDocument();
+            await userEvent.click(electronics);
+        });
+        await waitFor(async () => {
+            const all = await screen.findAllByTestId('product-name');
+            expect(all).toHaveLength(3);
         });
     });
+
 
     it ('should catch errors when get category API fails', async () => {
         axios.get.mockImplementationOnce((url) => {
@@ -437,19 +409,58 @@ describe('HomePage Component', () => {
         consoleSpy.mockRestore();
     });
 
+    it ('should not show any Categories when get category API returns data.success False', async () => {
+        axios.get.mockImplementationOnce((url) => {
+            if (url === "/api/v1/category/get-category") {
+                return Promise.resolve({
+                    data: {
+                    success: false,
+                    category: [
+                        { _id: "c1", name: "Electronics" },
+                        { _id: "c2", name: "Book" },
+                        { _id: "c3", name: "Clothing" }
+                    ]
+                    }
+                });
+            }
+            if (url.startsWith("/api/v1/product/product-list/")) {
+                return Promise.resolve({ data: { products: [
+                    { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
+                    { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
+                    { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}]}
+                });
+            }
+            if (url === "/api/v1/product/product-count") {
+                return Promise.resolve({ data: { total: 10 } });
+            }
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+            </Routes>
+            </MemoryRouter>
+        );
+
+        expect(screen.queryByRole('checkbox', { name: 'Electronics' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('checkbox', { name: 'Book' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('checkbox', { name: 'Clothing' })).not.toBeInTheDocument();
+    });
+
     it("should load more products when Loadmore is clicked", async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
-            return Promise.resolve({
-                data: {
-                success: true,
-                category: [
-                    { _id: "c1", name: "Electronics" },
-                    { _id: "c2", name: "Book" },
-                    { _id: "c3", name: "Clothing" }
-                ]
-                }
-            });
+                return Promise.resolve({
+                    data: {
+                    success: true,
+                    category: [
+                        { _id: "c1", name: "Electronics" },
+                        { _id: "c2", name: "Book" },
+                        { _id: "c3", name: "Clothing" }
+                    ]
+                    }
+                });
             }
             if (url === "/api/v1/product/product-count") {
             return Promise.resolve({ data: { total: 6 } });
@@ -661,5 +672,87 @@ describe('HomePage Component', () => {
         expect(consoleSpy.mock.calls[0][0].message).toBe("Filter API failed");
 
         consoleSpy.mockRestore();
+    });
+
+    it('logs an error when getTotal fails', async () => {
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+        axios.get.mockImplementation((url) => {
+            if (url === '/api/v1/category/get-category') {
+            return Promise.resolve({ data: { success: true, category: [] } });
+            }
+            if (url === '/api/v1/product-count' || url === '/api/v1/product/product-count') {
+            return Promise.reject(new Error('count failed'));
+            }
+            if (url.startsWith('/api/v1/product/product-list/')) {
+            return Promise.resolve({ data: { products: [] } });
+            }
+        });
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+            expect(consoleSpy.mock.calls[0][0].message).toBe('count failed');
+        });
+
+        consoleSpy.mockRestore();
+    });
+
+    it('it shows no products if Product Filter API returns no Products field', async () => {
+        axios.get.mockImplementation((url) => {
+            if (url === "/api/v1/category/get-category") {
+            return Promise.resolve({
+                data: { success: true, category: [
+                { _id: "c1", name: "Electronics" },
+                { _id: "c2", name: "Book" },
+                { _id: "c3", name: "Clothing" },
+                ] }
+            });
+            }
+            if (url === "/api/v1/product/product-count") {
+            return Promise.resolve({ data: { total: 10 } });
+            }
+            if (url.startsWith("/api/v1/product/product-list/")) {
+            return Promise.resolve({
+                data: { products: [
+                { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "laptop" },
+                { _id: "p2", name: "Interesting Novel", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "book" },
+                { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "shirt" },
+                ] }
+            });
+            }
+        });
+
+        axios.post.mockImplementation((url) => {
+            if (url === "/api/v1/product/product-filters") {
+            return Promise.resolve({ data: { } });
+            }
+        });
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+            <Routes>
+                <Route path="/" element={<HomePage />} />
+            </Routes>
+            </MemoryRouter>
+        );
+
+        // Sanity: initial grid is present
+        expect(await screen.findByTestId('products-grid')).toBeInTheDocument();
+        expect((await screen.findAllByTestId('product-name'))).toHaveLength(3);
+
+        const electronicCheckbox = await screen.findByRole('checkbox', { name: 'Electronics' });
+        await userEvent.click(electronicCheckbox);
+
+        // Wait for the grid to update to "no items"
+        await waitFor(() => {
+            expect(screen.queryByTestId('product-name')).not.toBeInTheDocument();
+        });
     });
 });

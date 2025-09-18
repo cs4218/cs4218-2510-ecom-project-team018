@@ -20,8 +20,6 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const latestReq = useRef(0);
-
   //get all cat
   const getAllCategory = async () => {
     try {
@@ -40,27 +38,23 @@ const HomePage = () => {
   }, []);
 
   const getAllProducts = async () => {
-    const ticket = ++latestReq.current;
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      if (ticket !== latestReq.current) return;
       setProducts(data.products);
     } catch (err) {
       console.log(err);
     } finally {
-      if (ticket === latestReq.current) setLoading(false);
+      setLoading(false);
     }
   };
 
   const filterProduct = async () => {
-    const ticket = ++latestReq.current;
     try {
       const { data } = await axios.post("/api/v1/product/product-filters", {
         checked,
         radio,
       });
-      if (ticket !== latestReq.current) return;
       setProducts(data?.products || []);
     } catch (err) {
       console.log(err);
@@ -126,7 +120,7 @@ const HomePage = () => {
       <div className="container-fluid row mt-3 home-page">
         <div className="col-md-3 filters">
           <h4 className="text-center">Filter By Category</h4>
-          <div className="d-flex flex-column">
+          <div  className="d-flex flex-column">
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
