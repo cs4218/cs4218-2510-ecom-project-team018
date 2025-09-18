@@ -7,6 +7,7 @@ import {
   fireEvent,
   waitFor,
   within,
+  findByTestId,
 } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import ProductDetails from "./ProductDetails";
@@ -236,7 +237,40 @@ describe("ProductDetails Component", () => {
         await screen.findByText(new RegExp(SIMILAR_PRODUCT_1.name))
       ).toBeInTheDocument();
       expect(
+        await screen.findByText(new RegExp(SIMILAR_PRODUCT_1.description))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`\\$${SIMILAR_PRODUCT_1.price}.00`))
+      ).toBeInTheDocument();
+      expect(
+        within(
+          screen.getByTestId(`similar-product-${SIMILAR_PRODUCT_1._id}`)
+        ).getByRole("button", { name: /add to cart/i })
+      ).toBeInTheDocument();
+      expect(
+        within(
+          screen.getByTestId(`similar-product-${SIMILAR_PRODUCT_1._id}`)
+        ).getByRole("button", { name: /more details/i })
+      ).toBeInTheDocument();
+
+      expect(
         await screen.findByText(new RegExp(SIMILAR_PRODUCT_2.name))
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(new RegExp(SIMILAR_PRODUCT_2.description))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`\\$${SIMILAR_PRODUCT_2.price}.00`))
+      ).toBeInTheDocument();
+      expect(
+        within(
+          screen.getByTestId(`similar-product-${SIMILAR_PRODUCT_2._id}`)
+        ).getByRole("button", { name: /add to cart/i })
+      ).toBeInTheDocument();
+      expect(
+        within(
+          screen.getByTestId(`similar-product-${SIMILAR_PRODUCT_2._id}`)
+        ).getByRole("button", { name: /more details/i })
       ).toBeInTheDocument();
     });
 
