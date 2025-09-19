@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axios from "axios";
+import toast from 'react-hot-toast';
 import { MemoryRouter } from "react-router-dom";
 import SearchInput from "./SearchInput";
 
