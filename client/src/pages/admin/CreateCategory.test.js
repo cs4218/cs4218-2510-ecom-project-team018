@@ -87,6 +87,26 @@ describe("Create Category Components", () => {
       }
     });
   });
+
+  test("categories exist", async () => {
+    // check for when categories exist, the categories table renders them
+    // mock get() success with 1 category
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(SAMPLE_CATEGORIES[0].name)
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Edit" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeInTheDocument();
+  });
 });
 
 describe("Create Category Actions", () => {});
