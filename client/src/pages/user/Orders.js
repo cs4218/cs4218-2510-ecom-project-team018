@@ -14,7 +14,6 @@ const Orders = () => {
       const { data } = await axios.get("/api/v1/auth/orders");
       setOrders(data);
     } catch (error) {
-      console.error(error);
       toast.error("Orders API Went Wrong");
     }
   };

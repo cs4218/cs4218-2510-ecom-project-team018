@@ -29,9 +29,8 @@ jest.mock('../../hooks/useCategory', () => jest.fn(() => [
 
 // Make moment.fromNow deterministic
 jest.mock("moment", () => {
-  const actual = jest.requireActual("moment");
   // Always return an object with a stable fromNow()
-  return (date) => ({
+  return () => ({
     fromNow: () => "2 days ago"
   });
 });
@@ -187,7 +186,7 @@ describe('Orders Component', () => {
     });
   })
 
-  it ('should catch errors when data from Orders API is misformed and console error', async () => {
+  it ('should catch errors for faulty Orders API and toast error', async () => {
     axios.get.mockImplementation((url) => {
         if (url === "/api/v1/auth/orders") {
             return Promise.reject(
@@ -210,6 +209,5 @@ describe('Orders Component', () => {
     );
 
     expect(toast.error).toHaveBeenCalledWith('Orders API Went Wrong');
-
   })
 })
