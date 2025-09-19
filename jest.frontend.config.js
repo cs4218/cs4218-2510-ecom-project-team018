@@ -27,11 +27,5 @@ module.exports = {
   
   collectCoverageFrom: ["client/src/!(_*)/**", "!client/src/**/*.test.js"],
 
-  // coverageThreshold: {
-  //   global: {
-  //     lines: 90,
-  //     functions: 90,
-  //   },
-  // },
   setupFilesAfterEnv: ["<rootDir>/client/src/setupTests.js"],
 };
