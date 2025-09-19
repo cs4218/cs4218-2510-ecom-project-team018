@@ -5,6 +5,8 @@ import axios from "axios";
 import { MemoryRouter } from "react-router-dom";
 import SearchInput from "./SearchInput";
 
+jest.mock('react-hot-toast');
+
 jest.mock("axios");
 
 const mockNavigate = jest.fn();
@@ -78,7 +80,6 @@ describe("SearchInput", () => {
     });
 
     it("should log Error in Console if the Search API is faulty", async () => {
-        const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
         render(
             <MemoryRouter>
                 <SearchInput />
@@ -99,9 +100,6 @@ describe("SearchInput", () => {
             await userEvent.click(button);
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
-        expect(consoleSpy.mock.calls[0][0].message).toBe("Search API failed");
-
-        consoleSpy.mockRestore();
+        expect(toast.error).toHaveBeenCalledWith("Search API failed");
     });
 })
