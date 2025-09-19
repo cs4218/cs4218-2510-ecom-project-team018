@@ -693,7 +693,7 @@ axios.post.mockImplementation((url, body) => {
         consoleSpy.mockRestore();
     });
 
-    it('it shows no products if Product Filter API returns no Products field', async () => {
+    it('shows no products if Product Filter API returns no Products field', async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
             return Promise.resolve({
