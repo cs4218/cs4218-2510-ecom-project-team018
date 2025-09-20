@@ -218,5 +218,21 @@ describe("Create Category Actions - handle submit", () => {
     });
   });
 
+  test("error from API", async () => {
+    axios.get.mockRejectedValueOnce(new Error("smth went wrong"));
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong in getting catgeory"
+      );
+    });
+  });
+
   // rmb to clear typos in the page file at the end
 });
