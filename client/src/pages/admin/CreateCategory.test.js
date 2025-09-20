@@ -160,7 +160,31 @@ describe("Create Category Actions - handle submit", () => {
       expect(toast.error).toHaveBeenCalledWith("Category Already Exists");
     });
   });
-  // test("error in cat", async () => {});
+
+  test("error from API", async () => {
+    // checks for when the handle submit API call has an error
+    jest.spyOn(console, "log").mockImplementation(() => {}); // silence console.log
+    axios.post.mockRejectedValueOnce(new Error("smth went wrong"));
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // enter new category
+    const input = await screen.findByPlaceholderText(/Enter new category/i);
+    fireEvent.change(input, { target: { value: "fail category" } });
+    // submit form
+    const submitButton = screen.getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        "somthing went wrong in input form"
+      );
+    });
+  });
 
   // rmb to clear typos in the page file at the end
 });
