@@ -2,11 +2,21 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import Policy from "../pages/Policy";
 
-jest.mock("./../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+jest.mock("./../components/Layout", () => ({ children, title }) => (
+  <div data-testid="layout">
+    <h1>{title}</h1>
+    {children}
+  </div>
 ));
 
 describe("Policy Component", () => {
+  it("renders the Layout with correct title", () => {
+    render(<Policy />);
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Privacy Policy" })
+    ).toBeInTheDocument();
+  });
+
   it("renders the privacy image with correct attributes", () => {
     render(<Policy />);
 
