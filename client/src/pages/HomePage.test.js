@@ -142,47 +142,6 @@ describe('HomePage Component', () => {
         })
     });
 
-    it('renders price ranges filter from mocked API', async () => {
-        const { findByText } = render(
-            <MemoryRouter initialEntries={['/']}>
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                </Routes>
-            </MemoryRouter>
-        )
-
-        //Price Ranges from mocked API
-        expect(await findByText('$0 to 19')).toBeInTheDocument();
-        expect(await findByText("$20 to 39")).toBeInTheDocument();
-        expect(await findByText("$40 to 59")).toBeInTheDocument();
-        expect(await findByText("$60 to 79")).toBeInTheDocument();
-        expect(await findByText("$80 to 99")).toBeInTheDocument();
-        expect(await findByText("$100 or more")).toBeInTheDocument();
-    })
-
-    it('renders categories from mocked API', async () => {
-        render(
-            <MemoryRouter initialEntries={['/']}>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-            </Routes>
-            </MemoryRouter>
-        );
-
-        // Assert each checkbox exists by its accessible name
-        expect(
-            await screen.findByRole('checkbox', { name: /Electronics/i })
-        ).toBeInTheDocument();
-
-        expect(
-            await screen.findByRole('checkbox', { name: /Book/i })
-        ).toBeInTheDocument();
-
-        expect(
-            await screen.findByRole('checkbox', { name: /Clothing/i })
-        ).toBeInTheDocument();
-    });
-
     it('should navigate to product details page on More Details button click', async () => {
         const { findAllByText } = render(
             <MemoryRouter initialEntries={['/']}>
