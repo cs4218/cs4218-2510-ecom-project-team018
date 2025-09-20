@@ -196,7 +196,7 @@ describe("Create Category Actions - handle submit", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "somthing went wrong in input form"
+        "something went wrong in input form"
       );
     });
   });
@@ -328,7 +328,7 @@ describe("Create Category Actions - update category", () => {
     });
   });
 
-  test("error in API", async () => {
+  test("error from API", async () => {
     axios.get.mockResolvedValueOnce({
       data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
     });
@@ -360,4 +360,38 @@ describe("Create Category Actions - update category", () => {
   });
 });
 
-// rmb to clear typos in the page file at the end
+describe("Create Category Actions - delete category", () => {
+  test("delete a category successfully", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+      }) // initial have 1 category
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          category: [],
+        },
+      }); // after update; 0 categories
+
+    axios.delete.mockResolvedValueOnce({
+      data: { success: true, message: "category deleted successfully" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("category is deleted");
+      expect(
+        screen.queryByText(SAMPLE_CATEGORIES[0].name)
+      ).not.toBeInTheDocument();
+    });
+  });
+});
