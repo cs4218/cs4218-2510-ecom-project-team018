@@ -114,13 +114,7 @@ describe('Orders Component', () => {
     })
 
     it("Only renders header, no order rows or products with no Products", async () => {
-        axios.get.mockImplementation((url) => {
-            if (url === "/api/v1/auth/orders") {
-                return Promise.resolve(
-                    { data: [] }
-                )
-            }
-        });
+        axios.get.mockResolvedValueOnce({ data: [] })
 
         render(
             <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
@@ -150,14 +144,7 @@ describe('Orders Component', () => {
 
   it("shows correct table values and product for 1 Order with 1 Product", async () => {
     
-    axios.get.mockImplementation((url) => {
-        if (url === "/api/v1/auth/orders") {
-            return Promise.resolve(
-                { data: oneOrder }
-            )
-        }
-    });
-
+    axios.get.mockResolvedValueOnce({ data: oneOrder })
     render(
         <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
             <Routes>
@@ -176,19 +163,13 @@ describe('Orders Component', () => {
         expect(screen.getByTestId("order_payment_success")).toHaveTextContent("Success");
         expect(screen.getByTestId("order_product_length")).toHaveTextContent("1");
         expect(screen.getByText("Laptop")).toBeInTheDocument();
-        expect(screen.getByText("Price : 999")).toBeInTheDocument();
+        expect(screen.getByText("Price : $999")).toBeInTheDocument();
     });
   });
 
   it("shows correct table values and product for 1 Order with multiple Products", async () => {
     
-    axios.get.mockImplementation((url) => {
-        if (url === "/api/v1/auth/orders") {
-            return Promise.resolve(
-                { data: oneOrderTwoProduct }
-            )
-        }
-    });
+    axios.get.mockResolvedValueOnce({ data: oneOrderTwoProduct })
 
     render(
         <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
@@ -220,15 +201,9 @@ describe('Orders Component', () => {
     });
   });
 
-  it ("shows correct table values and products for multiple order with 1 Product", async () => {
+  it("shows correct table values and products for multiple order with 1 Product", async () => {
     
-    axios.get.mockImplementation((url) => {
-        if (url === "/api/v1/auth/orders") {
-            return Promise.resolve(
-                { data: twoOrdersOneProduct }
-            )
-        }
-    });
+    axios.get.mockResolvedValueOnce({ data: twoOrdersOneProduct })
 
     render(
       <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
@@ -264,15 +239,9 @@ describe('Orders Component', () => {
   })  
 
 
-  it ("shows correct table values and products for multiple order with multiple Products", async () => {
+  it("shows correct table values and products for multiple order with multiple Products", async () => {
     
-    axios.get.mockImplementation((url) => {
-        if (url === "/api/v1/auth/orders") {
-            return Promise.resolve(
-                { data: twoOrderstwoProduct }
-            )
-        }
-    });
+    axios.get.mockResolvedValueOnce({ data: twoOrderstwoProduct })
 
     render(
       <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
@@ -309,14 +278,8 @@ describe('Orders Component', () => {
     });
   })
 
-  it ('should catch errors for faulty Orders API and toast error', async () => {
-    axios.get.mockImplementation((url) => {
-        if (url === "/api/v1/auth/orders") {
-            return Promise.reject(
-                new Error("Orders API failed")
-            )
-        }
-    });
+  it('should catch errors for faulty Orders API and toast error', async () => {
+    axios.get.mockRejectedValueOnce(new Error("Orders API failed"))
 
     render(
         <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
@@ -331,6 +294,6 @@ describe('Orders Component', () => {
         expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders")
     );
 
-    expect(toast.error).toHaveBeenCalledWith('Orders API Went Wrong');
+    expect(toast.error).toHaveBeenCalledWith("Error loading orders, please try again later");
   })
 })
