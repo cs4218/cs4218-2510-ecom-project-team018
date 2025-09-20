@@ -10,7 +10,7 @@ export const createCategoryController = async (req, res) => {
     if (existingCategory) {
       return res.status(200).send({
         success: true,
-        message: "Category Already Exisits",
+        message: "Category Already Exists",
       });
     }
     const category = await new categoryModel({
@@ -102,7 +102,7 @@ export const deleteCategoryCOntroller = async (req, res) => {
     await categoryModel.findByIdAndDelete(id);
     res.status(200).send({
       success: true,
-      message: "Categry Deleted Successfully",
+      message: "Category Deleted Successfully",
     });
   } catch (error) {
     console.log(error);
