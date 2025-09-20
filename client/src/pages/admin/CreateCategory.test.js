@@ -42,6 +42,16 @@ const SAMPLE_CATEGORIES = [
   },
 ];
 
+beforeAll(() => {
+  // silence console.log to have clean test outputs
+  jest.spyOn(console, "log").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  // restore after all tests
+  console.log.mockRestore();
+});
+
 describe("Create Category Components", () => {
   beforeEach(() => {
     axios.get.mockResolvedValue({
@@ -163,7 +173,6 @@ describe("Create Category Actions - handle submit", () => {
 
   test("error from API", async () => {
     // checks for when the handle submit API call has an error
-    jest.spyOn(console, "log").mockImplementation(() => {}); // silence console.log
     axios.post.mockRejectedValueOnce(new Error("smth went wrong"));
 
     render(
@@ -183,6 +192,29 @@ describe("Create Category Actions - handle submit", () => {
       expect(toast.error).toHaveBeenCalledWith(
         "somthing went wrong in input form"
       );
+    });
+  });
+
+  describe("Create Category Actions - get all categories", () => {
+    test("get all categories successfully", async () => {
+      // checks if all (>1) categories are retrieved successfully
+      // load in the 2 sample categories
+      axios.get.mockResolvedValueOnce({
+        data: { success: true, category: SAMPLE_CATEGORIES },
+      });
+
+      render(
+        <MemoryRouter>
+          <CreateCategory />
+        </MemoryRouter>
+      );
+
+      expect(
+        await screen.findByText(SAMPLE_CATEGORIES[0].name)
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(SAMPLE_CATEGORIES[1].name)
+      ).toBeInTheDocument();
     });
   });
 
