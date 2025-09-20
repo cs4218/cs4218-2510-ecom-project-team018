@@ -1,9 +1,10 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import CreateCategory from "./CreateCategory";
 import axios from "axios";
+import toast from 'react-hot-toast';
 
 // mock API calls
 jest.mock("axios", () => ({
@@ -25,10 +26,6 @@ jest.mock("../../components/Layout", () => (props) => (
 
 jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="AdminMenu" />
-));
-
-jest.mock("../../components/Form/CategoryForm", () => () => (
-  <div data-testid="CategoryForm" />
 ));
 
 // sample categories
@@ -66,7 +63,7 @@ describe("Create Category Components", () => {
     expect(screen.getByText(/Manage Category/i)).toHaveTextContent(
       "Manage Category"
     ); // header
-    expect(screen.getByTestId("CategoryForm")).toBeInTheDocument();
+    expect(screen.getByTestId("category-form")).toBeInTheDocument();
     // table headers
     expect(screen.getByText(/Name/i)).toHaveTextContent("Name");
     expect(screen.getByText(/Actions/i)).toHaveTextContent("Actions");
@@ -109,4 +106,39 @@ describe("Create Category Components", () => {
   });
 });
 
-describe("Create Category Actions", () => {});
+describe("Create Category Actions - handle submit", () => {
+  test("submit form success", async () => {
+    // check for successful category creation
+    axios.post.mockResolvedValueOnce({
+      data: { success: true, message: "new category created" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // enter new category
+    const input = await screen.findByPlaceholderText(/Enter new category/i);
+    fireEvent.change(input, { target: { value: SAMPLE_CATEGORIES[0].name } });
+    // submit form
+    const submitButton = screen.getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        "/api/v1/category/create-category",
+        { name: SAMPLE_CATEGORIES[0].name }
+      );
+      expect(toast.success).toHaveBeenCalledWith(
+        SAMPLE_CATEGORIES[0].name + " is created"
+      );
+    });
+  });
+
+  // test("alr exist", () => {});
+  // test("error in cat", () => {});
+
+  // rmb to clear typos in the page file at the end
+});
