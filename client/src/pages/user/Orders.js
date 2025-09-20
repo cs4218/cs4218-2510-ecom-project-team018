@@ -14,7 +14,7 @@ const Orders = () => {
       const { data } = await axios.get("/api/v1/auth/orders");
       setOrders(data);
     } catch (error) {
-      toast.error("Orders API Went Wrong");
+      toast.error("Error loading orders, please try again later");
     }
   };
 
@@ -50,7 +50,7 @@ const Orders = () => {
                         <td data-testid={"order_index"}>{i + 1}</td>
                         <td data-testid={"order_status"}>{o?.status}</td>
                         <td data-testid={"order_buyer_name"}>{o?.buyer?.name}</td>
-                        <td data-testid={"order_time"}>{moment(o?.createAt).fromNow()}</td>
+                        <td data-testid={"order_time"}>{moment(o?.createdAt).fromNow()}</td>
                         <td data-testid={"order_payment_success"}>{o?.payment.success ? "Success" : "Failed"}</td>
                         <td data-testid={"order_product_length"}>{o?.products?.length}</td>
                       </tr>
@@ -70,8 +70,8 @@ const Orders = () => {
                         </div>
                         <div className="col-md-8">
                           <p>{p.name}</p>
-                          <p>{p.description.substring(0, 30)}</p>
-                          <p>Price : {p.price}</p>
+                          <p>{p.description.length < 0 ? p.description : p.description.substring(0, 30) + "..."}</p>
+                          <p>Price : ${p.price}</p>
                         </div>
                       </div>
                     ))}

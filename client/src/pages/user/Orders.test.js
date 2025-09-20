@@ -37,6 +37,77 @@ jest.mock("moment", () => {
 
 jest.mock('react-hot-toast');
 
+
+const oneOrder = [
+    {
+        status: "Processing",
+        buyer: { name: "Alice" },
+        createAt: "2024-01-01T00:00:00Z",
+        payment: { success: true },
+        products: [
+            { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
+        ]
+    },
+];
+
+const oneOrderTwoProduct = [
+    {
+        status: "Processing",
+        buyer: { name: "Alice" },
+        createAt: "2024-01-01T00:00:00Z",
+        payment: { success: true },
+        products: [
+            { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
+            { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 }
+        ]
+    },
+];
+
+const twoOrdersOneProduct = [
+    {
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createAt: "2024-01-01T00:00:00Z",
+    payment: { success: true },
+    products: [
+        { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
+    ],
+    },
+    {
+    status: "Delivered",
+    buyer: { name: "Bob" },
+    createAt: "2024-02-01T00:00:00Z",
+    payment: { success: false },
+    products: [
+        { _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 },
+    ]
+    },
+];
+
+
+const twoOrderstwoProduct = [
+    {
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createAt: "2024-01-01T00:00:00Z",
+    payment: { success: true },
+    products: [
+        { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
+        { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 },
+    ],
+    },
+    {
+    status: "Delivered",
+    buyer: { name: "Bob" },
+    createAt: "2024-02-01T00:00:00Z",
+    payment: { success: false },
+    products: [
+        { _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 },
+        { _id: "p4", name: "Excel Spreadsheets", description: "Great Software", price: 19 },
+    ]
+    },
+];
+
 describe('Orders Component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -77,19 +148,7 @@ describe('Orders Component', () => {
     });
 
 
-  it("shows correct table values and product for 1 Product", async () => {
-
-    const oneOrder = [
-        {
-            status: "Processing",
-            buyer: { name: "Alice" },
-            createAt: "2024-01-01T00:00:00Z",
-            payment: { success: true },
-            products: [
-                { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
-            ]
-        },
-    ];
+  it("shows correct table values and product for 1 Order with 1 Product", async () => {
     
     axios.get.mockImplementation((url) => {
         if (url === "/api/v1/auth/orders") {
@@ -118,36 +177,55 @@ describe('Orders Component', () => {
         expect(screen.getByTestId("order_product_length")).toHaveTextContent("1");
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("Price : 999")).toBeInTheDocument();
+    });
   });
- });
 
-
-  it ("shows correct table values and products for 2 Products", async () => {
-
-    const twoOrders = [
-      {
-        status: "Processing",
-        buyer: { name: "Alice" },
-        createAt: "2024-01-01T00:00:00Z",
-        payment: { success: true },
-        products: [
-          { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
-          { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 },
-        ],
-      },
-      {
-        status: "Delivered",
-        buyer: { name: "Bob" },
-        createAt: "2024-02-01T00:00:00Z",
-        payment: { success: false },
-        products: [{ _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 }],
-      },
-    ];
+  it("shows correct table values and product for 1 Order with multiple Products", async () => {
     
     axios.get.mockImplementation((url) => {
         if (url === "/api/v1/auth/orders") {
             return Promise.resolve(
-                { data: twoOrders }
+                { data: oneOrderTwoProduct }
+            )
+        }
+    });
+
+    render(
+        <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
+            <Routes>
+                <Route path="/dashboard/user/orders" element={<Orders />} />
+            </Routes>
+        </MemoryRouter>
+    );
+
+    await waitFor(async () => {
+        //API Has Been Called
+        expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+        const indexes = await screen.findAllByTestId("order_index");
+        const statuses = await screen.findAllByTestId("order_status");
+        const buyers = await screen.findAllByTestId("order_buyer_name");
+        const times = await screen.findAllByTestId("order_time");
+        const payments = await screen.findAllByTestId("order_payment_success");
+        const qtys = await screen.findAllByTestId("order_product_length");
+
+        expect(indexes.map((n) => n.textContent)).toEqual(["1"]);
+        expect(statuses.map((n) => n.textContent)).toEqual(["Processing"]);
+        expect(buyers.map((n) => n.textContent)).toEqual(["Alice"]);
+        expect(times.map((n) => n.textContent)).toEqual(["2 days ago"]);
+        expect(payments.map((n) => n.textContent)).toEqual(["Success"]);
+        expect(qtys.map((n) => n.textContent)).toEqual(["2"]);
+
+        expect(screen.getByText("Laptop")).toBeInTheDocument();
+        expect(screen.getByText("Mouse")).toBeInTheDocument();
+    });
+  });
+
+  it ("shows correct table values and products for multiple order with 1 Product", async () => {
+    
+    axios.get.mockImplementation((url) => {
+        if (url === "/api/v1/auth/orders") {
+            return Promise.resolve(
+                { data: twoOrdersOneProduct }
             )
         }
     });
@@ -178,11 +256,56 @@ describe('Orders Component', () => {
         expect(buyers.map((n) => n.textContent)).toEqual(["Alice", "Bob"]);
         expect(times.map((n) => n.textContent)).toEqual(["2 days ago", "2 days ago"]);
         expect(payments.map((n) => n.textContent)).toEqual(["Success", "Failed"]);
-        expect(qtys.map((n) => n.textContent)).toEqual(["2", "1"]);
+        expect(qtys.map((n) => n.textContent)).toEqual(["1", "1"]);
+
+        expect(screen.getByText("Laptop")).toBeInTheDocument();
+        expect(screen.getByText("Enid Blyton")).toBeInTheDocument();
+    });
+  })  
+
+
+  it ("shows correct table values and products for multiple order with multiple Products", async () => {
+    
+    axios.get.mockImplementation((url) => {
+        if (url === "/api/v1/auth/orders") {
+            return Promise.resolve(
+                { data: twoOrderstwoProduct }
+            )
+        }
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
+            <Routes>
+                <Route path="/dashboard/user/orders" element={<Orders />} />
+            </Routes>
+        </MemoryRouter>
+    );
+
+    // API Called
+    await waitFor(async () => {
+        expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+
+        // There are 2 orders -> 2 rows worth of testids
+        const indexes = await screen.findAllByTestId("order_index");
+        const statuses = await screen.findAllByTestId("order_status");
+        const buyers = await screen.findAllByTestId("order_buyer_name");
+        const times = await screen.findAllByTestId("order_time");
+        const payments = await screen.findAllByTestId("order_payment_success");
+        const qtys = await screen.findAllByTestId("order_product_length");
+
+
+        expect(indexes.map((n) => n.textContent)).toEqual(["1", "2"]);
+        expect(statuses.map((n) => n.textContent)).toEqual(["Processing", "Delivered"]);
+        expect(buyers.map((n) => n.textContent)).toEqual(["Alice", "Bob"]);
+        expect(times.map((n) => n.textContent)).toEqual(["2 days ago", "2 days ago"]);
+        expect(payments.map((n) => n.textContent)).toEqual(["Success", "Failed"]);
+        expect(qtys.map((n) => n.textContent)).toEqual(["2", "2"]);
 
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("Mouse")).toBeInTheDocument();
         expect(screen.getByText("Enid Blyton")).toBeInTheDocument();
+        expect(screen.getByText("Excel Spreadsheets")).toBeInTheDocument();
     });
   })
 
