@@ -394,4 +394,30 @@ describe("Create Category Actions - delete category", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  test("unsuccessfully delete a category", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.delete.mockResolvedValueOnce({
+      data: { success: false, message: "error while deleting category" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("error while deleting category");
+      // category should still exist
+      expect(screen.getByText(SAMPLE_CATEGORIES[0].name)).toBeInTheDocument();
+    });
+  });
 });
