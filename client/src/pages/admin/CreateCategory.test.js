@@ -1,5 +1,11 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import CreateCategory from "./CreateCategory";
@@ -234,3 +240,62 @@ describe("Create Category Actions - get all categories", () => {
     });
   });
 });
+
+describe("Create Category Actions - update category", () => {
+  test("update a category successfully", async () => {
+    // checks if an existing category can be updated (renamed) successfully
+    // load in 1 sample category
+    axios.get
+      .mockResolvedValueOnce({
+        data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+      }) // initial get
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          category: [
+            { ...SAMPLE_CATEGORIES[0], name: SAMPLE_CATEGORIES[1].name },
+          ],
+        },
+      }); // after update; keep all prev details except name
+
+    axios.put.mockResolvedValueOnce({
+      data: { success: true, message: "category updated successfully" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // ensure existing category is loaded properly
+    const existingCategoryName = await screen.findByText(
+      SAMPLE_CATEGORIES[0].name
+    );
+    expect(existingCategoryName).toBeInTheDocument();
+
+    /* update the existing category's name*/
+    // click 'edit' button
+    const editButton = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editButton);
+    // key in new category name
+    const updatedCategoryName = SAMPLE_CATEGORIES[1].name;
+    const input = await screen.findByDisplayValue(SAMPLE_CATEGORIES[0].name);
+    fireEvent.change(input, { target: { value: updatedCategoryName } });
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", {
+      name: /Submit/i,
+    });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        SAMPLE_CATEGORIES[1].name + " is updated"
+      );
+      expect(screen.getByText(SAMPLE_CATEGORIES[1].name)).toBeInTheDocument();
+    });
+  });
+});
+
+// rmb to clear typos in the page file at the end
