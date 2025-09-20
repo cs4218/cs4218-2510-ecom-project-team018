@@ -194,28 +194,28 @@ describe("Create Category Actions - handle submit", () => {
       );
     });
   });
+});
 
-  describe("Create Category Actions - get all categories", () => {
-    test("get all categories successfully", async () => {
-      // checks if all (>1) categories are retrieved successfully
-      // load in the 2 sample categories
-      axios.get.mockResolvedValueOnce({
-        data: { success: true, category: SAMPLE_CATEGORIES },
-      });
-
-      render(
-        <MemoryRouter>
-          <CreateCategory />
-        </MemoryRouter>
-      );
-
-      expect(
-        await screen.findByText(SAMPLE_CATEGORIES[0].name)
-      ).toBeInTheDocument();
-      expect(
-        await screen.findByText(SAMPLE_CATEGORIES[1].name)
-      ).toBeInTheDocument();
+describe("Create Category Actions - get all categories", () => {
+  test("get all categories successfully", async () => {
+    // checks if all (>1) categories are retrieved successfully
+    // load in the 2 sample categories
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: SAMPLE_CATEGORIES },
     });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    expect(
+      await screen.findByText(SAMPLE_CATEGORIES[0].name)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(SAMPLE_CATEGORIES[1].name)
+    ).toBeInTheDocument();
   });
 
   test("error from API", async () => {
@@ -233,6 +233,4 @@ describe("Create Category Actions - handle submit", () => {
       );
     });
   });
-
-  // rmb to clear typos in the page file at the end
 });
