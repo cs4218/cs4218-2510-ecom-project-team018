@@ -185,6 +185,7 @@ describe('Profile Page', () => {
 
             // localStorage updated
             const saved = JSON.parse(window.localStorage.getItem("auth"));
+            console.log(saved)
             expect(saved.user.name).toBe("Alice Smith");
 
             // toast success
