@@ -6,7 +6,6 @@ import { useCart } from "../context/cart";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
-// import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
 
 const HomePage = () => {
@@ -28,7 +27,8 @@ const HomePage = () => {
         setCategories(data?.category);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Get-Category API Failed")
     }
   };
 
@@ -44,7 +44,8 @@ const HomePage = () => {
       setProducts(data.products);
       setLoading(false);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      toast.error("Product-List API Failed")
       setLoading(false);
     }
   };
@@ -57,7 +58,8 @@ const HomePage = () => {
       });
       setProducts(data?.products || []);
     } catch (err) {
-      console.log(err);
+      console.error(err);
+      toast.error("Product-Filters API Failed")
     }
   };
 
@@ -67,7 +69,8 @@ const HomePage = () => {
       const { data } = await axios.get("/api/v1/product/product-count");
       setTotal(data?.total);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Product-Count API Failed")
     }
   };
 
@@ -75,6 +78,7 @@ const HomePage = () => {
     if (page === 1) return;
     loadMore();
   }, [page]);
+
   //load more
   const loadMore = async () => {
     try {
@@ -83,7 +87,8 @@ const HomePage = () => {
       setLoading(false);
       setProducts([...products, ...data?.products]);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Load More Function Product-List API Failed")
       setLoading(false);
     }
   };
@@ -100,11 +105,12 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (checked.length === 0 && radio.length === 0) getAllProducts();
-  }, [checked, radio]);
-
-  useEffect(() => {
-    if (checked.length || radio.length) filterProduct();
+    if (checked.length === 0 && radio.length === 0) {
+      getAllProducts();
+    }
+    if (checked.length || radio.length) {
+      filterProduct();
+    }
   }, [checked, radio]);
 
   return (
@@ -145,10 +151,10 @@ const HomePage = () => {
             <button
               className="btn btn-danger"
               onClick={() => {
-              setChecked([]);
-              setRadio([]);
-              setPage(1);
-            }}
+                setPage(1);
+                setChecked([]);
+                setRadio([]);
+              }}
             >
               RESET FILTERS
             </button>
@@ -175,7 +181,7 @@ const HomePage = () => {
                     </h5>
                   </div>
                   <p className="card-text ">
-                    {p.description.substring(0, 60)}...
+                    {p.description.length < 60 ? p.description : p.description.substring(0, 60)  + "..."}
                   </p>
                   <div className="card-name-price">
                     <button
@@ -216,7 +222,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     {" "}
-                    Loadmore
+                    Load More
                   </>
                 )}
               </button>
