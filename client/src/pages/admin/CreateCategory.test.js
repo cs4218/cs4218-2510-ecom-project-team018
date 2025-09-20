@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import CreateCategory from "./CreateCategory";
 import axios from "axios";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 // mock API calls
 jest.mock("axios", () => ({
@@ -137,8 +137,30 @@ describe("Create Category Actions - handle submit", () => {
     });
   });
 
-  // test("alr exist", () => {});
-  // test("error in cat", () => {});
+  test("category already exists", async () => {
+    // when adding new category, category already exists
+    axios.post.mockResolvedValueOnce({
+      data: { success: false, message: "Category Already Exists" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // enter new category
+    const input = await screen.findByPlaceholderText(/Enter new category/i);
+    fireEvent.change(input, { target: { value: SAMPLE_CATEGORIES[0].name } });
+    // submit form
+    const submitButton = screen.getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Category Already Exists");
+    });
+  });
+  // test("error in cat", async () => {});
 
   // rmb to clear typos in the page file at the end
 });
