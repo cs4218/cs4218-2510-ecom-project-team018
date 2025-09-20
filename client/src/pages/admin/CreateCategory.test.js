@@ -284,9 +284,7 @@ describe("Create Category Actions - update category", () => {
     fireEvent.change(input, { target: { value: updatedCategoryName } });
     // click 'submit' button
     const modal = screen.getByRole("dialog"); // modal
-    const submitButton = within(modal).getByRole("button", {
-      name: /Submit/i,
-    });
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
@@ -296,6 +294,41 @@ describe("Create Category Actions - update category", () => {
       expect(screen.getByText(SAMPLE_CATEGORIES[1].name)).toBeInTheDocument();
     });
   });
+
+  test("unsuccessfully update a category", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.put.mockResolvedValueOnce({
+      data: { success: false, message: "Error while updating category" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    /* update the existing category's name*/
+    // click 'edit' button
+    const editButton = await screen.findByRole("button", { name: /edit/i });
+    fireEvent.click(editButton);
+    // key in new category name
+    const updatedCategoryName = SAMPLE_CATEGORIES[1].name;
+    const input = await screen.findByDisplayValue(SAMPLE_CATEGORIES[0].name);
+    fireEvent.change(input, { target: { value: updatedCategoryName } });
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Error while updating category");
+    });
+  });
+
+  test("error in API", async () => {});
 });
 
 // rmb to clear typos in the page file at the end
