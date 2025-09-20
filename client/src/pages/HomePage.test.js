@@ -462,7 +462,7 @@ describe('HomePage Component', () => {
         });
     })
 
-    it("should catch errors when filterProduct API fails", async () => {
+    it("should catch errors when Product-Filters API fails", async () => {
         // Mock GETs just enough for the component to render
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
@@ -509,7 +509,7 @@ describe('HomePage Component', () => {
         });
     });
 
-    it('logs an error when getTotal fails', async () => {
+    it('should catch errors when Product-Count API fails', async () => {
         axios.get.mockImplementation((url) => {
             if (url === '/api/v1/category/get-category') {
             return Promise.resolve({ data: { success: true, category: [] } });
