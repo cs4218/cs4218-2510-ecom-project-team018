@@ -45,7 +45,7 @@ const Profile = () => {
         toast.success("Profile Updated Successfully");
       }
     } catch (error) {
-      toast.error("Something went wrong");
+      toast.error("Updating Profile Failed, please try again later");
     }
   };
   return (
@@ -74,7 +74,6 @@ const Profile = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     className="form-control"
                     id="exampleInputEmail1"
                     placeholder="Enter Your Email "

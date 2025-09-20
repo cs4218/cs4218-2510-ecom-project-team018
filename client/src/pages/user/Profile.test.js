@@ -82,7 +82,12 @@ describe('Profile Page', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         window.localStorage.clear();
+        window.localStorage.setItem(
+            "auth",
+            JSON.stringify({ user: baseAuth.user, token: baseAuth.token })
+        );
     });
+
 
     it("renders inputs prefilled from auth.user and email input is disabled", async () => {
         const { findByPlaceholderText } = render(
@@ -105,7 +110,7 @@ describe('Profile Page', () => {
         expect(address).toHaveValue("42 Wallaby Way");
     });
 
-    it("typing updates local input state", async () => {
+    it("updates local input state when the user types", async () => {
         const { findByPlaceholderText } = render(
             <MemoryRouter initialEntries={['/dashboard/user/profile']}>
                 <Routes>
@@ -185,7 +190,6 @@ describe('Profile Page', () => {
 
             // localStorage updated
             const saved = JSON.parse(window.localStorage.getItem("auth"));
-            console.log(saved)
             expect(saved.user.name).toBe("Alice Smith");
 
             // toast success
@@ -216,4 +220,26 @@ describe('Profile Page', () => {
             expect(mockSetAuth).not.toHaveBeenCalled();
         });
     });
+
+    it("Shows Toast Error if updating Profile with API auth/profile fails", async () => {
+        axios.put.mockRejectedValueOnce(new Error("Network Error"));
+
+        const { findByRole } = render(
+            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
+                <Routes>
+                    <Route path="/dashboard/user/profile" element={<Profile />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const submit = await findByRole("button", { name: /update/i });
+        await userEvent.click(submit);
+
+        await waitFor(() => {
+            expect(axios.put).toHaveBeenCalled();
+            expect(toast.error).toHaveBeenCalledWith("Updating Profile Failed, please try again later");
+            expect(mockSetAuth).not.toHaveBeenCalled();
+        });
+    });
+
 })
