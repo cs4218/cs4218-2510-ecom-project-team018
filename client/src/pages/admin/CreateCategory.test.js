@@ -420,4 +420,28 @@ describe("Create Category Actions - delete category", () => {
       expect(screen.getByText(SAMPLE_CATEGORIES[0].name)).toBeInTheDocument();
     });
   });
+
+  test("error from API", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.delete.mockRejectedValueOnce(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+      // category should still exist
+      expect(screen.getByText(SAMPLE_CATEGORIES[0].name)).toBeInTheDocument();
+    });
+  });
 });
