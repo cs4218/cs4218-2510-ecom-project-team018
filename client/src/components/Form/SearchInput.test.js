@@ -41,66 +41,66 @@ describe("SearchInput", () => {
     ).toBeInTheDocument();
   });
 
-    it("updates keyword on input change", async () => {
-        render(
-            <MemoryRouter>
-            <SearchInput />
-            </MemoryRouter>
-        );
+  it("updates keyword on input change", async () => {
+      render(
+          <MemoryRouter>
+          <SearchInput />
+          </MemoryRouter>
+      );
 
-        const input = await screen.findByRole("searchbox");
-        await act(async () => {
-            await userEvent.type(input, "laptop");
-        });
+      const input = await screen.findByRole("searchbox");
+      await act(async () => {
+          await userEvent.type(input, "laptop");
+      });
 
-        expect(input).toHaveValue("laptop");
-    });
+      expect(input).toHaveValue("laptop");
+  });
 
-    it("submits the form and navigates to /search when Search Button is Pressed", async () => {
-        render(
-            <MemoryRouter>
-                <SearchInput />
-            </MemoryRouter>
-        );
+  it("submits the form and navigates to /search when Search Button is Pressed", async () => {
+      render(
+          <MemoryRouter>
+              <SearchInput />
+          </MemoryRouter>
+      );
 
-        axios.get.mockImplementation((url) => {
-            if (url === '/api/v1/product/search/laptop') {
-                return Promise.resolve({ data: [{ _id: '1', name: 'Laptop 1' }] });
-            }
-        });
+      axios.get.mockImplementation((url) => {
+          if (url === '/api/v1/product/search/laptop') {
+              return Promise.resolve({ data: [{ _id: '1', name: 'Laptop 1' }] });
+          }
+      });
 
-        const input = await screen.findByRole("searchbox");
-        const button = await screen.findByRole("button", { name: /search/i });
-        await act(async () => {
-            await userEvent.type(input, "laptop");
-            await userEvent.click(button);
-        });
+      const input = await screen.findByRole("searchbox");
+      const button = await screen.findByRole("button", { name: /search/i });
+      await act(async () => {
+          await userEvent.type(input, "laptop");
+          await userEvent.click(button);
+      });
 
-        expect(mockNavigate).toHaveBeenCalledWith("/search");
+      expect(mockNavigate).toHaveBeenCalledWith("/search");
 
-    });
+  });
 
-    it("should log Error in Console if the Search API is faulty", async () => {
-        render(
-            <MemoryRouter>
-                <SearchInput />
-            </MemoryRouter>
-        );
+  it("should display an error toast if the Search API is faulty", async () => {
+      render(
+          <MemoryRouter>
+              <SearchInput />
+          </MemoryRouter>
+      );
 
-        axios.get.mockImplementation((url) => {
-            if (url === '/api/v1/product/search/laptop') {
-                return Promise.reject(new Error("Search API failed"));
-            }
-        });
+      axios.get.mockImplementation((url) => {
+          if (url === '/api/v1/product/search/laptop') {
+              return Promise.reject(new Error("Search API failed"));
+          }
+      });
 
-        const input = await screen.findByRole("searchbox");
-        const button = await screen.findByRole("button", { name: /search/i });
+      const input = await screen.findByRole("searchbox");
+      const button = await screen.findByRole("button", { name: /search/i });
 
-        await act(async () => {
-            await userEvent.type(input, "laptop");
-            await userEvent.click(button);
-        });
+      await act(async () => {
+          await userEvent.type(input, "laptop");
+          await userEvent.click(button);
+      });
 
-        expect(toast.error).toHaveBeenCalledWith("Search API failed");
-    });
+      expect(toast.error).toHaveBeenCalledWith("Search API failed");
+  });
 })
