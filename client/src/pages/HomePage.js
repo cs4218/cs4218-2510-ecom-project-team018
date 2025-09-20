@@ -28,7 +28,7 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Get-Category API Failed")
+      toast.error("Error getting categories, please try again later")
     }
   };
 
@@ -45,7 +45,7 @@ const HomePage = () => {
       setLoading(false);
     } catch (err) {
       console.error(err);
-      toast.error("Product-List API Failed")
+      toast.error("Error getting products, please try again later")
       setLoading(false);
     }
   };
@@ -59,7 +59,7 @@ const HomePage = () => {
       setProducts(data?.products || []);
     } catch (err) {
       console.error(err);
-      toast.error("Product-Filters API Failed")
+      toast.error("Error filtering products, please try again later")
     }
   };
 
@@ -70,7 +70,7 @@ const HomePage = () => {
       setTotal(data?.total);
     } catch (error) {
       console.error(error);
-      toast.error("Product-Count API Failed")
+      toast.error("Error fetching product count, please try again later")
     }
   };
 
@@ -88,7 +88,7 @@ const HomePage = () => {
       setProducts([...products, ...data?.products]);
     } catch (error) {
       console.error(error);
-      toast.error("Load More Function Product-List API Failed")
+      toast.error("Error loading more products, please try again later")
       setLoading(false);
     }
   };

@@ -239,7 +239,7 @@ describe('HomePage Component', () => {
 
         expect(await screen.findByText("All Products")).toBeInTheDocument();
 
-        expect(toast.error).toHaveBeenCalledWith("Get-Category API Failed")
+        expect(toast.error).toHaveBeenCalledWith("Error getting categories, please try again later")
 
     });
 
@@ -388,7 +388,7 @@ describe('HomePage Component', () => {
         });
 
         await waitFor(() =>
-            expect(toast.error).toHaveBeenCalledWith("Load More Function Product-List API Failed")
+            expect(toast.error).toHaveBeenCalledWith("Error loading more products, please try again later")
         );
 
     });
@@ -505,7 +505,7 @@ describe('HomePage Component', () => {
         });
 
         await waitFor(() => {
-            expect(toast.error).toHaveBeenCalledWith("Product-Filters API Failed")
+            expect(toast.error).toHaveBeenCalledWith("Error filtering products, please try again later")
         });
     });
 
@@ -531,7 +531,7 @@ describe('HomePage Component', () => {
         );
 
         await waitFor(() => {
-            expect(toast.error).toHaveBeenCalledWith("Product-Count API Failed");
+            expect(toast.error).toHaveBeenCalledWith("Error fetching product count, please try again later");
         });
     });
 
