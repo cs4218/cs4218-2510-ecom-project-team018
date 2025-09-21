@@ -15,16 +15,28 @@ jest.mock("../../context/search", () => ({
 
 jest.mock('react-hot-toast');
 
+const ACCOUNT_EMAIL = "alice@example.com";
+const ORIGINAL_NAME = "Alice";
+const ORIGINAL_PHONE = "12345678";
+const ORIGINAL_ADDRESS = "42 Wallaby Way";
+
 const mockSetAuth = jest.fn();
 const baseAuth = {
   user: {
-    name: "Alice",
-    email: "alice@example.com",
-    phone: "12345678",
-    address: "42 Wallaby Way",
+    name: ORIGINAL_NAME,
+    email: ACCOUNT_EMAIL,
+    phone: ORIGINAL_PHONE,
+    address: ORIGINAL_ADDRESS,
   },
   token: "token-123",
 };
+
+const newInputValues = {
+    name: "Bob",
+    phone: "99999999",
+    address: "kent Ridge",
+    password: "secret123"
+}
 
 jest.mock("../../context/auth", () => ({
   useAuth: jest.fn(() => [baseAuth, mockSetAuth]),
@@ -75,8 +87,7 @@ window.matchMedia = window.matchMedia || function() {
         addListener: function() {},
         removeListener: function() {}
     };
-};  
-
+};
 
 describe('Profile Page', () => {
     beforeEach(() => {
@@ -87,7 +98,6 @@ describe('Profile Page', () => {
             JSON.stringify({ user: baseAuth.user, token: baseAuth.token })
         );
     });
-
 
     it("renders inputs prefilled from auth.user and email input is disabled", async () => {
         const { findByPlaceholderText } = render(
@@ -103,11 +113,11 @@ describe('Profile Page', () => {
         const phone = await findByPlaceholderText(/enter your phone/i);
         const address = await findByPlaceholderText(/enter your address/i);
 
-        expect(name).toHaveValue("Alice");
-        expect(email).toHaveValue("alice@example.com");
+        expect(name).toHaveValue(baseAuth.user.name);
+        expect(email).toHaveValue(baseAuth.user.email);
         expect(email).toBeDisabled();
-        expect(phone).toHaveValue("12345678");
-        expect(address).toHaveValue("42 Wallaby Way");
+        expect(phone).toHaveValue(baseAuth.user.phone);
+        expect(address).toHaveValue(baseAuth.user.address);
     });
 
     it("updates local input state when the user types", async () => {
@@ -126,18 +136,18 @@ describe('Profile Page', () => {
 
         await act( async () => {
             await userEvent.clear(name);
-            await userEvent.type(name, "Bob");
+            await userEvent.type(name, newInputValues.name);
             await userEvent.clear(phone);
-            await userEvent.type(phone, "9999");
+            await userEvent.type(phone, newInputValues.phone);
             await userEvent.clear(address);
-            await userEvent.type(address, "New Addr");
-            await userEvent.type(password, "secret!");
+            await userEvent.type(address, newInputValues.address);
+            await userEvent.type(password, newInputValues.password);
         })
 
-        expect(name).toHaveValue("Bob");
-        expect(phone).toHaveValue("9999");
-        expect(address).toHaveValue("New Addr");
-        expect(password).toHaveValue("secret!");
+        expect(name).toHaveValue(newInputValues.name);
+        expect(phone).toHaveValue(newInputValues.phone);
+        expect(address).toHaveValue(newInputValues.address);
+        expect(password).toHaveValue(newInputValues.password);
     });
 
     it('Successful Submission updates Auth, Local Storage and Shows Success Toast', async () => {
@@ -165,35 +175,35 @@ describe('Profile Page', () => {
 
         await act( async () => {
             await userEvent.clear(name);
-            await userEvent.type(name, "Alice Smith");
+            await userEvent.type(name, newInputValues.name);
             await userEvent.clear(password);
-            await userEvent.type(password, "newpass");
+            await userEvent.type(password, newInputValues.password);
             await userEvent.clear(phone);
-            await userEvent.type(phone, "90000000");
+            await userEvent.type(phone, newInputValues.phone);
             await userEvent.clear(address);
-            await userEvent.type(address, "NUS")
+            await userEvent.type(address, newInputValues.address)
             await userEvent.click(submit);
         })
 
         await waitFor(() => {
             // axios payload correct
             expect(axios.put).toHaveBeenCalledWith("/api/v1/auth/profile", {
-                name: "Alice Smith",
-                email: "alice@example.com", // disabled but still sent
-                password: "newpass",
-                phone: "90000000",
-                address: "NUS",
+                name: newInputValues.name,
+                email: ACCOUNT_EMAIL, // disabled but still sent
+                password: newInputValues.password,
+                phone: newInputValues.phone,
+                address: newInputValues.address,
             });
 
             expect(mockSetAuth).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    user: expect.objectContaining({ name: "Alice Smith" }),
+                    user: expect.objectContaining({ name: newInputValues.name }),
                 })
             )
 
             // localStorage updated
             const saved = JSON.parse(window.localStorage.getItem("auth"));
-            expect(saved.user.name).toBe("Alice Smith");
+            expect(saved.user.name).toBe(newInputValues.name);
 
             // toast success
             expect(toast.success).toHaveBeenCalledWith(
@@ -248,4 +258,51 @@ describe('Profile Page', () => {
             expect(mockSetAuth).not.toHaveBeenCalled();
         });
     })
+
+    it("shows toast error and does not call axios if password is empty", async () => {
+        const { findByPlaceholderText, getByRole } = render(
+            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
+            <Routes>
+                <Route path="/dashboard/user/profile" element={<Profile />} />
+            </Routes>
+            </MemoryRouter>
+        );
+
+        const password = await findByPlaceholderText(/enter your password/i);
+        const submit = getByRole("button", { name: /update/i });
+
+        await act(async () => {
+            await userEvent.clear(password);
+            await userEvent.click(submit);
+        });
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith("Password must be at least 6 characters long");
+            expect(axios.put).not.toHaveBeenCalled();
+        });
+    });
+
+    it("shows toast error and does not call axios if password is shorter than 6 characters", async () => {
+        const { findByPlaceholderText, getByRole } = render(
+            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
+            <Routes>
+                <Route path="/dashboard/user/profile" element={<Profile />} />
+            </Routes>
+            </MemoryRouter>
+        );
+
+        const password = await findByPlaceholderText(/enter your password/i);
+        const submit = getByRole("button", { name: /update/i });
+
+        await act(async () => {
+            await userEvent.clear(password);
+            await userEvent.type(password, "123");
+            await userEvent.click(submit);
+        });
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith("Password must be at least 6 characters long");
+            expect(axios.put).not.toHaveBeenCalled();
+        });
+    });
 })

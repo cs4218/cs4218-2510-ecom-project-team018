@@ -23,9 +23,14 @@ const Profile = () => {
     setAddress(address);
   }, [auth?.user]);
 
-  // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!password || password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
@@ -34,7 +39,7 @@ const Profile = () => {
         phone,
         address,
       });
-      console.log(data)
+
       if (!data?.success) {
         console.error(data?.error);
         toast.error("Updating Profile unsuccessful, please try again later");
@@ -50,6 +55,7 @@ const Profile = () => {
       toast.error("Updating Profile Failed, please try again later");
     }
   };
+
   return (
     <Layout title={"Your Profile"}>
       <div className="container-fluid m-3 p-3">
@@ -67,7 +73,7 @@ const Profile = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileNameInput"
                     placeholder="Enter Your Name"
                     autoFocus
                   />
@@ -77,7 +83,7 @@ const Profile = () => {
                     type="email"
                     value={email}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileEmailInput"
                     placeholder="Enter Your Email "
                     disabled
                   />
@@ -88,7 +94,7 @@ const Profile = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="form-control"
-                    id="exampleInputPassword1"
+                    id="profilePasswordInput"
                     placeholder="Enter Your Password"
                   />
                 </div>
@@ -98,7 +104,7 @@ const Profile = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profilePhoneInput"
                     placeholder="Enter Your Phone"
                   />
                 </div>
@@ -108,7 +114,7 @@ const Profile = () => {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileAddressInput"
                     placeholder="Enter Your Address"
                   />
                 </div>
