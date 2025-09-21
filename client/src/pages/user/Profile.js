@@ -34,8 +34,10 @@ const Profile = () => {
         phone,
         address,
       });
-      if (data?.errro) {
-        toast.error(data?.error);
+      console.log(data)
+      if (!data?.success) {
+        console.error(data?.error);
+        toast.error("Updating Profile unsuccessful, please try again later");
       } else {
         setAuth({ ...auth, user: data?.updatedUser });
         let ls = localStorage.getItem("auth");

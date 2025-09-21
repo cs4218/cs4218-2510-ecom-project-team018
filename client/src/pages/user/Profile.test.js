@@ -142,7 +142,10 @@ describe('Profile Page', () => {
 
     it('Successful Submission updates Auth, Local Storage and Shows Success Toast', async () => {
         axios.put.mockResolvedValueOnce({
-            data: { updatedUser: { ...baseAuth.user, name: "Alice Smith" } },
+            data: { 
+                message: "Profile Updated Successfully",
+                success: true,
+                updatedUser: { ...baseAuth.user, name: "Alice Smith" } },
         });
 
         const { findByPlaceholderText, getByRole } = render(
@@ -199,29 +202,7 @@ describe('Profile Page', () => {
         });
     });
 
-    it("Shows Toast Error if Updating of Profile returns data.errro == True in API response", async () => {
-        axios.put.mockResolvedValueOnce({
-            data: { errro: true, error: "Invalid Input" }
-        })
-
-        const { findByRole } = render(
-            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
-                <Routes>
-                    <Route path="/dashboard/user/profile" element={<Profile />} />
-                </Routes>
-            </MemoryRouter>
-        )
-
-        const submit = await findByRole("button", { name: /update/i });
-        await userEvent.click(submit);
-
-        await waitFor(() => {
-            expect(toast.error).toHaveBeenCalledWith("Invalid Input");
-            expect(mockSetAuth).not.toHaveBeenCalled();
-        });
-    });
-
-    it("Shows Toast Error if updating Profile with API auth/profile fails", async () => {
+    it("Shows Toast Error if updating Profile with auth/profile API fails", async () => {
         axios.put.mockRejectedValueOnce(new Error("Network Error"));
 
         const { findByRole } = render(
@@ -242,4 +223,29 @@ describe('Profile Page', () => {
         });
     });
 
+    it("Shows Toast Error if updating Profile with API auth/profile API has data.success == false in response", async () => {
+        axios.put.mockResolvedValueOnce({
+            data: { 
+                message: "Profile Update Failure",
+                success: false,
+                updatedUser: { ...baseAuth.user, name: "Alice Smith" } },
+        });
+
+        const { findByRole } = render(
+            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
+                <Routes>
+                    <Route path="/dashboard/user/profile" element={<Profile />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        const submit = await findByRole("button", { name: /update/i });
+        await userEvent.click(submit);
+
+        await waitFor(() => {
+            expect(axios.put).toHaveBeenCalled();
+            expect(toast.error).toHaveBeenCalledWith("Updating Profile unsuccessful, please try again later");
+            expect(mockSetAuth).not.toHaveBeenCalled();
+        });
+    })
 })
