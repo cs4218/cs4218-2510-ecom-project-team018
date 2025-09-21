@@ -42,15 +42,10 @@ describe("Product schema unit tests", () => {
     expect(product.shipping).toBe(false);
   });
 
-  it("should enforce type validation on fields that cannot be cast (e.g., price must be a number)", () => {
+  it("should enforce type validation on fields that cannot be cast", () => {
     const productData = {
-      name: "Bad Product",
-      slug: "bad-product",
-      description: "Invalid price",
+      ...MOCK_PRODUCT_DATA,
       price: "not-a-number", // invalid
-      category: new mongoose.Types.ObjectId(),
-      quantity: 1,
-      shipping: true,
     };
 
     const product = new Products(productData);
