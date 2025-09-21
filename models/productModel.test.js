@@ -18,4 +18,18 @@ describe("Product schema unit tests", () => {
 
     expect(error).toBeUndefined();
   });
+
+  it("should fail validation when required fields are missing", () => {
+    const product = new Products({}); // empty object
+    const error = product.validateSync();
+
+    expect(error).toBeDefined();
+    expect(error.errors.name).toBeDefined();
+    expect(error.errors.slug).toBeDefined();
+    expect(error.errors.description).toBeDefined();
+    expect(error.errors.price).toBeDefined();
+    expect(error.errors.category).toBeDefined();
+    expect(error.errors.quantity).toBeDefined();
+    expect(error.errors.shipping).toBeDefined();
+  });
 });
