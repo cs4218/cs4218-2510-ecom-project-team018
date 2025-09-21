@@ -30,7 +30,16 @@ describe("Product schema unit tests", () => {
     expect(error.errors.price).toBeDefined();
     expect(error.errors.category).toBeDefined();
     expect(error.errors.quantity).toBeDefined();
-    expect(error.errors.shipping).toBeDefined();
+  });
+
+  it("should assign default values if not provided", () => {
+    const { shipping, ...productData } = MOCK_PRODUCT_DATA; // omit shipping
+
+    const product = new Products(productData);
+    const error = product.validateSync();
+
+    expect(error).toBeUndefined();
+    expect(product.shipping).toBe(false);
   });
 
   it("should enforce type validation on fields that cannot be cast (e.g., price must be a number)", () => {
