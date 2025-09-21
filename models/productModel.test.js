@@ -32,4 +32,22 @@ describe("Product schema unit tests", () => {
     expect(error.errors.quantity).toBeDefined();
     expect(error.errors.shipping).toBeDefined();
   });
+
+  it("should enforce type validation on fields that cannot be cast (e.g., price must be a number)", () => {
+    const productData = {
+      name: "Bad Product",
+      slug: "bad-product",
+      description: "Invalid price",
+      price: "not-a-number", // invalid
+      category: new mongoose.Types.ObjectId(),
+      quantity: 1,
+      shipping: true,
+    };
+
+    const product = new Products(productData);
+    const error = product.validateSync();
+
+    expect(error).toBeDefined();
+    expect(error.errors.price).toBeDefined();
+  });
 });
