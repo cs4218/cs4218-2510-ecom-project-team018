@@ -2,31 +2,22 @@ import React from 'react';
 import { render, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { useAuth } from '../../context/auth';
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import Profile from './Profile';
 
 jest.mock('axios');
-
-jest.mock("../../context/search", () => ({
-  useSearch: jest.fn(),
-}));
-
 jest.mock('react-hot-toast');
 
-const ACCOUNT_EMAIL = "alice@example.com";
-const ORIGINAL_NAME = "Alice";
-const ORIGINAL_PHONE = "12345678";
-const ORIGINAL_ADDRESS = "42 Wallaby Way";
-
-const mockSetAuth = jest.fn();
 const baseAuth = {
   user: {
-    name: ORIGINAL_NAME,
-    email: ACCOUNT_EMAIL,
-    phone: ORIGINAL_PHONE,
-    address: ORIGINAL_ADDRESS,
+    name: "Alice",
+    email: "alice@example.com",
+    password: "secret456",
+    phone: "12345678",
+    address: "42 Wallaby Way",
   },
   token: "token-123",
 };
@@ -34,14 +25,15 @@ const baseAuth = {
 const newInputValues = {
     name: "Bob",
     phone: "99999999",
-    address: "kent Ridge",
+    address: "Kent Ridge",
     password: "secret123"
 }
 
-jest.mock("../../context/auth", () => ({
-  useAuth: jest.fn(() => [baseAuth, mockSetAuth]),
-}));
+const mockSetAuth = jest.fn();
 
+jest.mock('../../context/auth', () => ({
+  useAuth:  jest.fn(),
+}));
 
 jest.mock("../../context/cart", () => ({
   useCart: jest.fn(() => [null, jest.fn()]),
@@ -97,6 +89,7 @@ describe('Profile Page', () => {
             "auth",
             JSON.stringify({ user: baseAuth.user, token: baseAuth.token })
         );
+        useAuth.mockReturnValue([baseAuth, mockSetAuth])
     });
 
     it("renders inputs prefilled from auth.user and email input is disabled", async () => {
@@ -141,6 +134,7 @@ describe('Profile Page', () => {
             await userEvent.type(phone, newInputValues.phone);
             await userEvent.clear(address);
             await userEvent.type(address, newInputValues.address);
+            await userEvent.clear(password);
             await userEvent.type(password, newInputValues.password);
         })
 
@@ -152,10 +146,14 @@ describe('Profile Page', () => {
 
     it('Successful Submission updates Auth, Local Storage and Shows Success Toast', async () => {
         axios.put.mockResolvedValueOnce({
-            data: { 
+            data: {
                 message: "Profile Updated Successfully",
                 success: true,
-                updatedUser: { ...baseAuth.user, name: "Alice Smith" } },
+                updatedUser: {
+                    ...newInputValues,
+                    email: "alice@example.com",   
+                },
+            }
         });
 
         const { findByPlaceholderText, getByRole } = render(
@@ -189,27 +187,32 @@ describe('Profile Page', () => {
             // axios payload correct
             expect(axios.put).toHaveBeenCalledWith("/api/v1/auth/profile", {
                 name: newInputValues.name,
-                email: ACCOUNT_EMAIL, // disabled but still sent
+                email: "alice@example.com",
                 password: newInputValues.password,
                 phone: newInputValues.phone,
                 address: newInputValues.address,
             });
 
             expect(mockSetAuth).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    user: expect.objectContaining({ name: newInputValues.name }),
-                })
-            )
+                expect.objectContaining(
+                    { token: "token-123", user: {
+                        name: newInputValues.name,
+                        email: "alice@example.com",
+                        password: newInputValues.password,
+                        phone: newInputValues.phone,
+                        address: newInputValues.address,
+                    } }),
+                )
+        })
 
-            // localStorage updated
-            const saved = JSON.parse(window.localStorage.getItem("auth"));
-            expect(saved.user.name).toBe(newInputValues.name);
+        // localStorage updated
+        const saved = JSON.parse(window.localStorage.getItem("auth"));
+        expect(saved.user.name).toBe(newInputValues.name);
 
-            // toast success
-            expect(toast.success).toHaveBeenCalledWith(
-                "Profile Updated Successfully"
-            );
-        });
+        // toast success
+        expect(toast.success).toHaveBeenCalledWith(
+            "Profile Updated Successfully"
+        );
     });
 
     it("Shows Toast Error if updating Profile with auth/profile API fails", async () => {
@@ -262,9 +265,9 @@ describe('Profile Page', () => {
     it("shows toast error and does not call axios if password is empty", async () => {
         const { findByPlaceholderText, getByRole } = render(
             <MemoryRouter initialEntries={['/dashboard/user/profile']}>
-            <Routes>
-                <Route path="/dashboard/user/profile" element={<Profile />} />
-            </Routes>
+                <Routes>
+                    <Route path="/dashboard/user/profile" element={<Profile />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -285,9 +288,9 @@ describe('Profile Page', () => {
     it("shows toast error and does not call axios if password is shorter than 6 characters", async () => {
         const { findByPlaceholderText, getByRole } = render(
             <MemoryRouter initialEntries={['/dashboard/user/profile']}>
-            <Routes>
-                <Route path="/dashboard/user/profile" element={<Profile />} />
-            </Routes>
+                <Routes>
+                    <Route path="/dashboard/user/profile" element={<Profile />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -303,6 +306,24 @@ describe('Profile Page', () => {
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("Password must be at least 6 characters long");
             expect(axios.put).not.toHaveBeenCalled();
+        });
+    });
+
+    it('shows toast error when auth token is missing and does not call API', async () => {
+        useAuth.mockReturnValue([null, jest.fn()]);
+
+        render(
+            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
+                <Routes>
+                <Route path="/dashboard/user/profile" element={<Profile />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith(
+                'Auth Token is not found. Please sign out and sign in again.'
+            );
         });
     });
 })

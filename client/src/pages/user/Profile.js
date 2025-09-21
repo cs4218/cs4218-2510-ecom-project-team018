@@ -5,9 +5,7 @@ import { useAuth } from "../../context/auth";
 import toast from "react-hot-toast";
 import axios from "axios";
 const Profile = () => {
-  //context
   const [auth, setAuth] = useAuth();
-  //state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,11 +14,18 @@ const Profile = () => {
 
   //get user data
   useEffect(() => {
-    const { email, name, phone, address } = auth?.user;
-    setName(name);
-    setPhone(phone);
-    setEmail(email);
-    setAddress(address);
+    if (!auth || !auth.user) {
+      toast.error("Auth Token is not found. Please sign out and sign in again.");
+      return
+    }
+    else {
+      const { email, name, phone, address, password } = auth?.user;
+      setName(name);
+      setPhone(phone);
+      setEmail(email);
+      setPassword(password);
+      setAddress(address);
+    }
   }, [auth?.user]);
 
   const handleSubmit = async (e) => {
