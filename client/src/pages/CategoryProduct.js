@@ -26,24 +26,24 @@ const CategoryProduct = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // fetch total products in category
   const fetchCategoryTotal = useCallback(async (slug) => {
     try {
       const { data } = await axios.get(
         `/api/v1/product/product-category-count/${slug}`
       );
-      if (!data?.success) return;
-      setTotal(data.total ?? 0);
-      if (data.category) {
-        setCategory(data.category);
+      if (data?.success) {
+        setTotal(data.total ?? 0);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to load category details");
+      toast.error("Failed to load total products");
     }
   }, []);
 
+  // fetch products by category and page
   const fetchProductsByCategory = useCallback(
-    async (pageToLoad, slug = params?.slug, append = false) => {
+    async (pageToLoad, slug = params?.slug) => {
       const targetSlug = slug ?? params?.slug;
       if (!targetSlug) return;
 
@@ -52,17 +52,17 @@ const CategoryProduct = () => {
         const { data } = await axios.get(
           `/api/v1/product/product-category/${targetSlug}?page=${pageToLoad}&limit=${PAGE_SIZE}`
         );
+
         if (!data?.success) return;
 
         if (data.category) {
-          setCategory((prev) => prev ?? data.category);
+          setCategory(data.category);
         }
 
         const nextProducts = Array.isArray(data?.products) ? data.products : [];
+
         setProducts((prev) =>
-          pageToLoad === 1 || !append
-            ? nextProducts
-            : [...prev, ...nextProducts]
+          pageToLoad === 1 ? nextProducts : [...prev, ...nextProducts]
         );
       } catch (error) {
         console.error(error);
@@ -74,6 +74,7 @@ const CategoryProduct = () => {
     [params?.slug]
   );
 
+  // on slug change, reset state and fetch first page
   useEffect(() => {
     if (!params?.slug) return;
     setProducts([]);
@@ -84,9 +85,10 @@ const CategoryProduct = () => {
     fetchProductsByCategory(1, params.slug);
   }, [params?.slug, fetchCategoryTotal, fetchProductsByCategory]);
 
+  // on page change (except first page), fetch next page
   useEffect(() => {
     if (page === 1 || !params?.slug) return;
-    fetchProductsByCategory(page, params.slug, true);
+    fetchProductsByCategory(page, params.slug);
   }, [page, params?.slug, fetchProductsByCategory]);
 
   return (
