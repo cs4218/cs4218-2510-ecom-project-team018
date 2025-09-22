@@ -52,7 +52,6 @@ const CategoryProduct = () => {
         const { data } = await axios.get(
           `/api/v1/product/product-category/${targetSlug}?page=${pageToLoad}&limit=${PAGE_SIZE}`
         );
-        setLoading(false);
         if (!data?.success) return;
 
         if (data.category) {
@@ -66,9 +65,10 @@ const CategoryProduct = () => {
             : [...prev, ...nextProducts]
         );
       } catch (error) {
-        setLoading(false);
-        console.log(error);
+        console.error(error);
         toast.error("Failed to load products");
+      } finally {
+        setLoading(false);
       }
     },
     [params?.slug]
