@@ -25,7 +25,7 @@ const Profile = () => {
       setPassword(password);
       setAddress(address);
     }
-  }, [auth?.user]);
+  }, [auth]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
