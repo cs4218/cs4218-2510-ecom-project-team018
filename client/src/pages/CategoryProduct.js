@@ -146,6 +146,7 @@ const CategoryProduct = () => {
               {products && products.length < total && (
                 <button
                   className="btn btn-warning"
+                  disabled={loading}
                   onClick={(e) => {
                     e.preventDefault();
                     setPage((prev) => prev + 1);
