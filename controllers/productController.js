@@ -7,6 +7,8 @@ import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
 
+const DEFAULT_PAGE_SIZE = 6;
+
 dotenv.config();
 
 //payment gateway
@@ -85,6 +87,7 @@ export const getProductController = async (req, res) => {
     });
   }
 };
+
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
@@ -232,16 +235,15 @@ export const productCountController = async (req, res) => {
   }
 };
 
-// product list base on page
+// product list based on page
 export const productListController = async (req, res) => {
   try {
-    const perPage = 6;
     const page = req.params.page ? req.params.page : 1;
     const products = await productModel
       .find({})
       .select("-photo")
-      .skip((page - 1) * perPage)
-      .limit(perPage)
+      .skip((page - 1) * DEFAULT_PAGE_SIZE)
+      .limit(DEFAULT_PAGE_SIZE)
       .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
@@ -306,15 +308,34 @@ export const realtedProductController = async (req, res) => {
   }
 };
 
-// get prdocyst by catgory
+// get paginated products by category
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
-    const products = await productModel.find({ category }).populate("category");
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE;
+
+    const products = await productModel
+      .find({ category: category._id })
+      .select("-photo")
+      .populate("category")
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
       category,
       products,
+      page,
+      limit,
     });
   } catch (error) {
     console.log(error);
