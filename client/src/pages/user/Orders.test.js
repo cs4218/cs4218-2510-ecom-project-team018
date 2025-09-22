@@ -113,7 +113,7 @@ describe('Orders Component', () => {
         jest.clearAllMocks();
     })
 
-    it("Only renders header, no order rows or products with no Products", async () => {
+    it("only renders header, no order rows or Products with no Products", async () => {
         axios.get.mockResolvedValueOnce({ data: [] })
 
         render(
@@ -142,7 +142,7 @@ describe('Orders Component', () => {
     });
 
 
-  it("shows correct table values and product for 1 Order with 1 Product", async () => {
+  it("shows correct table values and Product for 1 Order with 1 Product", async () => {
     
     axios.get.mockResolvedValueOnce({ data: oneOrder })
     render(
@@ -167,7 +167,7 @@ describe('Orders Component', () => {
     });
   });
 
-  it("shows correct table values and product for 1 Order with multiple Products", async () => {
+  it("shows correct table values and Products for 1 Order with multiple Products", async () => {
     
     axios.get.mockResolvedValueOnce({ data: oneOrderTwoProduct })
 
@@ -201,7 +201,7 @@ describe('Orders Component', () => {
     });
   });
 
-  it("shows correct table values and products for multiple order with 1 Product", async () => {
+  it("shows correct table values and Products for multiple Orders with 1 Product", async () => {
     
     axios.get.mockResolvedValueOnce({ data: twoOrdersOneProduct })
 
@@ -239,7 +239,7 @@ describe('Orders Component', () => {
   })  
 
 
-  it("shows correct table values and products for multiple order with multiple Products", async () => {
+  it("shows correct table values and products for multiple Orders with multiple Products", async () => {
     
     axios.get.mockResolvedValueOnce({ data: twoOrderstwoProduct })
 
@@ -278,7 +278,7 @@ describe('Orders Component', () => {
     });
   })
 
-  it('should catch errors for faulty Orders API and toast error', async () => {
+  it("should catch errors for faulty Orders API and toast error", async () => {
     axios.get.mockRejectedValueOnce(new Error("Orders API failed"))
 
     render(
