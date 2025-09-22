@@ -19,8 +19,12 @@ const Orders = () => {
   };
 
   useEffect(() => {
-    if (auth?.token) getOrders();
-  }, [auth?.token]);
+    if (auth?.token) {
+      getOrders();
+    } else {
+      toast.error("Unable to retrieve Orders, please sign out and sign in again.")
+    }
+  }, [auth]);
   
   return (
     <Layout title={"Your Orders"}>
@@ -65,12 +69,11 @@ const Orders = () => {
                             className="card-img-top"
                             alt={p.name}
                             width="100px"
-                            height={"100px"}
                           />
                         </div>
                         <div className="col-md-8">
                           <p>{p.name}</p>
-                          <p>{p.description.length < 0 ? p.description : p.description.substring(0, 30) + "..."}</p>
+                          <p>{p.description.length < 30 ? p.description : p.description.substring(0, 30) + "..."}</p>
                           <p>Price : ${p.price}</p>
                         </div>
                       </div>

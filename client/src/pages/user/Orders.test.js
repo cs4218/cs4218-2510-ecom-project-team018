@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { useAuth } from "../../context/auth";
 import '@testing-library/jest-dom/extend-expect';
 import toast from 'react-hot-toast';
 import Orders from './Orders';
@@ -8,8 +9,8 @@ import axios from 'axios';
 
 jest.mock('axios');
 
-jest.mock('../../context/auth', () => ({
-  useAuth: () => [{ user: null, token: 'test-token' }, jest.fn()],
+jest.mock("../../context/auth", () => ({
+  useAuth: jest.fn(() => [{ user: null, token: "test-token" }, jest.fn()]),
 }));
 
 jest.mock('../../context/cart', () => ({
@@ -42,7 +43,7 @@ const oneOrder = [
     {
         status: "Processing",
         buyer: { name: "Alice" },
-        createAt: "2024-01-01T00:00:00Z",
+        createdAt: "2024-01-01T00:00:00Z",
         payment: { success: true },
         products: [
             { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
@@ -54,7 +55,7 @@ const oneOrderTwoProduct = [
     {
         status: "Processing",
         buyer: { name: "Alice" },
-        createAt: "2024-01-01T00:00:00Z",
+        createdAt: "2024-01-01T00:00:00Z",
         payment: { success: true },
         products: [
             { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
@@ -67,7 +68,7 @@ const twoOrdersOneProduct = [
     {
     status: "Processing",
     buyer: { name: "Alice" },
-    createAt: "2024-01-01T00:00:00Z",
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
     products: [
         { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
@@ -76,7 +77,7 @@ const twoOrdersOneProduct = [
     {
     status: "Delivered",
     buyer: { name: "Bob" },
-    createAt: "2024-02-01T00:00:00Z",
+    createdAt: "2024-02-01T00:00:00Z",
     payment: { success: false },
     products: [
         { _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 },
@@ -89,7 +90,7 @@ const twoOrderstwoProduct = [
     {
     status: "Processing",
     buyer: { name: "Alice" },
-    createAt: "2024-01-01T00:00:00Z",
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
     products: [
         { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
@@ -99,7 +100,7 @@ const twoOrderstwoProduct = [
     {
     status: "Delivered",
     buyer: { name: "Bob" },
-    createAt: "2024-02-01T00:00:00Z",
+    createdAt: "2024-02-01T00:00:00Z",
     payment: { success: false },
     products: [
         { _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 },
@@ -107,6 +108,26 @@ const twoOrderstwoProduct = [
     ]
     },
 ];
+
+const longDescription = "This description is definitely more than thirty characters long for testing."
+
+const longDescriptionOrder = [
+    {
+        status: "Processing",
+        buyer: { name: "Bob" },
+        createdAt: "2024-01-01T00:00:00Z",
+        payment: { success: true },
+        products: [
+            {
+                _id: "p2",
+                name: "Mouse",
+                description: longDescription,
+                price: 49,
+            },
+        ],
+    },
+]
+
 
 describe('Orders Component', () => {
     beforeEach(() => {
@@ -200,6 +221,11 @@ describe('Orders Component', () => {
 
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("Mouse")).toBeInTheDocument();
+
+        const laptopImage = screen.getByAltText("Laptop");
+        expect(laptopImage).toHaveAttribute("src", "/api/v1/product/product-photo/p1");
+        const mouseImage = screen.getByAltText("Mouse");
+        expect(mouseImage).toHaveAttribute("src", "/api/v1/product/product-photo/p2");
     });
   });
 
@@ -237,6 +263,11 @@ describe('Orders Component', () => {
 
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("Enid Blyton")).toBeInTheDocument();
+
+        const laptopImage = screen.getByAltText("Laptop");
+        expect(laptopImage).toHaveAttribute("src", "/api/v1/product/product-photo/p1");
+        const enidBlytonImage = screen.getByAltText("Enid Blyton");
+        expect(enidBlytonImage).toHaveAttribute("src", "/api/v1/product/product-photo/p3");
     });
   })  
 
@@ -277,6 +308,15 @@ describe('Orders Component', () => {
         expect(screen.getByText("Mouse")).toBeInTheDocument();
         expect(screen.getByText("Enid Blyton")).toBeInTheDocument();
         expect(screen.getByText("Excel Spreadsheets")).toBeInTheDocument();
+
+        const laptopImage = screen.getByAltText("Laptop");
+        expect(laptopImage).toHaveAttribute("src", "/api/v1/product/product-photo/p1");
+        const mouseImage = screen.getByAltText("Mouse");
+        expect(mouseImage).toHaveAttribute("src", "/api/v1/product/product-photo/p2");
+        const enidBlytonImage = screen.getByAltText("Enid Blyton");
+        expect(enidBlytonImage).toHaveAttribute("src", "/api/v1/product/product-photo/p3");
+        const excelSpreadsheetsImage = screen.getByAltText("Excel Spreadsheets");
+        expect(excelSpreadsheetsImage).toHaveAttribute("src", "/api/v1/product/product-photo/p4");
     });
   })
 
@@ -298,4 +338,65 @@ describe('Orders Component', () => {
 
     expect(toast.error).toHaveBeenCalledWith("Error loading orders, please try again later");
   })
+
+  it("shows toast error when auth token is missing and does not call API", async () => {
+        useAuth.mockImplementationOnce(() => [null, jest.fn()]);
+
+        render(
+            <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
+                <Routes>
+                    <Route path="/dashboard/user/orders" element={<Orders />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith(
+                "Unable to retrieve Orders, please sign out and sign in again."
+            );
+            expect(axios.get).not.toHaveBeenCalledWith();
+        });
+    });
+
+    it("renders full product description when description length < 30", async () => {
+        axios.get.mockResolvedValueOnce({
+            data: oneOrder
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
+            <Routes>
+                <Route path="/dashboard/user/orders" element={<Orders />} />
+            </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(axios.get).toHaveBeenCalled());
+
+        await waitFor(() => {
+            expect(screen.getByText("Fast machine")).toBeInTheDocument();
+            expect(screen.queryByText("Fast machine...")).not.toBeInTheDocument();
+        })
+    });
+
+    it("renders truncated description with ... when description length ≥ 30", async () => {
+        axios.get.mockResolvedValueOnce({
+            data: longDescriptionOrder
+        });
+
+        render(
+            <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
+                <Routes>
+                    <Route path="/dashboard/user/orders" element={<Orders />} />
+                </Routes>
+            </MemoryRouter>
+        );
+
+        await waitFor(() => expect(axios.get).toHaveBeenCalled());
+
+        await waitFor(() => {
+            const expectedText = longDescription.substring(0, 30) + "...";
+            expect(screen.getByText(expectedText)).toBeInTheDocument();
+        })
+    });
 })
