@@ -71,6 +71,11 @@ const PRODUCTS = {
   EXCEL: { _id: "p4", name: "Excel Spreadsheets", description: "Great Software", price: 19 },
 };
 
+const DATES = {
+  ORDER1: "2024-01-01T00:00:00Z",
+  ORDER2: "2024-02-01T00:00:00Z",
+};
+
 const LONG_DESCRIPTION = "This description is definitely more than thirty characters long for testing.";
 
 // === Mock Data ===
@@ -78,7 +83,7 @@ const oneOrder = [
   {
     status: STATUS.PROCESSING,
     buyer: { name: BUYERS.ALICE },
-    createdAt: "2024-01-01T00:00:00Z",
+    createdAt: DATES.ORDER1,
     payment: { success: true },
     products: [PRODUCTS.LAPTOP],
   },
@@ -88,7 +93,7 @@ const oneOrderTwoProduct = [
   {
     status: STATUS.PROCESSING,
     buyer: { name: BUYERS.ALICE },
-    createdAt: "2024-01-01T00:00:00Z",
+    createdAt: DATES.ORDER1,
     payment: { success: true },
     products: [PRODUCTS.LAPTOP, PRODUCTS.MOUSE],
   },
@@ -98,14 +103,14 @@ const twoOrdersOneProduct = [
   {
     status: STATUS.PROCESSING,
     buyer: { name: BUYERS.ALICE },
-    createdAt: "2024-01-01T00:00:00Z",
+    createdAt: DATES.ORDER1,
     payment: { success: true },
     products: [PRODUCTS.LAPTOP],
   },
   {
     status: STATUS.DELIVERED,
     buyer: { name: BUYERS.BOB },
-    createdAt: "2024-02-01T00:00:00Z",
+    createdAt: DATES.ORDER2,
     payment: { success: false },
     products: [PRODUCTS.BOOK],
   },
@@ -115,14 +120,14 @@ const twoOrdersTwoProduct = [
   {
     status: STATUS.PROCESSING,
     buyer: { name: BUYERS.ALICE },
-    createdAt: "2024-01-01T00:00:00Z",
+    createdAt: DATES.ORDER1,
     payment: { success: true },
     products: [PRODUCTS.LAPTOP, PRODUCTS.MOUSE],
   },
   {
     status: STATUS.DELIVERED,
     buyer: { name: BUYERS.BOB },
-    createdAt: "2024-02-01T00:00:00Z",
+    createdAt: DATES.ORDER2,
     payment: { success: false },
     products: [PRODUCTS.BOOK, PRODUCTS.EXCEL],
   },
@@ -132,7 +137,7 @@ const longDescriptionOrder = [
   {
     status: STATUS.PROCESSING,
     buyer: { name: BUYERS.BOB },
-    createdAt: "2024-01-01T00:00:00Z",
+    createdAt: DATES.ORDER1,
     payment: { success: true },
     products: [
       {
@@ -214,6 +219,7 @@ describe('Orders Component', () => {
 
     await waitFor(async () => {
       expect(axios.get).toHaveBeenCalledWith(API_ENDPOINT);
+
       const statuses = await screen.findAllByTestId("order_status");
       const buyers = await screen.findAllByTestId("order_buyer_name");
       const times = await screen.findAllByTestId("order_time");
