@@ -8,10 +8,11 @@ import braintree from "braintree";
 import dotenv from "dotenv";
 
 const DEFAULT_PAGE_SIZE = 6;
+const DEFAULT_PAGE_NUMBER = 1;
 
 dotenv.config();
 
-//payment gateway
+// payment gateway
 var gateway = new braintree.BraintreeGateway({
   environment: braintree.Environment.Sandbox,
   merchantId: process.env.BRAINTREE_MERCHANT_ID,
@@ -24,7 +25,7 @@ export const createProductController = async (req, res) => {
     const { name, description, price, category, quantity, shipping } =
       req.fields;
     const { photo } = req.files;
-    //alidation
+    // validation
     switch (true) {
       case !name:
         return res.status(500).send({ error: "Name is Required" });
@@ -63,7 +64,7 @@ export const createProductController = async (req, res) => {
   }
 };
 
-//get all products
+// get all products
 export const getProductController = async (req, res) => {
   try {
     const products = await productModel
@@ -128,7 +129,7 @@ export const productPhotoController = async (req, res) => {
   }
 };
 
-//delete controller
+// delete controller
 export const deleteProductController = async (req, res) => {
   try {
     await productModel.findByIdAndDelete(req.params.pid).select("-photo");
@@ -146,13 +147,13 @@ export const deleteProductController = async (req, res) => {
   }
 };
 
-//upate producta
+// update products
 export const updateProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, shipping } =
       req.fields;
     const { photo } = req.files;
-    //alidation
+    // validation
     switch (true) {
       case !name:
         return res.status(500).send({ error: "Name is Required" });
@@ -238,7 +239,7 @@ export const productCountController = async (req, res) => {
 // product list based on page
 export const productListController = async (req, res) => {
   try {
-    const page = req.params.page ? req.params.page : 1;
+    const page = req.params.page ? req.params.page : DEFAULT_PAGE_NUMBER;
     const products = await productModel
       .find({})
       .select("-photo")
@@ -319,7 +320,7 @@ export const productCategoryController = async (req, res) => {
       });
     }
 
-    const page = parseInt(req.query.page, 10) || 1;
+    const page = parseInt(req.query.page, 10) || DEFAULT_PAGE_NUMBER;
     const limit = parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE;
 
     const products = await productModel
@@ -342,11 +343,12 @@ export const productCategoryController = async (req, res) => {
     res.status(400).send({
       success: false,
       error,
-      message: "Error While Getting products",
+      message: "Error while getting products",
     });
   }
 };
 
+// get total products by category
 export const productCategoryCountController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -368,13 +370,13 @@ export const productCategoryCountController = async (req, res) => {
     res.status(400).send({
       success: false,
       error,
-      message: "Error While Getting products count",
+      message: "Error while getting products count",
     });
   }
 };
 
-//payment gateway api
-//token
+// payment gateway api
+// token
 export const braintreeTokenController = async (req, res) => {
   try {
     gateway.clientToken.generate({}, function (err, response) {
@@ -389,7 +391,7 @@ export const braintreeTokenController = async (req, res) => {
   }
 };
 
-//payment
+// payment
 export const brainTreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
