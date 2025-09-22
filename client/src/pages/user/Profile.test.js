@@ -322,7 +322,7 @@ describe('Profile Page', () => {
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith(
-                "Unable to retrieve profile, p[lease sign out and sign in again."
+                "Unable to retrieve profile, please sign out and sign in again."
             );
         });
     });
