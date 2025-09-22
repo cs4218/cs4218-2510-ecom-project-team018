@@ -16,25 +16,22 @@ import { AiOutlineReload } from "react-icons/ai";
 const PAGE_SIZE = 6;
 
 const CategoryProduct = () => {
-  const params = useParams();
+  const { slug } = useParams();
   const [cart, setCart] = useCart();
-
   const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // fetch total products in category
-  const fetchCategoryTotal = useCallback(async (slug) => {
+  const fetchCategoryTotal = useCallback(async (categorySlug) => {
     try {
       const { data } = await axios.get(
-        `/api/v1/product/product-category-count/${slug}`
+        `/api/v1/product/product-category-count/${categorySlug}`
       );
-      if (data?.success) {
-        setTotal(data.total ?? 0);
-      }
+      if (data?.success) setTotal(data.total ?? 0);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load total products");
@@ -43,8 +40,8 @@ const CategoryProduct = () => {
 
   // fetch products by category and page
   const fetchProductsByCategory = useCallback(
-    async (pageToLoad, slug = params?.slug) => {
-      const targetSlug = slug ?? params?.slug;
+    async (pageToLoad, providedSlug) => {
+      const targetSlug = providedSlug ?? slug;
       if (!targetSlug) return;
 
       try {
@@ -55,12 +52,9 @@ const CategoryProduct = () => {
 
         if (!data?.success) return;
 
-        if (data.category) {
-          setCategory(data.category);
-        }
+        if (data.category) setCategory(data.category);
 
         const nextProducts = Array.isArray(data?.products) ? data.products : [];
-
         setProducts((prev) =>
           pageToLoad === 1 ? nextProducts : [...prev, ...nextProducts]
         );
@@ -71,25 +65,26 @@ const CategoryProduct = () => {
         setLoading(false);
       }
     },
-    [params?.slug]
+    [slug]
   );
 
   // on slug change, reset state and fetch first page
   useEffect(() => {
-    if (!params?.slug) return;
+    if (!slug) return;
     setProducts([]);
     setCategory(null);
     setTotal(0);
     setPage(1);
-    fetchCategoryTotal(params.slug);
-    fetchProductsByCategory(1, params.slug);
-  }, [params?.slug, fetchCategoryTotal, fetchProductsByCategory]);
+
+    fetchCategoryTotal(slug);
+    fetchProductsByCategory(1, slug);
+  }, [slug, fetchCategoryTotal, fetchProductsByCategory]);
 
   // on page change (except first page), fetch next page
   useEffect(() => {
-    if (page === 1 || !params?.slug) return;
-    fetchProductsByCategory(page, params.slug);
-  }, [page, params?.slug, fetchProductsByCategory]);
+    if (page === 1 || !slug) return;
+    fetchProductsByCategory(page, slug);
+  }, [page, slug, fetchProductsByCategory]);
 
   return (
     <Layout>
@@ -116,10 +111,12 @@ const CategoryProduct = () => {
                         {formatPrice(p.price)}
                       </h5>
                     </div>
-                    <p className="card-text ">
-                      {p.description.length <= 60
-                        ? p.description
-                        : p.description.substring(0, 60) + "..."}
+                    <p className="card-text">
+                      {p.description
+                        ? p.description.length <= 60
+                          ? p.description
+                          : p.description.substring(0, 60) + "..."
+                        : "No description available"}
                     </p>
                     <div className="card-name-price">
                       <button
