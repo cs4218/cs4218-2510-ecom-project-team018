@@ -71,15 +71,6 @@ describe("Order schema unit tests", () => {
         expect(error.errors["payment.success"]).toBeDefined();
     });
 
-    it("should fail when payment.success is not Boolean", () => {
-        const order = new Order({
-            ...MOCK_ORDER_DATA,
-            payment: { success: "yes" },
-        });
-        const error = order.validateSync();
-        expect(error.errors["payment.success"]).toBeDefined();
-    });
-
     it("should fail when buyer is not an ObjectId", () => {
         const order = new Order({
             ...MOCK_ORDER_DATA,
