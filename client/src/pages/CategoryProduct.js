@@ -152,7 +152,13 @@ const CategoryProduct = () => {
                     setPage((prev) => prev + 1);
                   }}
                 >
-                  {loading ? "Loading ..." : "Load more"} <AiOutlineReload />
+                  {loading ? (
+                    "Loading ..."
+                  ) : (
+                    <>
+                      Load more <AiOutlineReload />
+                    </>
+                  )}
                 </button>
               )}
             </div>
