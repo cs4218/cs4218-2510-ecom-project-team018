@@ -357,7 +357,7 @@ describe('Orders Component', () => {
     });
   });
 
-  it("renders truncated description with ... when description length ≥ 30", async () => {
+  it("renders truncated description with ellipsis when description length ≥ 30", async () => {
     axios.get.mockResolvedValueOnce({
       data: longDescriptionOrder,
     });
