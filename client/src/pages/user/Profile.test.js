@@ -215,7 +215,7 @@ describe('Profile Page', () => {
         );
     });
 
-    it("Shows Toast Error if updating Profile with auth/profile API fails", async () => {
+    it("shows Toast Error if updating Profile with auth/profile API fails", async () => {
         axios.put.mockRejectedValueOnce(new Error("Network Error"));
 
         const { findByRole } = render(
@@ -231,12 +231,12 @@ describe('Profile Page', () => {
 
         await waitFor(() => {
             expect(axios.put).toHaveBeenCalled();
-            expect(toast.error).toHaveBeenCalledWith("Updating Profile Failed, please try again later");
+            expect(toast.error).toHaveBeenCalledWith("Updating Profile failed, please try again later");
             expect(mockSetAuth).not.toHaveBeenCalled();
         });
     });
 
-    it("Shows Toast Error if updating Profile with API auth/profile API has data.success == false in response", async () => {
+    it("shows Toast Error if updating Profile with API auth/profile API has data.success == false in response", async () => {
         axios.put.mockResolvedValueOnce({
             data: { 
                 message: "Profile Update Failure",
@@ -322,7 +322,7 @@ describe('Profile Page', () => {
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith(
-                'Auth Token is not found. Please sign out and sign in again.'
+                'Unable to retrieve profile, p[lease sign out and sign in again.'
             );
         });
     });
