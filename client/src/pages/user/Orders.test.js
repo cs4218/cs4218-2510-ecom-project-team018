@@ -30,120 +30,96 @@ jest.mock('../../hooks/useCategory', () => jest.fn(() => [
 // Make moment.fromNow deterministic
 jest.mock("moment", () => {
   return () => ({
-    fromNow: () => TIME.TWO_DAYS_AGO,
+    fromNow: () => TWO_DAYS_AGO,
   });
 });
 
 jest.mock('react-hot-toast');
 
+function paymentStatusToString( paymentStatus ) {
+    if ( paymentStatus ) {
+        return "Success";
+    } else {
+        return "Failed";
+    }
+}
+
 // === Constants ===
 const API_ENDPOINT = "/api/v1/auth/orders";
-
-const STATUS = {
-  PROCESSING: "Processing",
-  DELIVERED: "Delivered",
-  NOT_PROCESSED: "Not Process",
-};
-
-const PAYMENT = {
-  SUCCESS: "Success",
-  FAILED: "Failed",
-};
-
-const BUYERS = {
-  ALICE: "Alice",
-  BOB: "Bob",
-};
 
 const MESSAGES = {
   ERROR_API: "Error loading orders, please try again later",
   ERROR_AUTH: "Unable to retrieve Orders, please sign out and sign in again.",
 };
 
-const TIME = {
-  TWO_DAYS_AGO: "2 days ago",
-};
-
-const PRODUCTS = {
-  LAPTOP: { _id: "p1", name: "Laptop", description: "Fast machine", price: 999 },
-  MOUSE: { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 },
-  BOOK: { _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 },
-  EXCEL: { _id: "p4", name: "Excel Spreadsheets", description: "Great Software", price: 19 },
-};
-
-const DATES = {
-  ORDER1: "2024-01-01T00:00:00Z",
-  ORDER2: "2024-02-01T00:00:00Z",
-};
-
-const LONG_DESCRIPTION = "This description is definitely more than thirty characters long for testing.";
+const TWO_DAYS_AGO = "2 days ago";
 
 // === Mock Data ===
 const oneOrder = [
   {
-    status: STATUS.PROCESSING,
-    buyer: { name: BUYERS.ALICE },
-    createdAt: DATES.ORDER1,
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
-    products: [PRODUCTS.LAPTOP],
+    products: [{ _id: "p1", name: "Laptop", description: "Fast machine", price: 999 }],
   },
 ];
 
 const oneOrderTwoProduct = [
   {
-    status: STATUS.PROCESSING,
-    buyer: { name: BUYERS.ALICE },
-    createdAt: DATES.ORDER1,
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
-    products: [PRODUCTS.LAPTOP, PRODUCTS.MOUSE],
+    products: [{ _id: "p1", name: "Laptop", description: "Fast machine", price: 999 }, { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 }],
   },
 ];
 
 const twoOrdersOneProduct = [
   {
-    status: STATUS.PROCESSING,
-    buyer: { name: BUYERS.ALICE },
-    createdAt: DATES.ORDER1,
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
-    products: [PRODUCTS.LAPTOP],
+    products: [{ _id: "p1", name: "Laptop", description: "Fast machine", price: 999 }],
   },
   {
-    status: STATUS.DELIVERED,
-    buyer: { name: BUYERS.BOB },
-    createdAt: DATES.ORDER2,
+    status: "Delivered",
+    buyer: { name: "Bob" },
+    createdAt: "2024-02-01T00:00:00Z",
     payment: { success: false },
-    products: [PRODUCTS.BOOK],
+    products: [{ _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 }],
   },
 ];
 
 const twoOrdersTwoProduct = [
   {
-    status: STATUS.PROCESSING,
-    buyer: { name: BUYERS.ALICE },
-    createdAt: DATES.ORDER1,
+    status: "Processing",
+    buyer: { name: "Alice" },
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
-    products: [PRODUCTS.LAPTOP, PRODUCTS.MOUSE],
+    products: [{ _id: "p1", name: "Laptop", description: "Fast machine", price: 999 }, { _id: "p2", name: "Mouse", description: "Wireless mouse", price: 29 }],
   },
   {
-    status: STATUS.DELIVERED,
-    buyer: { name: BUYERS.BOB },
-    createdAt: DATES.ORDER2,
+    status: "Delivered",
+    buyer: { name: "Bob" },
+    createdAt: "2024-02-01T00:00:00Z",
     payment: { success: false },
-    products: [PRODUCTS.BOOK, PRODUCTS.EXCEL],
+    products: [{ _id: "p3", name: "Enid Blyton", description: "Great read", price: 19 }, { _id: "p4", name: "Excel Spreadsheets", description: "Great Software", price: 19 }],
   },
 ];
 
 const longDescriptionOrder = [
   {
-    status: STATUS.PROCESSING,
-    buyer: { name: BUYERS.BOB },
-    createdAt: DATES.ORDER1,
+    status: "Processing",
+    buyer: { name: "Bob" },
+    createdAt: "2024-01-01T00:00:00Z",
     payment: { success: true },
     products: [
       {
-        _id: PRODUCTS.MOUSE._id,
-        name: PRODUCTS.MOUSE.name,
-        description: LONG_DESCRIPTION,
+        _id: "p2",
+        name: "Mouse",
+        description: "This description is definitely more than thirty characters long for testing.",
         price: 49,
       },
     ],
@@ -193,16 +169,16 @@ describe('Orders Component', () => {
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(API_ENDPOINT);
-      expect(screen.getByTestId("order_index")).toHaveTextContent("1");
-      expect(screen.getByTestId("order_status")).toHaveTextContent(STATUS.PROCESSING);
-      expect(screen.getByTestId("order_buyer_name")).toHaveTextContent(BUYERS.ALICE);
-      expect(screen.getByTestId("order_time")).toHaveTextContent(TIME.TWO_DAYS_AGO);
-      expect(screen.getByTestId("order_payment_success")).toHaveTextContent(PAYMENT.SUCCESS);
-      expect(screen.getByTestId("order_product_length")).toHaveTextContent("1");
-      expect(screen.getByText(PRODUCTS.LAPTOP.name)).toBeInTheDocument();
-      expect(screen.getByText(`Price : $${PRODUCTS.LAPTOP.price}`)).toBeInTheDocument();
-      const img = screen.getByAltText(PRODUCTS.LAPTOP.name);
-      expect(img).toHaveAttribute("src", `/api/v1/product/product-photo/${PRODUCTS.LAPTOP._id}`);
+      expect(screen.getByTestId("order_index")).toHaveTextContent(oneOrder[0].products.length);
+      expect(screen.getByTestId("order_status")).toHaveTextContent(oneOrder[0].status);
+      expect(screen.getByTestId("order_buyer_name")).toHaveTextContent(oneOrder[0].buyer.name);
+      expect(screen.getByTestId("order_time")).toHaveTextContent(TWO_DAYS_AGO);
+      expect(screen.getByTestId("order_payment_success")).toHaveTextContent(paymentStatusToString(oneOrder[0].payment.success));
+      expect(screen.getByTestId("order_product_length")).toHaveTextContent(oneOrder[0].products.length);
+      expect(screen.getByText(oneOrder[0].products[0].name)).toBeInTheDocument();
+      expect(screen.getByText(`Price : $${oneOrder[0].products[0].price}`)).toBeInTheDocument();
+      const img = screen.getByAltText(oneOrder[0].products[0].name);
+      expect(img).toHaveAttribute("src", `/api/v1/product/product-photo/${oneOrder[0].products[0]._id}`);
     });
   });
 
@@ -226,14 +202,20 @@ describe('Orders Component', () => {
       const payments = await screen.findAllByTestId("order_payment_success");
       const qtys = await screen.findAllByTestId("order_product_length");
 
-      expect(statuses.map((n) => n.textContent)).toEqual([STATUS.PROCESSING]);
-      expect(buyers.map((n) => n.textContent)).toEqual([BUYERS.ALICE]);
-      expect(times.map((n) => n.textContent)).toEqual([TIME.TWO_DAYS_AGO]);
-      expect(payments.map((n) => n.textContent)).toEqual([PAYMENT.SUCCESS]);
-      expect(qtys.map((n) => n.textContent)).toEqual(["2"]);
+      expect(statuses.map((n) => n.textContent)).toEqual([oneOrderTwoProduct[0].status]);
+      expect(buyers.map((n) => n.textContent)).toEqual([oneOrderTwoProduct[0].buyer.name]);
+      expect(times.map((n) => n.textContent)).toEqual([TWO_DAYS_AGO]);
+      expect(payments.map((n) => n.textContent)).toEqual([paymentStatusToString(oneOrderTwoProduct[0].payment.success)]);
+      expect(qtys.map((n) => n.textContent)).toEqual([String(oneOrderTwoProduct[0].products.length)]);
 
-      expect(screen.getByText(PRODUCTS.LAPTOP.name)).toBeInTheDocument();
-      expect(screen.getByText(PRODUCTS.MOUSE.name)).toBeInTheDocument();
+      expect(screen.getByText(oneOrderTwoProduct[0].products[0].name)).toBeInTheDocument();
+      expect(screen.getByText(oneOrderTwoProduct[0].products[1].name)).toBeInTheDocument();
+
+      const laptopImg = screen.getByAltText(oneOrderTwoProduct[0].products[0].name);
+      expect(laptopImg).toHaveAttribute("src", `/api/v1/product/product-photo/${oneOrderTwoProduct[0].products[0]._id}`);
+
+      const mouseImg = screen.getByAltText(oneOrderTwoProduct[0].products[1].name);
+      expect(mouseImg).toHaveAttribute("src", `/api/v1/product/product-photo/${oneOrderTwoProduct[0].products[1]._id}`);
     });
   });
 
@@ -257,14 +239,20 @@ describe('Orders Component', () => {
       const payments = await screen.findAllByTestId("order_payment_success");
       const qtys = await screen.findAllByTestId("order_product_length");
 
-      expect(statuses.map((n) => n.textContent)).toEqual([STATUS.PROCESSING, STATUS.DELIVERED]);
-      expect(buyers.map((n) => n.textContent)).toEqual([BUYERS.ALICE, BUYERS.BOB]);
-      expect(times.map((n) => n.textContent)).toEqual([TIME.TWO_DAYS_AGO, TIME.TWO_DAYS_AGO]);
-      expect(payments.map((n) => n.textContent)).toEqual([PAYMENT.SUCCESS, PAYMENT.FAILED]);
-      expect(qtys.map((n) => n.textContent)).toEqual(["1", "1"]);
+      expect(statuses.map((n) => n.textContent)).toEqual([twoOrdersOneProduct[0].status, twoOrdersOneProduct[1].status]);
+      expect(buyers.map((n) => n.textContent)).toEqual([twoOrdersOneProduct[0].buyer.name, twoOrdersOneProduct[1].buyer.name]);
+      expect(times.map((n) => n.textContent)).toEqual([TWO_DAYS_AGO, TWO_DAYS_AGO]);
+      expect(payments.map((n) => n.textContent)).toEqual([paymentStatusToString(twoOrdersOneProduct[0].payment.success), paymentStatusToString(twoOrdersOneProduct[1].payment.success)]);
+      expect(qtys.map((n) => n.textContent)).toEqual([String(twoOrdersOneProduct[0].products.length), String(twoOrdersOneProduct[1].products.length)]);
 
-      expect(screen.getByText(PRODUCTS.LAPTOP.name)).toBeInTheDocument();
-      expect(screen.getByText(PRODUCTS.BOOK.name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersOneProduct[0].products[0].name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersOneProduct[1].products[0].name)).toBeInTheDocument();
+
+      const laptopImg = screen.getByAltText(twoOrdersOneProduct[0].products[0].name);
+      expect(laptopImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersOneProduct[0].products[0]._id}`);
+
+      const bookImg = screen.getByAltText(twoOrdersOneProduct[1].products[0].name);
+      expect(bookImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersOneProduct[1].products[0]._id}`);
     });
   });
 
@@ -288,16 +276,28 @@ describe('Orders Component', () => {
       const payments = await screen.findAllByTestId("order_payment_success");
       const qtys = await screen.findAllByTestId("order_product_length");
 
-      expect(statuses.map((n) => n.textContent)).toEqual([STATUS.PROCESSING, STATUS.DELIVERED]);
-      expect(buyers.map((n) => n.textContent)).toEqual([BUYERS.ALICE, BUYERS.BOB]);
-      expect(times.map((n) => n.textContent)).toEqual([TIME.TWO_DAYS_AGO, TIME.TWO_DAYS_AGO]);
-      expect(payments.map((n) => n.textContent)).toEqual([PAYMENT.SUCCESS, PAYMENT.FAILED]);
-      expect(qtys.map((n) => n.textContent)).toEqual(["2", "2"]);
+      expect(statuses.map((n) => n.textContent)).toEqual([twoOrdersTwoProduct[0].status, twoOrdersTwoProduct[1].status]);
+      expect(buyers.map((n) => n.textContent)).toEqual([twoOrdersTwoProduct[0].buyer.name, twoOrdersTwoProduct[1].buyer.name]);
+      expect(times.map((n) => n.textContent)).toEqual([TWO_DAYS_AGO, TWO_DAYS_AGO]);
+      expect(payments.map((n) => n.textContent)).toEqual([paymentStatusToString(twoOrdersTwoProduct[0].payment.success), paymentStatusToString(twoOrdersTwoProduct[1].payment.success)]);
+      expect(qtys.map((n) => n.textContent)).toEqual([String(twoOrdersTwoProduct[0].products.length), String(twoOrdersTwoProduct[1].products.length)]);
 
-      expect(screen.getByText(PRODUCTS.LAPTOP.name)).toBeInTheDocument();
-      expect(screen.getByText(PRODUCTS.MOUSE.name)).toBeInTheDocument();
-      expect(screen.getByText(PRODUCTS.BOOK.name)).toBeInTheDocument();
-      expect(screen.getByText(PRODUCTS.EXCEL.name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersTwoProduct[0].products[0].name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersTwoProduct[0].products[1].name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersTwoProduct[1].products[0].name)).toBeInTheDocument();
+      expect(screen.getByText(twoOrdersTwoProduct[1].products[1].name)).toBeInTheDocument();
+
+      const laptopImg = screen.getByAltText(twoOrdersTwoProduct[0].products[0].name);
+      expect(laptopImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersTwoProduct[0].products[0]._id}`);
+
+      const mouseImg = screen.getByAltText(twoOrdersTwoProduct[0].products[1].name);
+      expect(mouseImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersTwoProduct[0].products[1]._id}`);
+
+      const bookImg = screen.getByAltText(twoOrdersTwoProduct[1].products[0].name);
+      expect(bookImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersTwoProduct[1].products[0]._id}`);
+
+      const excelImg = screen.getByAltText(twoOrdersTwoProduct[1].products[1].name);
+      expect(excelImg).toHaveAttribute("src", `/api/v1/product/product-photo/${twoOrdersTwoProduct[1].products[1]._id}`);
     });
   });
 
@@ -352,8 +352,8 @@ describe('Orders Component', () => {
     await waitFor(() => expect(axios.get).toHaveBeenCalled());
 
     await waitFor(() => {
-      expect(screen.getByText(PRODUCTS.LAPTOP.description)).toBeInTheDocument();
-      expect(screen.queryByText(`${PRODUCTS.LAPTOP.description}...`)).not.toBeInTheDocument();
+      expect(screen.getByText(oneOrder[0].products[0].description)).toBeInTheDocument();
+      expect(screen.queryByText(`${oneOrder[0].products[0].description}...`)).not.toBeInTheDocument();
     });
   });
 
@@ -373,7 +373,7 @@ describe('Orders Component', () => {
     await waitFor(() => expect(axios.get).toHaveBeenCalled());
 
     await waitFor(() => {
-      const expectedText = LONG_DESCRIPTION.substring(0, 30) + "...";
+      const expectedText = longDescriptionOrder[0].products[0].description.substring(0, 30) + "...";
       expect(screen.getByText(expectedText)).toBeInTheDocument();
     });
   });
