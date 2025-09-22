@@ -347,6 +347,32 @@ export const productCategoryController = async (req, res) => {
   }
 };
 
+export const productCategoryCountController = async (req, res) => {
+  try {
+    const category = await categoryModel.findOne({ slug: req.params.slug });
+    if (!category) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    const total = await productModel.countDocuments({ category: category._id });
+    res.status(200).send({
+      success: true,
+      total,
+      category,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({
+      success: false,
+      error,
+      message: "Error While Getting products count",
+    });
+  }
+};
+
 //payment gateway api
 //token
 export const braintreeTokenController = async (req, res) => {
