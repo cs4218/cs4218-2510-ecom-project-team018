@@ -98,7 +98,7 @@ const CategoryProduct = () => {
         </h6>
         <div className="row">
           <div className="col-md-9 mx-auto">
-            <div className="d-flex flex-wrap justify-content-center">
+            <div className="d-flex flex-wrap justify-content-md-start justify-content-center">
               {products?.map((p) => (
                 <div className="card m-2" key={p._id}>
                   <img
