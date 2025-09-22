@@ -144,7 +144,7 @@ describe('Profile Page', () => {
         expect(password).toHaveValue(newInputValues.password);
     });
 
-    it('Successful Submission updates Auth, Local Storage and Shows Success Toast', async () => {
+    it("updates auth, local storage and shows success toast upon successful submission", async () => {
         axios.put.mockResolvedValueOnce({
             data: {
                 message: "Profile Updated Successfully",
