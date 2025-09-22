@@ -309,7 +309,7 @@ describe('Profile Page', () => {
         });
     });
 
-    it('shows toast error when auth token is missing and does not call API', async () => {
+    it("shows error toast and does not call API when auth token is missing", async () => {
         useAuth.mockReturnValue([null, jest.fn()]);
 
         render(
