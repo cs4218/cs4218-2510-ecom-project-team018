@@ -15,7 +15,7 @@ const Profile = () => {
   //get user data
   useEffect(() => {
     if (!auth || !auth.user) {
-      toast.error("Unable to retrieve profile, p[lease sign out and sign in again.");
+      toast.error("Unable to retrieve profile, please sign out and sign in again.");
       return
     } else {
       const { email, name, phone, address, password } = auth?.user;
