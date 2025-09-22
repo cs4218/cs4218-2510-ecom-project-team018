@@ -17,8 +17,7 @@ const Profile = () => {
     if (!auth || !auth.user) {
       toast.error("Auth Token is not found. Please sign out and sign in again.");
       return
-    }
-    else {
+    } else {
       const { email, name, phone, address, password } = auth?.user;
       setName(name);
       setPhone(phone);
