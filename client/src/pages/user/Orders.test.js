@@ -164,6 +164,8 @@ describe('Orders Component', () => {
         expect(screen.getByTestId("order_product_length")).toHaveTextContent("1");
         expect(screen.getByText("Laptop")).toBeInTheDocument();
         expect(screen.getByText("Price : $999")).toBeInTheDocument();
+        const img = screen.getByAltText("Laptop");
+        expect(img).toHaveAttribute("src", "/api/v1/product/product-photo/p1");
     });
   });
 
