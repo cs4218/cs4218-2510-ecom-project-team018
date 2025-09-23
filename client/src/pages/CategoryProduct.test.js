@@ -344,5 +344,45 @@ describe("CategoryProduct", () => {
       const call = addToCart.mock.calls[0];
       expect(call[2]).toMatchObject({ _id: "123", name: "CartItem" }); // make sure correct product passed as argument
     });
+
+    it("fetches next page, appends results, disables button while loading on 'Load more'", async () => {
+      const page1 = Array.from({ length: 6 }).map((_, i) =>
+        makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}`, slug: `p${i + 1}` })
+      );
+      const page2 = [
+        makeProduct({ _id: "p7", name: "P7", slug: "p7" }),
+        makeProduct({ _id: "p8", name: "P8", slug: "p8" }),
+      ];
+
+      axios.get
+        .mockResolvedValueOnce({
+          data: { success: true, total: page1.length + page2.length },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: page1,
+          },
+        })
+        .mockResolvedValueOnce({ data: { success: true, products: page2 } });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_SHIRTS}`)
+      ).toBeInTheDocument();
+
+      const btn = screen.getByRole("button", { name: /Load more/i });
+      fireEvent.click(btn);
+      expect(btn).toBeDisabled();
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(page2[page2.length - 1].name)
+        ).toBeInTheDocument();
+      });
+      expect(screen.queryByRole("button", { name: /Load more/i })).toBeNull();
+    });
   });
 });
