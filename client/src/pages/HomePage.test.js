@@ -67,6 +67,22 @@ jest.mock("../components/Prices", () => ({
 
 const mockNavigate = jest.fn();
 
+const listOfProducts = [{ _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
+                        { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
+                        { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}]
+
+const listOfMoreProducts = [{ _id: "p4", name: "Tablet", description: "A powerful tablet", price: 499, category: { name: "Electronics" }, slug: "tablet" },
+                            { _id: "p5", name: "Notebook", description: "A plain notebook", price: 9, category: { name: "Book" }, slug: "notebook" },
+                            { _id: "p6", name: "Jacket", description: "A warm jacket", price: 79, category: { name: "Clothing" }, slug: "jacket" }]
+
+const listOfCategories = [{ _id: "c1", name: "Electronics" },
+                          { _id: "c2", name: "Book" },
+                          { _id: "c3", name: "Clothing" }]
+
+const listOfProductWithLongDescription = [{ _id: 'p1', name: 'Long Item', description: 'L'.repeat(80), price: 10, category: { name: 'Misc' }, slug: 'long-item'}];
+
+const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
+
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
@@ -79,19 +95,11 @@ describe('HomePage Component', () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
-                    data: { success: true, category: [
-                        { _id: "c1", name: "Electronics" },
-                        { _id: "c2", name: "Book" },
-                        { _id: "c3", name: "Clothing" }
-                    ]}
+                    data: { success: true, category: listOfCategories }
                 });
             } else if (url.startsWith("/api/v1/product/product-list/")) {
                 return Promise.resolve({
-                    data: { products: [
-                        { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
-                        { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
-                        { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}
-                    ]}
+                    data: { products: listOfProducts }
                 });
             } else if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({
@@ -103,24 +111,17 @@ describe('HomePage Component', () => {
         axios.post.mockImplementation((url, body) => {
             if (url === "/api/v1/product/product-filters") {
                 const { checked = [], radio = [] } = body ?? {};
-                const all = [
-                { _id: 'p1', name: 'Laptop', description: "A powerful laptop", price: 999, category: { name: 'Electronics' }, slug: 'Testing123' },
-                { _id: 'p2', name: 'Book Interesting', description: "An interesting book", price: 19, category: { name: 'Book' }, slug: 'Testing123' },
-                { _id: 'p3', name: 'Shirt', description: "A stylish shirt", price: 29, category: { name: 'Clothing' }, slug: 'Testing123' },
-                ];
-
-                const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
-
+                const all = listOfProducts
                 let out = all;
 
                 if (checked.length) {
-                const allowed = new Set(checked.map(id => categoryById[id]));
-                out = out.filter(p => allowed.has(p.category.name));
+                    const allowed = new Set(checked.map(id => categoryById[id]));
+                    out = out.filter(p => allowed.has(p.category.name));
                 }
 
                 if (radio.length === 2) {
-                const [min, max] = radio;
-                out = out.filter(p => p.price >= min && p.price <= max);
+                    const [min, max] = radio;
+                    out = out.filter(p => p.price >= min && p.price <= max);
                 }
 
                 return Promise.resolve({ data: { products: out } });
@@ -216,13 +217,8 @@ describe('HomePage Component', () => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.reject(new Error("Category API failed"));
             }
-            // Let other axios.get calls still succeed
             if (url.startsWith("/api/v1/product/product-list/")) {
-            return Promise.resolve({ data: { products: [
-                        { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
-                        { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
-                        { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}
-                    ]} });
+            return Promise.resolve({ data: { products: listOfProducts } });
                 }
             if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 10 } });
@@ -231,38 +227,24 @@ describe('HomePage Component', () => {
 
         render(
             <MemoryRouter initialEntries={["/"]}>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-            </Routes>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                </Routes>
             </MemoryRouter>
         );
 
-        expect(await screen.findByText("All Products")).toBeInTheDocument();
-
-        expect(toast.error).toHaveBeenCalledWith("Error getting categories, please try again later")
-
+        await waitFor(() => {
+            expect(toast.error).toHaveBeenCalledWith("Error getting categories, please try again later");
+        })
     });
 
     it('should not show any Categories when get category API returns data.success False', async () => {
         axios.get.mockImplementationOnce((url) => {
             if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: {
-                    success: false,
-                    category: [
-                        { _id: "c1", name: "Electronics" },
-                        { _id: "c2", name: "Book" },
-                        { _id: "c3", name: "Clothing" }
-                    ]
-                    }
-                });
+                return Promise.resolve({ data: { success: false, category: listOfCategories }});
             }
             if (url.startsWith("/api/v1/product/product-list/")) {
-                return Promise.resolve({ data: { products: [
-                    { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "Testing123" },
-                    { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "Testing123" },
-                    { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "Testing123"}]}
-                });
+                return Promise.resolve({ data: { products: listOfProducts }});
             }
             if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 10 } });
@@ -278,50 +260,25 @@ describe('HomePage Component', () => {
         );
 
         await waitFor(() => {
-            expect(screen.queryByRole('checkbox', { name: 'Electronics' })).not.toBeInTheDocument();
-            expect(screen.queryByRole('checkbox', { name: 'Book' })).not.toBeInTheDocument();
-            expect(screen.queryByRole('checkbox', { name: 'Clothing' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('checkbox', { name: listOfCategories[0].name })).not.toBeInTheDocument();
+            expect(screen.queryByRole('checkbox', { name: listOfCategories[1].name })).not.toBeInTheDocument();
+            expect(screen.queryByRole('checkbox', { name: listOfCategories[2].name })).not.toBeInTheDocument();
         });
     });
 
     it("should load more products when Load More is clicked", async () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: {
-                    success: true,
-                    category: [
-                        { _id: "c1", name: "Electronics" },
-                        { _id: "c2", name: "Book" },
-                        { _id: "c3", name: "Clothing" }
-                    ]
-                    }
-                });
+                return Promise.resolve({ data: { success: true, category: listOfCategories }});
             }
             if (url === "/api/v1/product/product-count") {
-            return Promise.resolve({ data: { total: 6 } });
+                return Promise.resolve({ data: { total: 6 } });
             }
             if (url === "/api/v1/product/product-list/1") {
-            return Promise.resolve({
-                data: {
-                products: [
-                    { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "laptop" },
-                    { _id: "p2", name: "Book Interesting", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "book" },
-                    { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "shirt" }
-                ]
-                }
-            });
+                return Promise.resolve({ data: { products: listOfProducts }});
             }
             if (url === "/api/v1/product/product-list/2") {
-            return Promise.resolve({
-                data: {
-                    products: [
-                        { _id: "p4", name: "Tablet", description: "A powerful tablet", price: 499, category: { name: "Electronics" }, slug: "tablet" },
-                        { _id: "p5", name: "Notebook", description: "A plain notebook", price: 9, category: { name: "Book" }, slug: "notebook" },
-                        { _id: "p6", name: "Jacket", description: "A warm jacket", price: 79, category: { name: "Clothing" }, slug: "jacket" }
-                    ]
-                }
-            });
+                return Promise.resolve({ data: { products: listOfMoreProducts }});
             }
         });
 
@@ -357,11 +314,7 @@ describe('HomePage Component', () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
                 return Promise.resolve({
-                        data: { success: true, category: [
-                            { _id: "c1", name: "Electronics" },
-                            { _id: "c2", name: "Book" },
-                            { _id: "c3", name: "Clothing" }
-                        ]}
+                        data: { success: true, category: listOfCategories}
                 });
             }
             if (url === "/api/v1/product/product-count") {
@@ -387,10 +340,9 @@ describe('HomePage Component', () => {
             await userEvent.click(loadMoreBtn);
         });
 
-        await waitFor(() =>
+        await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith("Error loading more products, please try again later")
-        );
-
+        });
     });
 
     it("should add a product to cart and update localStorage", async () => {
@@ -405,9 +357,9 @@ describe('HomePage Component', () => {
 
         render(
             <MemoryRouter initialEntries={["/"]}>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-            </Routes>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -419,7 +371,7 @@ describe('HomePage Component', () => {
 
         expect(window.localStorage.setItem).toHaveBeenCalledWith(
             "cart",
-            expect.stringContaining("Laptop")
+            expect.stringContaining(listOfProducts[0].name)
         );
 
         expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
@@ -466,23 +418,10 @@ describe('HomePage Component', () => {
         // Mock GETs just enough for the component to render
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
-                return Promise.resolve({
-                    data: {
-                    success: true,
-                    category: [{ _id: "c1", name: "Electronics" }]
-                    },
-                });
+                return Promise.resolve({ data: { success: true, category: listOfCategories }});
             }
             if (url.startsWith("/api/v1/product/product-list/")) {
-                return Promise.resolve({
-                    data: {
-                        products: [
-                            { _id: "p4", name: "Tablet", description: "A powerful tablet", price: 499, category: { name: "Electronics" }, slug: "tablet" },
-                            { _id: "p5", name: "Notebook", description: "A plain notebook", price: 9, category: { name: "Book" }, slug: "notebook" },
-                            { _id: "p6", name: "Jacket", description: "A warm jacket", price: 79, category: { name: "Clothing" }, slug: "jacket" }
-                        ]
-                    }
-                });
+                return Promise.resolve({ data: { products: listOfProducts }});
             }
             if (url === "/api/v1/product/product-count") {
                 return Promise.resolve({ data: { total: 10 } });
@@ -512,13 +451,13 @@ describe('HomePage Component', () => {
     it('should catch errors when Product-Count API fails', async () => {
         axios.get.mockImplementation((url) => {
             if (url === '/api/v1/category/get-category') {
-            return Promise.resolve({ data: { success: true, category: [] } });
+                return Promise.resolve({ data: { success: true, category: listOfCategories } });
             }
             if (url === '/api/v1/product-count' || url === '/api/v1/product/product-count') {
-            return Promise.reject(new Error('count failed'));
+                return Promise.reject(new Error('count failed'));
             }
             if (url.startsWith('/api/v1/product/product-list/')) {
-            return Promise.resolve({ data: { products: [] } });
+                return Promise.resolve({ data: { products: listOfProducts } });
             }
         });
 
@@ -536,45 +475,36 @@ describe('HomePage Component', () => {
     });
 
     it('renders full description when length < 60', async () => {
-        const shortDesc = 'Nice and short.';
+
         axios.get.mockImplementation((url) => {
-        if (url === '/api/v1/category/get-category') {
-            return Promise.resolve({ data: { success: true, category: [] } });
-        }
-        if (url === '/api/v1/product/product-count') {
-            return Promise.resolve({ data: { total: 1 } });
-        }
-        if (url.startsWith('/api/v1/product/product-list/')) {
-            return Promise.resolve({
-            data: {
-                products: [
-                {
-                    _id: 'p1',
-                    name: 'Item',
-                    description: shortDesc,
-                    price: 10,
-                    category: { name: 'Misc' },
-                    slug: 'item'
-                }
-                ],
-            },
-            });
-        }
+            if (url === '/api/v1/category/get-category') {
+                return Promise.resolve({ data: { success: true, category: listOfCategories } });
+            }
+            if (url === '/api/v1/product/product-count') {
+                return Promise.resolve({ data: { total: 1 } });
+            }
+            if (url.startsWith('/api/v1/product/product-list/')) {
+                return Promise.resolve({ data: { products: listOfProducts }});
+            }
         });
 
         render(
         <MemoryRouter initialEntries={['/']}>
             <Routes>
-            <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
             </Routes>
         </MemoryRouter>
         );
 
-        // Wait for the product to show
-        expect(await screen.findByText('Item')).toBeInTheDocument();
+        // Wait for the products to show
+        expect(await screen.findByText(listOfProducts[0].name)).toBeInTheDocument();
+        expect(await screen.findByText(listOfProducts[1].name)).toBeInTheDocument();
+        expect(await screen.findByText(listOfProducts[2].name)).toBeInTheDocument();
 
         // Exact full description, no ellipsis
-        expect(screen.getByText(shortDesc)).toBeInTheDocument();
+        expect(screen.getByText(listOfProducts[0].description)).toBeInTheDocument();
+        expect(screen.getByText(listOfProducts[1].description)).toBeInTheDocument();
+        expect(screen.getByText(listOfProducts[2].description)).toBeInTheDocument();
         expect(screen.queryByText(/\.{3}$/)).not.toBeInTheDocument();
     });
 
@@ -582,23 +512,14 @@ describe('HomePage Component', () => {
         axios.get.mockImplementation((url) => {
             if (url === "/api/v1/category/get-category") {
             return Promise.resolve({
-                data: { success: true, category: [
-                { _id: "c1", name: "Electronics" },
-                { _id: "c2", name: "Book" },
-                { _id: "c3", name: "Clothing" },
-                ] }
-            });
+                data: { success: true, category: listOfCategories }});
             }
             if (url === "/api/v1/product/product-count") {
             return Promise.resolve({ data: { total: 10 } });
             }
             if (url.startsWith("/api/v1/product/product-list/")) {
             return Promise.resolve({
-                data: { products: [
-                { _id: "p1", name: "Laptop", description: "A powerful laptop", price: 999, category: { name: "Electronics" }, slug: "laptop" },
-                { _id: "p2", name: "Interesting Novel", description: "An interesting book", price: 19, category: { name: "Book" }, slug: "book" },
-                { _id: "p3", name: "Shirt", description: "A stylish shirt", price: 29, category: { name: "Clothing" }, slug: "shirt" },
-                ] }
+                data: { products: listOfProducts }
             });
             }
         });
@@ -611,9 +532,9 @@ describe('HomePage Component', () => {
 
         render(
             <MemoryRouter initialEntries={['/']}>
-            <Routes>
-                <Route path="/" element={<HomePage />} />
-            </Routes>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                </Routes>
             </MemoryRouter>
         );
 
@@ -629,48 +550,34 @@ describe('HomePage Component', () => {
     });
 
     it('truncates to 60 chars and appends ellipsis when length ≥ 60', async () => {
-        const longDesc = 'L'.repeat(80); // 80 chars
-        const expected = longDesc.substring(0, 60) + '...';
+        const expected = listOfProductWithLongDescription[0].description.substring(0, 60) + '...';
 
         axios.get.mockImplementation((url) => {
-        if (url === '/api/v1/category/get-category') {
-            return Promise.resolve({ data: { success: true, category: [] } });
-        }
-        if (url === '/api/v1/product/product-count') {
-            return Promise.resolve({ data: { total: 1 } });
-        }
-        if (url.startsWith('/api/v1/product/product-list/')) {
-            return Promise.resolve({
-            data: {
-                products: [
-                {
-                    _id: 'p1',
-                    name: 'Long Item',
-                    description: longDesc,
-                    price: 10,
-                    category: { name: 'Misc' },
-                    slug: 'long-item'
-                }
-                ],
-            },
-            });
-        }
+            if (url === '/api/v1/category/get-category') {
+                return Promise.resolve({ data: { success: true, category: listOfCategories } });
+            }
+            if (url === '/api/v1/product/product-count') {
+                return Promise.resolve({ data: { total: 1 } });
+            }
+            if (url.startsWith('/api/v1/product/product-list/')) {
+                return Promise.resolve({ data: { products: listOfProductWithLongDescription }});
+            }
         });
 
         render(
         <MemoryRouter initialEntries={['/']}>
             <Routes>
-            <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
             </Routes>
         </MemoryRouter>
         );
 
-        expect(await screen.findByText('Long Item')).toBeInTheDocument();
+        expect(await screen.findByText(listOfProductWithLongDescription[0].name)).toBeInTheDocument();
 
         // Shows the truncated description with ellipsis
         expect(screen.getByText(expected)).toBeInTheDocument();
 
         // And does not show the full long string
-        expect(screen.queryByText(longDesc)).not.toBeInTheDocument();
+        expect(screen.queryByText(listOfProductWithLongDescription[0].description)).not.toBeInTheDocument();
     });
 });

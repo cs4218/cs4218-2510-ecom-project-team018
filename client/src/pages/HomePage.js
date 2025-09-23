@@ -107,8 +107,7 @@ const HomePage = () => {
   useEffect(() => {
     if (checked.length === 0 && radio.length === 0) {
       getAllProducts();
-    }
-    if (checked.length || radio.length) {
+    } else {
       filterProduct();
     }
   }, [checked, radio]);
@@ -126,7 +125,7 @@ const HomePage = () => {
       <div className="container-fluid row mt-3 home-page">
         <div className="col-md-3 filters">
           <h4 className="text-center">Filter By Category</h4>
-          <div  className="d-flex flex-column">
+          <div className="d-flex flex-column">
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
