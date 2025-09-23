@@ -202,5 +202,34 @@ describe("CategoryProduct", () => {
       renderWithRouter(<CategoryProduct />);
       expect(await screen.findByText(/1 result found/i)).toBeInTheDocument(); // singular "result"
     });
+
+    it("renders description truncated and fallback when missing", async () => {
+      const longDesc =
+        "This is a very long description that should be truncated at sixty characters to keep the card compact.";
+      const products = [
+        makeProduct({ name: "LongDesc", description: longDesc }),
+        makeProduct({ _id: "p2", name: "NoDesc", description: undefined }),
+      ]; // one with long desc, one without
+    
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 2 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products,
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_SHIRTS}`)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/This is a very long description/)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/No description available/)).toBeInTheDocument();
+    });
   });
 });
