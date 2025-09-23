@@ -159,5 +159,13 @@ describe("CategoryProduct", () => {
       expect(screen.getByText(pantsPage1[0].name)).toBeInTheDocument();
       expect(screen.queryByText(shirtsPage1[0].name)).toBeNull();
     });
+
+    it("does not fetch when slug is missing", async () => {
+      useParams.mockReturnValueOnce({ slug: undefined });
+
+      renderWithRouter(<CategoryProduct />, ["/category/"]);
+
+      await waitFor(() => expect(axios.get).not.toHaveBeenCalled());
+    });
   });
 });
