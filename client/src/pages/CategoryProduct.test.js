@@ -5,7 +5,7 @@ import axios from "axios";
 import CategoryProduct from "./CategoryProduct";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
-import { addToCart } from "../utils/prodctUtils";
+import { addToCart } from "../utils/productUtils";
 
 jest.mock("axios");
 
@@ -321,6 +321,28 @@ describe("CategoryProduct", () => {
       expect(await screen.findByText(p.name)).toBeInTheDocument();
       fireEvent.click(screen.getByRole("button", { name: /More Details/i }));
       expect(navigate).toHaveBeenCalledWith(`/product/${p.slug}`);
+    });
+
+    it("calls addToCart on 'ADD TO CART'", async () => {
+      const p = makeProduct({ _id: "123", name: "CartItem" });
+
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [p],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(await screen.findByText(p.name)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /ADD TO CART/i }));
+      expect(addToCart).toHaveBeenCalledTimes(1);
+      const call = addToCart.mock.calls[0];
+      expect(call[2]).toMatchObject({ _id: "123", name: "CartItem" }); // make sure correct product passed as argument
     });
   });
 });
