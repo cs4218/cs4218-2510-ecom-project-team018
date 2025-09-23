@@ -37,3 +37,11 @@ jest.mock("../utils/productUtils", () => ({
   addToCart: jest.fn(),
   handleImgError: jest.fn(),
 }));
+
+const SLUG_SHIRTS = "shirts";
+const SLUG_PANTS = "pants";
+const CATEGORY_SHIRTS = "Shirts";
+const CATEGORY_PANTS = "Pants";
+
+const ROUTE_SHIRTS = `/category/${SLUG_SHIRTS}`;
+const ROUTE_PANTS = `/category/${SLUG_PANTS}`;
