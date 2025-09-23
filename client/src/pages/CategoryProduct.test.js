@@ -168,4 +168,39 @@ describe("CategoryProduct", () => {
       await waitFor(() => expect(axios.get).not.toHaveBeenCalled());
     });
   });
+
+  describe("Rendering & content", () => {
+    it("shows pluralized results count", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 2 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [
+              makeProduct({ name: "First" }),
+              makeProduct({ _id: "p2", name: "Second" }),
+            ],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+      expect(await screen.findByText(/2 results found/i)).toBeInTheDocument(); // plural "results"
+    });
+
+    it("shows singular result count", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [makeProduct({ name: "Solo" })],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+      expect(await screen.findByText(/1 result found/i)).toBeInTheDocument(); // singular "result"
+    });
+  });
 });
