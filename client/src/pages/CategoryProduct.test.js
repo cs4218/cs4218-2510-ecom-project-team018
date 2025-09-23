@@ -252,5 +252,53 @@ describe("CategoryProduct", () => {
         screen.queryByRole("button", { name: /Load more/i })
       ).not.toBeInTheDocument();
     });
+
+    it("hides Load more when all items already loaded", async () => {
+      // total 3 products but only 3 returned on page 1, so no more to load
+      const page1 = Array.from({ length: 3 }).map((_, i) =>
+        makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}` })
+      );
+
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 3 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: page1,
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(await screen.findByText("P3")).toBeInTheDocument();
+      expect(screen.queryByRole("button", { name: /Load more/i })).toBeNull();
+    });
+  });
+
+  it("shows Load more button when not all items are loaded", async () => {
+    // total 10 products but only 6 returned on page 1, so more to load
+    const totalProducts = 10;
+    const page1 = Array.from({ length: 6 }).map((_, i) =>
+      makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}` })
+    );
+
+    axios.get
+      .mockResolvedValueOnce({ data: { success: true, total: totalProducts } })
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          category: { name: CATEGORY_SHIRTS },
+          products: page1,
+        },
+      });
+    renderWithRouter(<CategoryProduct />);
+
+    expect(
+      await screen.findByText(page1[page1.length - 1].name)
+    ).toBeInTheDocument(); // wait for last product to confirm load
+    expect(
+      screen.getByRole("button", { name: /Load more/i })
+    ).toBeInTheDocument();
   });
 });
