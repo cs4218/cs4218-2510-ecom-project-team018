@@ -62,3 +62,56 @@ const makeProduct = (overrides = {}) => ({
   ...overrides,
 });
 
+describe("CategoryProduct", () => {
+  const navigate = jest.fn();
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    useParams.mockReturnValue({ slug: SLUG_SHIRTS });
+    useNavigate.mockReturnValue(navigate);
+    useCart.mockReturnValue([[], jest.fn()]);
+  });
+
+  describe("Data fetching & lifecycle", () => {
+    it("fetches count and page 1 on mount and renders products", async () => {
+      const totalProducts = 13;
+
+      // mock 6 products for page 1
+      const productsPage1 = Array.from({ length: 6 }).map((_, i) =>
+        makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}`, slug: `p${i + 1}` })
+      );
+
+      // mock API responses for total count of 13 and page 1 results
+      axios.get
+        .mockResolvedValueOnce({
+          data: { success: true, total: totalProducts },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: productsPage1,
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      // verify API calls
+      await waitFor(() =>
+        expect(axios.get).toHaveBeenNthCalledWith(1, API_COUNT(SLUG_SHIRTS))
+      );
+      expect(axios.get).toHaveBeenNthCalledWith(2, API_PAGE(SLUG_SHIRTS, 1, 6));
+
+      // verify rendered output
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_SHIRTS}`)
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(`${totalProducts} results found`, "i"))
+      ).toBeInTheDocument();
+      productsPage1.forEach((p) => {
+        expect(screen.getByText(p.name)).toBeInTheDocument();
+      });
+    });
+  });
+});
