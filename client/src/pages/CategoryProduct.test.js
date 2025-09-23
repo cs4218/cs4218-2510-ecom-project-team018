@@ -210,7 +210,7 @@ describe("CategoryProduct", () => {
         makeProduct({ name: "LongDesc", description: longDesc }),
         makeProduct({ _id: "p2", name: "NoDesc", description: undefined }),
       ]; // one with long desc, one without
-    
+
       axios.get
         .mockResolvedValueOnce({ data: { success: true, total: 2 } })
         .mockResolvedValueOnce({
@@ -230,6 +230,27 @@ describe("CategoryProduct", () => {
         screen.getByText(/This is a very long description/)
       ).toBeInTheDocument();
       expect(screen.getByText(/No description available/)).toBeInTheDocument();
+    });
+
+    it("shows empty state when no products and total=0", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 0 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(
+        await screen.findByText(/No products found in this category/i)
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /Load more/i })
+      ).not.toBeInTheDocument();
     });
   });
 });
