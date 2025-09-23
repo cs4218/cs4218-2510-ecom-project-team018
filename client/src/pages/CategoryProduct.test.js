@@ -1,11 +1,11 @@
-// CategoryProduct.test.jsx
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import CategoryProduct from "./CategoryProduct";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
+import { addToCart } from "../utils/prodctUtils";
 
 jest.mock("axios");
 
@@ -300,5 +300,27 @@ describe("CategoryProduct", () => {
     expect(
       screen.getByRole("button", { name: /Load more/i })
     ).toBeInTheDocument();
+  });
+
+  describe("Interactions", () => {
+    it("navigates to product details on 'More Details'", async () => {
+      const p = makeProduct({ name: "GoDetails", slug: "go-details" });
+
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [p],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(await screen.findByText(p.name)).toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /More Details/i }));
+      expect(navigate).toHaveBeenCalledWith(`/product/${p.slug}`);
+    });
   });
 });
