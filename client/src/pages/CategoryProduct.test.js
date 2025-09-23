@@ -45,3 +45,20 @@ const CATEGORY_PANTS = "Pants";
 
 const ROUTE_SHIRTS = `/category/${SLUG_SHIRTS}`;
 const ROUTE_PANTS = `/category/${SLUG_PANTS}`;
+
+const API_COUNT = (slug) => `/api/v1/product/product-category-count/${slug}`;
+const API_PAGE = (slug, page, limit = 6) =>
+  `/api/v1/product/product-category/${slug}?page=${page}&limit=${limit}`;
+
+const renderWithRouter = (ui, initialEntries = [ROUTE_SHIRTS]) =>
+  render(<MemoryRouter initialEntries={initialEntries}>{ui}</MemoryRouter>);
+
+const makeProduct = (overrides = {}) => ({
+  _id: overrides._id ?? "p1",
+  name: overrides.name ?? "Blue Tee",
+  price: overrides.price ?? 100,
+  slug: overrides.slug ?? "blue-tee",
+  description: overrides.description ?? "A comfy tee",
+  ...overrides,
+});
+
