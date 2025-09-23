@@ -113,5 +113,51 @@ describe("CategoryProduct", () => {
         expect(screen.getByText(p.name)).toBeInTheDocument();
       });
     });
+
+    it("refetches when slug changes and resets state", async () => {
+      const shirtsPage1 = [makeProduct({ name: "ShirtA" })];
+      const pantsPage1 = [makeProduct({ _id: "q1", name: "PantA" })];
+
+      useParams.mockReturnValueOnce({ slug: SLUG_SHIRTS }); // initial render with shirts slug
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: shirtsPage1,
+          },
+        });
+
+      const { rerender } = renderWithRouter(<CategoryProduct />);
+
+      // wait for products to load
+      expect(await screen.findByText(shirtsPage1[0].name)).toBeInTheDocument();
+
+      useParams.mockReturnValueOnce({ slug: SLUG_PANTS }); // change slug to pants
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_PANTS },
+            products: pantsPage1,
+          },
+        });
+
+      rerender(
+        <MemoryRouter initialEntries={[ROUTE_PANTS]}>
+          <CategoryProduct />
+        </MemoryRouter>
+      );
+
+      // verify new products load and old products are gone
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_PANTS}`)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/1 result found/i)).toBeInTheDocument();
+      expect(screen.getByText(pantsPage1[0].name)).toBeInTheDocument();
+      expect(screen.queryByText(shirtsPage1[0].name)).toBeNull();
+    });
   });
 });
