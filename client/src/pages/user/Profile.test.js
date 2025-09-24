@@ -262,7 +262,7 @@ describe('Profile Page', () => {
         });
     })
 
-    it("shows toast error if API response success=true but updatedUser is null", async () => {
+    it("shows toast error amd not call setAuth if API response success == true but updatedUser is null", async () => {
         axios.put.mockResolvedValueOnce({
             data: { success: true, updatedUser: null },
         });
@@ -280,7 +280,7 @@ describe('Profile Page', () => {
 
         await waitFor(() => {
             expect(toast.error).toHaveBeenCalledWith(
-            "Updated Profile not found, please try again later"
+                "Updated Profile not found, please try again later"
             );
             expect(mockSetAuth).not.toHaveBeenCalled();
         });

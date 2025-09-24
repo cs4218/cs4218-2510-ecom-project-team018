@@ -45,6 +45,7 @@ const Profile = () => {
 
       if (!data?.updatedUser) {
         toast.error("Updated Profile not found, please try again later");
+        return;
       }
 
       if (!data?.success) {
