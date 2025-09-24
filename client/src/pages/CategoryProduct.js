@@ -31,7 +31,11 @@ const CategoryProduct = () => {
       const { data } = await axios.get(
         `/api/v1/product/product-category-count/${categorySlug}`
       );
-      if (data?.success) setTotal(data.total ?? 0);
+      if (data?.success) {
+        setTotal(data.total ?? 0);
+      } else {
+        throw new Error("Failed to load total products");
+      }
     } catch (error) {
       console.error(error);
       toast.error("Failed to load total products");
@@ -40,17 +44,16 @@ const CategoryProduct = () => {
 
   // fetch products by category and page
   const fetchProductsByCategory = useCallback(
-    async (pageToLoad, providedSlug) => {
-      const targetSlug = providedSlug ?? slug;
-      if (!targetSlug) return;
-
+    async (pageToLoad) => {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          `/api/v1/product/product-category/${targetSlug}?page=${pageToLoad}&limit=${PAGE_SIZE}`
+          `/api/v1/product/product-category/${slug}?page=${pageToLoad}&limit=${PAGE_SIZE}`
         );
 
-        if (!data?.success) return;
+        if (!data?.success) {
+          throw new Error("Failed to load products");
+        }
 
         if (data.category) setCategory(data.category);
 
@@ -82,9 +85,9 @@ const CategoryProduct = () => {
 
   // on page change (except first page), fetch next page
   useEffect(() => {
-    if (page === 1 || !slug) return;
-    fetchProductsByCategory(page, slug);
-  }, [page, slug, fetchProductsByCategory]);
+    if (page === 1) return;
+    fetchProductsByCategory(page);
+  }, [page, fetchProductsByCategory]);
 
   return (
     <Layout>
