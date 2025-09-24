@@ -288,6 +288,24 @@ describe("CategoryProduct", () => {
 
       expect(await screen.findByText(/0 results found/i)).toBeInTheDocument();
     });
+
+    it("handles non-array products payload gracefully", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 0 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: null, // not an array
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(
+        await screen.findByText(/No products found in this category/i)
+      ).toBeInTheDocument();
+    });
   });
 
   it("shows Load more button when not all items are loaded", async () => {
