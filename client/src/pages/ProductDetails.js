@@ -153,7 +153,11 @@ const ProductDetails = () => {
                     {formatPrice(p.price)}
                   </h5>
                 </div>
-                <p className="card-text">{p.description.substring(0, 60)}...</p>
+                <p className="card-text">
+                  {p.description.length < 60
+                    ? p.description
+                    : p.description.substring(0, 60) + "..."}
+                </p>
                 <div className="card-name-price">
                   <button
                     className="btn btn-info ms-1"
