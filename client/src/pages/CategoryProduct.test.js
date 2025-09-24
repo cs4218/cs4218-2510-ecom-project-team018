@@ -409,5 +409,44 @@ describe("CategoryProduct", () => {
         screen.getByText(/No products found in this category/i)
       ).toBeInTheDocument();
     });
+
+    it("shows error toast when products fetch fails (page 2) and keeps previous products", async () => {
+      // total 7 products but only 6 returned on page 1, so more to load
+      const page1 = Array.from({ length: 6 }).map((_, i) =>
+        makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}` })
+      );
+
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 7 } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: page1,
+          },
+        })
+        .mockRejectedValueOnce(new Error("Network error"));
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(
+        await screen.findByText(page1[page1.length - 1].name)
+      ).toBeInTheDocument(); // wait for page 1 load
+
+      // click Load more to fetch page 2 which will trigger error
+      const btn = screen.getByRole("button", { name: /Load more/i });
+      fireEvent.click(btn);
+
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Failed to load products")
+      );
+
+      for (const p of page1) {
+        expect(screen.getByText(p.name)).toBeInTheDocument();
+      }
+      expect(
+        screen.getByRole("button", { name: /Load more/i })
+      ).toBeInTheDocument(); // button still there to retry
+    });
   });
 });
