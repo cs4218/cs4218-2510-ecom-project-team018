@@ -306,32 +306,34 @@ describe("CategoryProduct", () => {
         await screen.findByText(/No products found in this category/i)
       ).toBeInTheDocument();
     });
-  });
 
-  it("shows Load more button when not all items are loaded", async () => {
-    // total 10 products but only 6 returned on page 1, so more to load
-    const totalProducts = 10;
-    const page1 = Array.from({ length: 6 }).map((_, i) =>
-      makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}` })
-    );
+    it("shows Load more button when not all items are loaded", async () => {
+      // total 10 products but only 6 returned on page 1, so more to load
+      const totalProducts = 10;
+      const page1 = Array.from({ length: 6 }).map((_, i) =>
+        makeProduct({ _id: `p${i + 1}`, name: `P${i + 1}` })
+      );
 
-    axios.get
-      .mockResolvedValueOnce({ data: { success: true, total: totalProducts } })
-      .mockResolvedValueOnce({
-        data: {
-          success: true,
-          category: { name: CATEGORY_SHIRTS },
-          products: page1,
-        },
-      });
-    renderWithRouter(<CategoryProduct />);
+      axios.get
+        .mockResolvedValueOnce({
+          data: { success: true, total: totalProducts },
+        })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: page1,
+          },
+        });
+      renderWithRouter(<CategoryProduct />);
 
-    expect(
-      await screen.findByText(page1[page1.length - 1].name)
-    ).toBeInTheDocument(); // wait for last product to confirm load
-    expect(
-      screen.getByRole("button", { name: /Load more/i })
-    ).toBeInTheDocument();
+      expect(
+        await screen.findByText(page1[page1.length - 1].name)
+      ).toBeInTheDocument(); // wait for last product to confirm load
+      expect(
+        screen.getByRole("button", { name: /Load more/i })
+      ).toBeInTheDocument();
+    });
   });
 
   describe("Interactions", () => {
