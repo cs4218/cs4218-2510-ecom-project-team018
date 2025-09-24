@@ -18,11 +18,10 @@ const Profile = () => {
       toast.error("Unable to retrieve profile, please sign out and sign in again.");
       return
     } else {
-      const { email, name, phone, address, password } = auth?.user;
+      const { email, name, phone, address } = auth?.user;
       setName(name);
       setPhone(phone);
       setEmail(email);
-      setPassword(password);
       setAddress(address);
     }
   }, [auth]);
@@ -30,7 +29,7 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!password || password.length < 6) {
+    if (password && password.length < 6) {
       toast.error("Password must be at least 6 characters long");
       return;
     }
@@ -43,6 +42,10 @@ const Profile = () => {
         phone,
         address,
       });
+
+      if (!data?.updatedUser) {
+        toast.error("Updated Profile not found, please try again later");
+      }
 
       if (!data?.success) {
         console.error(data?.error);

@@ -236,7 +236,7 @@ describe('Profile Page', () => {
         });
     });
 
-    it("shows Toast Error if updating Profile with API auth/profile API has data.success == false in response", async () => {
+    it("shows Toast Error if updating Profile with auth/profile API has data.success == false in response", async () => {
         axios.put.mockResolvedValueOnce({
             data: { 
                 message: "Profile Update Failure",
@@ -262,30 +262,32 @@ describe('Profile Page', () => {
         });
     })
 
-    it("shows toast error and does not call axios if password is empty", async () => {
-        const { findByPlaceholderText, getByRole } = render(
-            <MemoryRouter initialEntries={['/dashboard/user/profile']}>
-                <Routes>
-                    <Route path="/dashboard/user/profile" element={<Profile />} />
-                </Routes>
+    it("shows toast error if API response success=true but updatedUser is null", async () => {
+        axios.put.mockResolvedValueOnce({
+            data: { success: true, updatedUser: null },
+        });
+
+        const { findByRole } = render(
+            <MemoryRouter initialEntries={["/dashboard/user/profile"]}>
+            <Routes>
+                <Route path="/dashboard/user/profile" element={<Profile />} />
+            </Routes>
             </MemoryRouter>
         );
 
-        const password = await findByPlaceholderText(/enter your password/i);
-        const submit = getByRole("button", { name: /update/i });
-
-        await act(async () => {
-            await userEvent.clear(password);
-            await userEvent.click(submit);
-        });
+        const submit = await findByRole("button", { name: /update/i });
+        await userEvent.click(submit);
 
         await waitFor(() => {
-            expect(toast.error).toHaveBeenCalledWith("Password must be at least 6 characters long");
-            expect(axios.put).not.toHaveBeenCalled();
+            expect(toast.error).toHaveBeenCalledWith(
+            "Updated Profile not found, please try again later"
+            );
+            expect(mockSetAuth).not.toHaveBeenCalled();
         });
     });
 
-    it("shows toast error and does not call axios if password is shorter than 6 characters", async () => {
+
+    it("shows toast error and does not call axios if password is shorter than 6 characters and greater than 0 Characters", async () => {
         const { findByPlaceholderText, getByRole } = render(
             <MemoryRouter initialEntries={['/dashboard/user/profile']}>
                 <Routes>
@@ -299,7 +301,7 @@ describe('Profile Page', () => {
 
         await act(async () => {
             await userEvent.clear(password);
-            await userEvent.type(password, "123");
+            await userEvent.type(password, "1");
             await userEvent.click(submit);
         });
 
