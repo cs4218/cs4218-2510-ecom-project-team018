@@ -4,17 +4,17 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 const SearchInput = () => {
-  const [values, setValues] = useSearch();
-  console.log(values);
+  const [search, setSearch] = useSearch();
+  console.log(search);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const { data } = await axios.get(
-        `/api/v1/product/search/${values.keyword}`
+        `/api/v1/product/search/${search.keyword}`
       );
-      setValues({ ...values, results: data });
+      setSearch({ ...search, results: data });
       navigate("/search");
     } catch (error) {
       toast.error("Search API failed")
@@ -28,8 +28,8 @@ const SearchInput = () => {
           type="search"
           placeholder="Search"
           aria-label="Search"
-          value={values.keyword}
-          onChange={(e) => setValues({ ...values, keyword: e.target.value })}
+          value={search.keyword}
+          onChange={(e) => setSearch({ ...search, keyword: e.target.value })}
         />
         <button className="btn btn-outline-success" type="submit">
           Search
