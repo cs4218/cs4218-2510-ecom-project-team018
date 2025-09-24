@@ -394,5 +394,20 @@ describe("CategoryProduct", () => {
         )
       );
     });
+
+    it("shows error toast when products fetch fails (page 1) and shows empty state", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 3 } })
+        .mockRejectedValueOnce(new Error("Network error"));
+
+      renderWithRouter(<CategoryProduct />);
+
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Failed to load products")
+      );
+      expect(
+        screen.getByText(/No products found in this category/i)
+      ).toBeInTheDocument();
+    });
   });
 });
