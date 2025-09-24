@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { act } from 'react-dom/test-utils';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { addToCart } from '../utils/productUtils';
 import '@testing-library/jest-dom/extend-expect';
 import HomePage from './HomePage';
 
@@ -13,9 +14,16 @@ import HomePage from './HomePage';
 jest.mock('axios');
 jest.mock('react-hot-toast');
 
-jest.mock('../context/cart', () => ({
-  useCart: jest.fn(() => [[], jest.fn()])
+const mockCart = [];
+const mockSetCart = jest.fn();
+
+jest.mock("../context/cart", () => ({
+  useCart: jest.fn(() => [mockCart, mockSetCart]),
 }));
+
+jest.mock('../utils/productUtils.js', () => ({
+  addToCart: jest.fn(() => {})
+}))
 
 jest.mock('../context/auth', () => ({
   useAuth: jest.fn(() => [null, jest.fn()])
@@ -151,7 +159,6 @@ describe('HomePage Component', () => {
       });
 
       await act(async () => {
-        // Note: listOfCategories[0] is Electronics etc. (names)
         const clothingCheckbox = await screen.findByRole('checkbox', { name: listOfCategories[0].name });
         const electronicCheckbox = await screen.findByRole('checkbox', { name: listOfCategories[1].name });
         await userEvent.click(clothingCheckbox);
@@ -209,7 +216,65 @@ describe('HomePage Component', () => {
       });
     });
 
-    it("requests page 1 when RESET FILTERS button is clicked and renders the returned products", async () => {
+    it("should call product-filter API when checked Category is unchecked and render the returned products", async () => {
+      const spyPost = jest.spyOn(axios, "post");
+      const spyGet = jest.spyOn(axios, "get");
+      const updatedList = [listOfProducts[0], listOfMoreProducts[1]];
+
+      axios.post.mockImplementation((url, body) => {
+        if (url === "/api/v1/product/product-filters") {
+          return Promise.resolve({ data: { products: [listOfProducts[0]] } }); // filtered result
+        }
+      });
+
+      axios.get.mockImplementation((url) => {
+        if (url.includes("/api/v1/product/product-list")) {
+          return Promise.resolve({ data: { products: updatedList } }); // fallback result
+        }
+        if (url === "/api/v1/category/get-category") {
+          return Promise.resolve({ data: { success: true, category: listOfCategories } });
+        }
+        if (url === "/api/v1/product/product-count") {
+          return Promise.resolve({ data: { total: 10 } });
+        }
+      });
+
+      await act(async () => {
+        render(
+          <MemoryRouter initialEntries={["/"]}>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+            </Routes>
+          </MemoryRouter>
+        );
+      });
+
+      await act(async () => {
+        const electronicCheckbox = await screen.findByRole("checkbox", {
+          name: listOfCategories[0].name,
+        });
+        await userEvent.click(electronicCheckbox); // filter
+        await userEvent.click(electronicCheckbox); // unfilter
+      });
+
+      await waitFor(() => {
+        expect(spyPost).toHaveBeenCalledWith(
+          "/api/v1/product/product-filters",
+          { checked: [IdByCategory[listOfCategories[0].name]], radio: [] }
+        );
+
+        expect(spyGet).toHaveBeenCalledWith(
+          expect.stringContaining("/api/v1/product/product-list")
+        );
+      });
+
+      const currentNames = (await screen.findAllByTestId("product-name")).map(el => el.textContent);
+      expect(currentNames).toEqual(updatedList.map(p => p.name));
+    });
+
+
+
+    it("requests page 1 when Reset Filters button is clicked and renders the returned products", async () => {
         const spy = jest.spyOn(axios, "get");
 
         render(
@@ -224,6 +289,11 @@ describe('HomePage Component', () => {
         expect(await screen.findAllByTestId("product-name")).toHaveLength(3);
 
         const updatedList = [ listOfProducts[0], listOfProducts[1] ];
+        axios.post.mockImplementation((url) => {
+          if (url === "/api/v1/product/product-filters") {
+            return Promise.resolve({ data: { } });
+          }
+        });
         axios.get.mockImplementationOnce((url) => {
             if (url === "/api/v1/product/product-list/1") {
             return Promise.resolve({ data: { products: updatedList } });
@@ -468,7 +538,7 @@ describe('HomePage Component', () => {
   });
 
   describe('Cart Interaction', () => {
-    it("should add a product to cart and update localStorage", async () => {
+    it("should call addToCart function when ADD TO CART Button is presssed", async () => {
       Object.defineProperty(window, "localStorage", {
         value: {
           setItem: jest.fn(),
@@ -492,14 +562,13 @@ describe('HomePage Component', () => {
 
       await userEvent.click(addToCartButtons[0]);
 
-      expect(window.localStorage.setItem).toHaveBeenCalledWith(
-        "cart",
-        expect.stringContaining(listOfProducts[0].name)
+      expect(addToCart).toHaveBeenCalledWith(
+        mockCart,
+        mockSetCart,
+        listOfProducts[0]
       );
-
-      expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
     });
-  });
+
 
   describe('Product Description Length Logic', () => {
     it('renders full description when length < 60', async () => {
@@ -563,4 +632,5 @@ describe('HomePage Component', () => {
       expect(screen.queryByText(listOfProductWithLongDescription[0].description)).not.toBeInTheDocument();
     });
   });
-});
+  });
+})

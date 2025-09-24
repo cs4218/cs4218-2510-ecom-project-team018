@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
 import { useCart } from "../context/cart";
+import { addToCart } from '../utils/productUtils';
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
@@ -193,14 +194,7 @@ const HomePage = () => {
                     </button>
                     <button
                       className="btn btn-dark ms-1"
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, p])
-                        );
-                        toast.success("Item Added to cart");
-                      }}
+                      onClick={() => addToCart(cart, setCart, p)}
                     >
                       ADD TO CART
                     </button>
