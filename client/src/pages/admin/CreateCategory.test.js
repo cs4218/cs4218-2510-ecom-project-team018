@@ -1,5 +1,11 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import CreateCategory from "./CreateCategory";
@@ -190,7 +196,7 @@ describe("Create Category Actions - handle submit", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "somthing went wrong in input form"
+        "something went wrong in input form"
       );
     });
   });
@@ -231,6 +237,211 @@ describe("Create Category Actions - get all categories", () => {
       expect(toast.error).toHaveBeenCalledWith(
         "Something went wrong in getting catgeory"
       );
+    });
+  });
+});
+
+describe("Create Category Actions - update category", () => {
+  test("update a category successfully", async () => {
+    // checks if an existing category can be updated (renamed) successfully
+    // load in 1 sample category
+    axios.get
+      .mockResolvedValueOnce({
+        data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+      }) // initial get
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          category: [
+            { ...SAMPLE_CATEGORIES[0], name: SAMPLE_CATEGORIES[1].name },
+          ],
+        },
+      }); // after update; keep all prev details except name
+
+    axios.put.mockResolvedValueOnce({
+      data: { success: true, message: "category updated successfully" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // ensure existing category is loaded properly
+    const existingCategoryName = await screen.findByText(
+      SAMPLE_CATEGORIES[0].name
+    );
+    expect(existingCategoryName).toBeInTheDocument();
+
+    /* update the existing category's name*/
+    // click 'edit' button
+    const editButton = screen.getByRole("button", { name: /Edit/i });
+    fireEvent.click(editButton);
+    // key in new category name
+    const updatedCategoryName = SAMPLE_CATEGORIES[1].name;
+    const input = await screen.findByDisplayValue(SAMPLE_CATEGORIES[0].name);
+    fireEvent.change(input, { target: { value: updatedCategoryName } });
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        SAMPLE_CATEGORIES[1].name + " is updated"
+      );
+      expect(screen.getByText(SAMPLE_CATEGORIES[1].name)).toBeInTheDocument();
+    });
+  });
+
+  test("unsuccessfully update a category", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.put.mockResolvedValueOnce({
+      data: { success: false, message: "Error while updating category" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    /* update the existing category's name*/
+    // click 'edit' button
+    const editButton = await screen.findByRole("button", { name: /edit/i });
+    fireEvent.click(editButton);
+    // key in new category name
+    const updatedCategoryName = SAMPLE_CATEGORIES[1].name;
+    const input = await screen.findByDisplayValue(SAMPLE_CATEGORIES[0].name);
+    fireEvent.change(input, { target: { value: updatedCategoryName } });
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Error while updating category");
+    });
+  });
+
+  test("error from API", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.put.mockRejectedValueOnce(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    /* update the existing category's name*/
+    // click 'edit' button
+    const editButton = await screen.findByRole("button", { name: /edit/i });
+    fireEvent.click(editButton);
+    // key in new category name
+    const updatedCategoryName = SAMPLE_CATEGORIES[1].name;
+    const input = await screen.findByDisplayValue(SAMPLE_CATEGORIES[0].name);
+    fireEvent.change(input, { target: { value: updatedCategoryName } });
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+    });
+  });
+});
+
+describe("Create Category Actions - delete category", () => {
+  test("delete a category successfully", async () => {
+    axios.get
+      .mockResolvedValueOnce({
+        data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+      }) // initial have 1 category
+      .mockResolvedValueOnce({
+        data: {
+          success: true,
+          category: [],
+        },
+      }); // after update; 0 categories
+
+    axios.delete.mockResolvedValueOnce({
+      data: { success: true, message: "category deleted successfully" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith("category is deleted");
+      expect(
+        screen.queryByText(SAMPLE_CATEGORIES[0].name)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  test("unsuccessfully delete a category", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.delete.mockResolvedValueOnce({
+      data: { success: false, message: "error while deleting category" },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("error while deleting category");
+      // category should still exist
+      expect(screen.getByText(SAMPLE_CATEGORIES[0].name)).toBeInTheDocument();
+    });
+  });
+
+  test("error from API", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { success: true, category: [SAMPLE_CATEGORIES[0]] },
+    });
+
+    axios.delete.mockRejectedValueOnce(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <CreateCategory />
+      </MemoryRouter>
+    );
+
+    // click 'delete' button
+    const deleteButton = await screen.findByRole("button", { name: /delete/i });
+    fireEvent.click(deleteButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+      // category should still exist
+      expect(screen.getByText(SAMPLE_CATEGORIES[0].name)).toBeInTheDocument();
     });
   });
 });

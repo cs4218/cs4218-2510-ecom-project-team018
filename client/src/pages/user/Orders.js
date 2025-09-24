@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import UserMenu from "../../components/UserMenu";
 import Layout from "./../../components/Layout";
 import axios from "axios";
+import toast from "react-hot-toast";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
 
@@ -13,13 +14,18 @@ const Orders = () => {
       const { data } = await axios.get("/api/v1/auth/orders");
       setOrders(data);
     } catch (error) {
-      console.log(error);
+      toast.error("Error loading orders, please try again later");
     }
   };
 
   useEffect(() => {
-    if (auth?.token) getOrders();
-  }, [auth?.token]);
+    if (auth?.token) {
+      getOrders();
+    } else {
+      toast.error("Unable to retrieve Orders, please sign out and sign in again.")
+    }
+  }, [auth]);
+  
   return (
     <Layout title={"Your Orders"}>
       <div className="container-flui p-3 m-3 dashboard">
@@ -31,7 +37,7 @@ const Orders = () => {
             <h1 className="text-center">All Orders</h1>
             {orders?.map((o, i) => {
               return (
-                <div className="border shadow">
+                <div key={i} className="border shadow">
                   <table className="table">
                     <thead>
                       <tr>
@@ -45,12 +51,12 @@ const Orders = () => {
                     </thead>
                     <tbody>
                       <tr>
-                        <td>{i + 1}</td>
-                        <td>{o?.status}</td>
-                        <td>{o?.buyer?.name}</td>
-                        <td>{moment(o?.createAt).fromNow()}</td>
-                        <td>{o?.payment.success ? "Success" : "Failed"}</td>
-                        <td>{o?.products?.length}</td>
+                        <td data-testid={"order_index"}>{i + 1}</td>
+                        <td data-testid={"order_status"}>{o?.status}</td>
+                        <td data-testid={"order_buyer_name"}>{o?.buyer?.name}</td>
+                        <td data-testid={"order_time"}>{moment(o?.createdAt).fromNow()}</td>
+                        <td data-testid={"order_payment_success"}>{o?.payment.success ? "Success" : "Failed"}</td>
+                        <td data-testid={"order_product_length"}>{o?.products?.length}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -63,13 +69,12 @@ const Orders = () => {
                             className="card-img-top"
                             alt={p.name}
                             width="100px"
-                            height={"100px"}
                           />
                         </div>
                         <div className="col-md-8">
                           <p>{p.name}</p>
-                          <p>{p.description.substring(0, 30)}</p>
-                          <p>Price : {p.price}</p>
+                          <p>{p.description.length < 30 ? p.description : p.description.substring(0, 30) + "..."}</p>
+                          <p>Price : ${p.price}</p>
                         </div>
                       </div>
                     ))}
