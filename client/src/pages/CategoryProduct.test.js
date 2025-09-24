@@ -448,5 +448,38 @@ describe("CategoryProduct", () => {
         screen.getByRole("button", { name: /Load more/i })
       ).toBeInTheDocument(); // button still there to retry
     });
+
+    it("shows error toast with success=false in products response", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true, total: 3 } })
+        .mockResolvedValueOnce({ data: { success: false } });
+      renderWithRouter(<CategoryProduct />);
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith("Failed to load products")
+      );
+      expect(
+        screen.getByText(/No products found in this category/i)
+      ).toBeInTheDocument();
+    });
+
+    it("shows error toast with success=false in total products response", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: false } })
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith(
+          "Failed to load total products"
+        )
+      );
+    });
   });
 });
