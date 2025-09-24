@@ -272,6 +272,22 @@ describe("CategoryProduct", () => {
       expect(await screen.findByText("P3")).toBeInTheDocument();
       expect(screen.queryByRole("button", { name: /Load more/i })).toBeNull();
     });
+
+    it("uses 0 as total when count succeeds but total is missing", async () => {
+      axios.get
+        .mockResolvedValueOnce({ data: { success: true } }) // no total field
+        .mockResolvedValueOnce({
+          data: {
+            success: true,
+            category: { name: CATEGORY_SHIRTS },
+            products: [],
+          },
+        });
+
+      renderWithRouter(<CategoryProduct />);
+
+      expect(await screen.findByText(/0 results found/i)).toBeInTheDocument();
+    });
   });
 
   it("shows Load more button when not all items are loaded", async () => {
