@@ -6,6 +6,7 @@ import CategoryProduct from "./CategoryProduct";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCart } from "../context/cart";
 import { addToCart } from "../utils/productUtils";
+import { toast } from "react-hot-toast";
 
 jest.mock("axios");
 
@@ -26,10 +27,7 @@ jest.mock("../context/cart", () => ({
   useCart: jest.fn(),
 }));
 
-jest.mock("react-hot-toast", () => ({
-  error: jest.fn(),
-  success: jest.fn(),
-}));
+jest.mock("react-hot-toast");
 
 jest.mock("../utils/productUtils", () => ({
   formatPrice: (n) => `$${Number(n).toFixed(2)}`,
@@ -383,6 +381,18 @@ describe("CategoryProduct", () => {
         ).toBeInTheDocument();
       });
       expect(screen.queryByRole("button", { name: /Load more/i })).toBeNull();
+    });
+  });
+
+  describe("Error states", () => {
+    it("shows error toast when count fetch fails", async () => {
+      axios.get.mockRejectedValueOnce(new Error("Network error"));
+      renderWithRouter(<CategoryProduct />);
+      await waitFor(() =>
+        expect(toast.error).toHaveBeenCalledWith(
+          "Failed to load total products"
+        )
+      );
     });
   });
 });
