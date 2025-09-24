@@ -26,6 +26,7 @@ const CategoryProduct = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // fetch total product count for given category
   const fetchCategoryTotal = useCallback(async (categorySlug) => {
     try {
       const { data } = await axios.get(
