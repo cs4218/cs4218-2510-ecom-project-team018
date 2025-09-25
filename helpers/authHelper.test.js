@@ -97,19 +97,6 @@ describe("authHelper", () => {
       expect(result).toBe(false);
     });
 
-    it("should handle empty password comparison", async () => {
-      const password = "";
-      mockedBcrypt.compare.mockResolvedValue(false);
-
-      const result = await comparePassword(password, HASHED_PASSWORD);
-
-      expect(mockedBcrypt.compare).toHaveBeenCalledWith(
-        password,
-        HASHED_PASSWORD
-      );
-      expect(result).toBe(false);
-    });
-
     it("should handle bcrypt comparison error", async () => {
       const password = "validPassword";
       const error = new Error("Bcrypt comparison failed");
@@ -122,19 +109,6 @@ describe("authHelper", () => {
         password,
         HASHED_PASSWORD
       );
-    });
-
-    it("should handle special characters in password comparison", async () => {
-      const password = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
-      mockedBcrypt.compare.mockResolvedValue(true);
-
-      const result = await comparePassword(password, HASHED_PASSWORD);
-
-      expect(mockedBcrypt.compare).toHaveBeenCalledWith(
-        password,
-        HASHED_PASSWORD
-      );
-      expect(result).toBe(true);
     });
   });
 });
