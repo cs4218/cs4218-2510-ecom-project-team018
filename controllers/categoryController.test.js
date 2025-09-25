@@ -3,6 +3,7 @@ import slugify from "slugify";
 import {
   createCategoryController,
   updateCategoryController,
+  deleteCategoryCOntroller,
 } from "./categoryController.js";
 
 // sample data
@@ -123,6 +124,22 @@ describe("Updating a category", () => {
         name: CATEGORY_NAME_0,
         slug: CATEGORY_SLUG_0,
       },
+    });
+  });
+});
+
+describe("Deleting a category", () => {
+  test("succesfully deleting a category", async () => {
+    req.params = { id: CATEGORY_ID_0 };
+    categoryModel.findByIdAndDelete.mockResolvedValue({}); // returns nth bc deleted alr
+
+    await deleteCategoryCOntroller(req, res);
+
+    expect(categoryModel.findByIdAndDelete).toHaveBeenCalledWith(CATEGORY_ID_0);
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Category deleted successfully",
     });
   });
 });
