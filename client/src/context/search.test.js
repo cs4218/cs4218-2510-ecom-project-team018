@@ -36,7 +36,7 @@ const TestComponent = () => {
 };
 
 describe("SearchContext", () => {
-  it("should provide default empty values", () => {
+  it("provides default empty values", () => {
     render(
       <SearchProvider>
         <TestComponent />
@@ -47,7 +47,7 @@ describe("SearchContext", () => {
     expect(screen.getByTestId("results")).toHaveTextContent("0");
   });
 
-  it("should update values when setSearch is called", () => {
+  it("updates values when setSearch is called", () => {
     render(
       <SearchProvider>
         <TestComponent />
