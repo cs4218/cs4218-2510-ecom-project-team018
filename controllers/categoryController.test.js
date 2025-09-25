@@ -66,4 +66,20 @@ describe("Creating a category", () => {
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith({ message: "Name is required" });
   });
+
+  test("category already exists", async () => {
+    req.body = { name: CATEGORY_NAME_0 };
+    categoryModel.findOne.mockResolvedValue({ name: CATEGORY_NAME_0 }); // 'find' returns category alr exists
+
+    await createCategoryController(req, res);
+
+    expect(categoryModel.findOne).toHaveBeenCalledWith({
+      name: CATEGORY_NAME_0,
+    });
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Category already exists",
+    });
+  });
 });
