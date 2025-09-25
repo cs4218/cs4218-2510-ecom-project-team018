@@ -12,6 +12,7 @@ const CATEGORY_SLUG_1 = "books";
 // status codes
 const SUCCESS_STATUS = 200;
 const CREATED_STATUS = 201;
+const BAD_REQUEST_STATUS = 401;
 const SERVER_ERROR_STATUS = 500;
 
 // mocks
@@ -55,5 +56,14 @@ describe("Creating a category", () => {
       message: "New category created",
       category: { name: CATEGORY_NAME_1, slug: CATEGORY_SLUG_1 },
     });
+  });
+
+  test("no name provided", async () => {
+    req.body = {}; // no name
+
+    await createCategoryController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith({ message: "Name is required" });
   });
 });
