@@ -1,11 +1,16 @@
 import categoryModel from "../models/categoryModel.js";
 import slugify from "slugify";
-import { createCategoryController } from "./categoryController.js";
+import {
+  createCategoryController,
+  updateCategoryController,
+} from "./categoryController.js";
 
 // sample data
+const CATEGORY_ID_0 = "123abc";
 const CATEGORY_NAME_0 = "Electronics";
 const CATEGORY_SLUG_0 = "electronics";
 
+const CATEGORY_ID_1 = "456def";
 const CATEGORY_NAME_1 = "Books";
 const CATEGORY_SLUG_1 = "books";
 
@@ -19,19 +24,20 @@ const SERVER_ERROR_STATUS = 500;
 jest.mock("../models/categoryModel.js"); // to not hit real database
 jest.mock("slugify");
 
+// fake server request and response
+let req, res;
+
+beforeEach(() => {
+  req = { body: {} };
+  res = {
+    status: jest.fn().mockReturnThis(),
+    send: jest.fn(),
+  };
+
+  jest.clearAllMocks();
+});
+
 describe("Creating a category", () => {
-  let req, res;
-
-  beforeEach(() => {
-    req = { body: {} };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn(),
-    };
-
-    jest.clearAllMocks();
-  });
-
   test("successfully create a category", async () => {
     /* arrange */
     req.body = { name: CATEGORY_NAME_1 };
@@ -80,6 +86,43 @@ describe("Creating a category", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       message: "Category already exists",
+    });
+  });
+});
+
+describe("Updating a category", () => {
+  test("succesfully updating a category", async () => {
+    /* arrange */
+    req.body = { name: CATEGORY_NAME_0 };
+    req.params = { id: CATEGORY_ID_0 };
+
+    slugify.mockReturnValue(CATEGORY_SLUG_0);
+    // mock 'findByIdAndUpdate' to return updated details
+    categoryModel.findByIdAndUpdate.mockResolvedValue({
+      _id: CATEGORY_ID_0,
+      name: CATEGORY_NAME_0,
+      slug: CATEGORY_SLUG_0,
+    });
+
+    /* act*/
+    await updateCategoryController(req, res);
+
+    /* assert */
+    expect(slugify).toHaveBeenCalledWith(CATEGORY_NAME_0);
+    expect(categoryModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      CATEGORY_ID_0,
+      { name: CATEGORY_NAME_0, slug: CATEGORY_SLUG_0 },
+      { new: true }
+    );
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      messsage: "Category updated successfully",
+      category: {
+        _id: CATEGORY_ID_0,
+        name: CATEGORY_NAME_0,
+        slug: CATEGORY_SLUG_0,
+      },
     });
   });
 });
