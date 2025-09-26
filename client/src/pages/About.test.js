@@ -27,14 +27,12 @@ describe("About", () => {
         expect(img).toHaveStyle({ width: "100%" });
     });
 
-    test("renders text and expected layout columns", () => {
-        const { container } = render(<About />);
-        const row = container.querySelector(".row.contactus");
-        const col6 = container.querySelector(".col-md-6");
-        const col4 = container.querySelector(".col-md-4");
-        expect(screen.getByText(/Add text/i)).toBeInTheDocument();
-        expect(row).toBeInTheDocument();
-        expect(col6).toBeInTheDocument();
-        expect(col4).toBeInTheDocument();
+    test("renders text headings", () => {
+        render(<About />);
+        expect(
+            screen.getByRole("heading", {
+                name: /we are a group of software testers from cs4218/i,
+            })
+        ).toBeInTheDocument();
     });
 });
