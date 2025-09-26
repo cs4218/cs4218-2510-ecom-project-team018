@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 
 // mocks
 jest.mock("axios");
+jest.mock("react-hot-toast");
 
 // mock components
 jest.mock("../../components/Layout", () => (props) => (
@@ -24,9 +25,17 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="AdminMenu" />
 ));
 
+// sample data
+const SAMPLE_CATEGORIES = [
+  { _id: "1", name: "Electronics" },
+  { _id: "2", name: "Books" },
+];
+
 beforeEach(() => {
   // mock 'getAllCategory' as the page calls it everytime upon load
   axios.get.mockResolvedValue({ data: { success: true, category: [] } });
+
+  jest.clearAllMocks();
 });
 
 describe("Create Product page components", () => {
@@ -62,5 +71,40 @@ describe("Create Product page components", () => {
     expect(
       screen.getByRole("button", { name: /create product/i })
     ).toBeInTheDocument();
+  });
+});
+
+describe("Actions - getAllCategory() function", () => {
+  test("loads categories and displays them in the 'select a category' field", async () => {
+    // checks if the getAllCategory() function retrieves all (>1) the categories successfully
+    // and correctly displays them in the 'select a category' field for the new product to-be-created to be under that category
+    axios.get.mockResolvedValue({
+      data: {
+        success: true,
+        category: SAMPLE_CATEGORIES,
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <CreateProduct />
+      </MemoryRouter>
+    );
+
+    // wait for useEffect to populate categories
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalled();
+    });
+
+    // find the 'select category' combobox
+    const selectCategory = screen.getAllByRole("combobox")[0];
+    // open the dropdown
+    fireEvent.mouseDown(selectCategory);
+
+    await waitFor(() => {
+      SAMPLE_CATEGORIES.forEach((cat) => {
+        expect(screen.getByText(cat.name)).toBeInTheDocument();
+      });
+    });
   });
 });
