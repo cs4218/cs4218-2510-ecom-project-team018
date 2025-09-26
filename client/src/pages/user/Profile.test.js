@@ -145,12 +145,14 @@ describe('Profile Page', () => {
     });
 
     it("updates auth, local storage and shows success toast upon successful submission", async () => {
+        const updatedUserResponse = { ...newInputValues }
+        delete updatedUserResponse.password
         axios.put.mockResolvedValueOnce({
             data: {
                 message: "Profile Updated Successfully",
                 success: true,
                 updatedUser: {
-                    ...newInputValues,
+                    ...updatedUserResponse,
                     email: "alice@example.com",   
                 },
             }
@@ -198,7 +200,6 @@ describe('Profile Page', () => {
                     { token: "token-123", user: {
                         name: newInputValues.name,
                         email: "alice@example.com",
-                        password: newInputValues.password,
                         phone: newInputValues.phone,
                         address: newInputValues.address,
                     } }),

@@ -184,6 +184,9 @@ export const updateProfileController = async (req, res) => {
       },
       { new: true }
     );
+
+    delete updatedUser.password;
+    
     res.status(200).send({
       success: true,
       message: "Profile Updated Successfully",
