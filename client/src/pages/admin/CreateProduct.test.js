@@ -142,7 +142,7 @@ describe("Actions - handleCreate() function", () => {
   test("submits successfully with valid data", async () => {
     // mock successful product creation return from backend
     // note: in the handleCreate() function, data.success == false triggers success (yes its the expected behaviour)
-    axios.post.mockResolvedValue({ data: { success: false } });
+    axios.post.mockResolvedValue({ data: { success: true } });
 
     render(
       <MemoryRouter>
@@ -205,6 +205,22 @@ describe("Actions - handleCreate() function", () => {
         "Product Created Successfully"
       );
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
+    });
+  });
+
+  test("unsuccesful submission error from API", async () => {
+    axios.post.mockRejectedValueOnce(new Error("Network error"));
+
+    render(
+      <MemoryRouter>
+        <CreateProduct />
+      </MemoryRouter>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /create product/i }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
     });
   });
 });
