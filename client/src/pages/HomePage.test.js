@@ -148,6 +148,14 @@ describe('HomePage Component', () => {
     it('should call product-filter API when number of Checked Categories Changes', async () => {
       const spy = jest.spyOn(axios, "post");
 
+      const updatedList = [listOfProducts[0], listOfProducts[1]];
+
+      axios.post.mockImplementation((url) => {
+        if (url === "/api/v1/product/product-filters") {
+          return Promise.resolve({ data: { products: updatedList } });
+        }
+      });
+
       await act(async () => {
         render(
           <MemoryRouter initialEntries={["/"]}>
@@ -188,10 +196,21 @@ describe('HomePage Component', () => {
           { checked: [IdByCategory[listOfCategories[0].name]], radio: [] }
         );
       });
+
+      const currentNames = (await screen.findAllByTestId("product-name")).map(el => el.textContent);
+      expect(currentNames).toEqual(updatedList.map(p => p.name));
     });
 
     it('should call product-filter API when selected Price Range Changes', async () => {
       const spy = jest.spyOn(axios, "post");
+
+      const updatedList = [listOfProducts[0], listOfProducts[1]]
+
+      axios.post.mockImplementation((url) => {
+        if (url === "/api/v1/product/product-filters") {
+          return Promise.resolve({ data: { products: updatedList } });
+        }
+      });
 
       await act(async () => {
         render(
@@ -214,6 +233,9 @@ describe('HomePage Component', () => {
         expect(spy).toHaveBeenCalledWith("/api/v1/product/product-filters", {"checked": [], "radio": Prices[0].array });
         expect(spy).toHaveBeenCalledWith("/api/v1/product/product-filters", {"checked": [], "radio": Prices[1].array });
       });
+
+      const currentNames = (await screen.findAllByTestId("product-name")).map(el => el.textContent);
+      expect(currentNames).toEqual(updatedList.map(p => p.name));
     });
 
     it("should call product-filter API when checked Category is unchecked and render the returned products", async () => {
@@ -221,7 +243,7 @@ describe('HomePage Component', () => {
       const spyGet = jest.spyOn(axios, "get");
       const updatedList = [listOfProducts[0], listOfMoreProducts[1]];
 
-      axios.post.mockImplementation((url, body) => {
+      axios.post.mockImplementation((url) => {
         if (url === "/api/v1/product/product-filters") {
           return Promise.resolve({ data: { products: [listOfProducts[0]] } }); // filtered result
         }
