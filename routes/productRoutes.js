@@ -7,6 +7,7 @@ import {
   getProductController,
   getSingleProductController,
   productCategoryController,
+  productCategoryCountController,
   productCountController,
   productFiltersController,
   productListController,
@@ -66,6 +67,12 @@ router.get("/related-product/:pid/:cid", realtedProductController);
 
 //category wise product
 router.get("/product-category/:slug", productCategoryController);
+
+//category wise product count
+router.get(
+  "/product-category-count/:slug",
+  productCategoryCountController
+);
 
 //payments routes
 //token
