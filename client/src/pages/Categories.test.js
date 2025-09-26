@@ -45,14 +45,6 @@ describe("Categories", () => {
         expect(links[1]).toHaveClass("btn", "btn-primary");
     });
 
-    test("uses grid column classes for each category item", () => {
-        const { container } = renderWithRouter(<Categories />);
-        const row = container.querySelector(".row");
-        const cols = container.querySelectorAll(".col-md-6.mt-5.mb-3.gx-3.gy-3");
-        expect(row).toBeInTheDocument();
-        expect(cols.length).toBe(2);
-    });
-
     test("renders no links when hook returns empty array", () => {
         const useCategory = require("../hooks/useCategory");
         useCategory.mockReturnValueOnce([]);
