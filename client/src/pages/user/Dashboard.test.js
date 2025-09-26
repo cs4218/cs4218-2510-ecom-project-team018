@@ -81,4 +81,13 @@ describe("Dashboard", () => {
     expect(screen.getByText("email: Email Not Found")).toBeInTheDocument();
     expect(screen.getByText("address: Address Not Found")).toBeInTheDocument();
   });
+
+  it("should show 'User Data Not Found' when user is undefined", () => {
+    mockedUseAuth.mockReturnValue([{ user: undefined }]);
+
+    renderDashboard();
+
+    expect(screen.getByText("User Data Not Found")).toBeInTheDocument();
+    expect(screen.queryByText(/user:/)).not.toBeInTheDocument();
+  });
 });
