@@ -67,4 +67,18 @@ describe("Dashboard", () => {
     expect(screen.getByText("address: Address Not Found")).toBeInTheDocument();
     expect(screen.queryByText("User Data Not Found")).not.toBeInTheDocument();
   });
+
+  it("should handle partial user data correctly", () => {
+    const PARTIAL_MOCK_USER = {
+      name: "Jane Smith",
+      // email and address missing
+    };
+    mockedUseAuth.mockReturnValue([{ user: PARTIAL_MOCK_USER }]);
+
+    renderDashboard();
+
+    expect(screen.getByText("user: Jane Smith")).toBeInTheDocument();
+    expect(screen.getByText("email: Email Not Found")).toBeInTheDocument();
+    expect(screen.getByText("address: Address Not Found")).toBeInTheDocument();
+  });
 });
