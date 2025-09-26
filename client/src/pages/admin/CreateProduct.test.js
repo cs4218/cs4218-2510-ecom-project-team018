@@ -54,6 +54,16 @@ const SAMPLE_INPUTS = [
   },
 ];
 
+beforeAll(() => {
+  // silence console.log to have clean test outputs
+  jest.spyOn(console, "log").mockImplementation(() => {});
+});
+
+afterAll(() => {
+  // restore after all tests
+  console.log.mockRestore();
+});
+
 beforeEach(() => {
   // mock 'getAllCategory' as the page calls it everytime upon load
   axios.get.mockResolvedValue({ data: { success: true, category: [] } });
@@ -140,8 +150,6 @@ describe("Actions - handleCreate() function", () => {
   });
 
   test("submits successfully with valid data", async () => {
-    // mock successful product creation return from backend
-    // note: in the handleCreate() function, data.success == false triggers success (yes its the expected behaviour)
     axios.post.mockResolvedValue({ data: { success: true } });
 
     render(
