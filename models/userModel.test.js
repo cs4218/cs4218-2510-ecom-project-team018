@@ -17,4 +17,17 @@ describe("User model unit tests", () => {
 
     expect(error).toBeUndefined();
   });
+
+  it("should fail validation when required fields are missing", () => {
+    const user = new Users({}); // empty object
+    const error = user.validateSync();
+
+    expect(error).toBeDefined();
+    expect(error.errors.name).toBeDefined();
+    expect(error.errors.email).toBeDefined();
+    expect(error.errors.password).toBeDefined();
+    expect(error.errors.phone).toBeDefined();
+    expect(error.errors.address).toBeDefined();
+    expect(error.errors.answer).toBeDefined();
+  });
 });
