@@ -53,4 +53,25 @@ describe("User model unit tests", () => {
     expect(error).toBeDefined();
     expect(error.errors.role).toBeDefined();
   });
+
+  it("should trim whitespace from fields", () => {
+    const userData = {
+      ...MOCK_USER_DATA,
+      name: "  John Doe  ", // with whitespace
+      email: "  john.doe@example.com  ",
+      phone: "  1234567890  ",
+      address: "  123 Main St  ",
+      answer: "  Football  ",
+    };
+
+    const user = new Users(userData);
+    const error = user.validateSync();
+
+    expect(error).toBeUndefined();
+    expect(user.name).toBe("John Doe");
+    expect(user.email).toBe("john.doe@example.com");
+    expect(user.phone).toBe("1234567890");
+    expect(user.address).toBe("123 Main St");
+    expect(user.answer).toBe("Football");
+  });
 });
