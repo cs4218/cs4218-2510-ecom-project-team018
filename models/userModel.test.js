@@ -40,4 +40,17 @@ describe("User model unit tests", () => {
     expect(error).toBeUndefined();
     expect(user.role).toBe(0);
   });
+
+  it("should enforce type validation on fields that cannot be cast", () => {
+    const userData = {
+      ...MOCK_USER_DATA,
+      role: "not-a-number", // invalid
+    };
+
+    const user = new Users(userData);
+    const error = user.validateSync();
+
+    expect(error).toBeDefined();
+    expect(error.errors.role).toBeDefined();
+  });
 });
