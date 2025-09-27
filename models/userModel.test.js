@@ -30,4 +30,14 @@ describe("User model unit tests", () => {
     expect(error.errors.address).toBeDefined();
     expect(error.errors.answer).toBeDefined();
   });
+
+  it("should assign default role if not provided", () => {
+    const { role, ...userData } = MOCK_USER_DATA; // omit role
+
+    const user = new Users(userData);
+    const error = user.validateSync();
+
+    expect(error).toBeUndefined();
+    expect(user.role).toBe(0);
+  });
 });
