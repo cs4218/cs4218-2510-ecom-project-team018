@@ -46,9 +46,9 @@ describe("Dashboard", () => {
       "Dashboard - Ecommerce App"
     );
     expect(screen.getByTestId("user-menu-mock")).toBeInTheDocument();
-    expect(screen.getByText("user: John Doe")).toBeInTheDocument();
-    expect(screen.getByText("email: john@example.com")).toBeInTheDocument();
-    expect(screen.getByText("address: 123 Main St")).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(MOCK_USER.name))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(MOCK_USER.email))).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(MOCK_USER.address))).toBeInTheDocument();
     expect(screen.queryByText("User Data Not Found")).not.toBeInTheDocument();
   });
 
