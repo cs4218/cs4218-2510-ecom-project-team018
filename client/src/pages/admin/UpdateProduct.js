@@ -38,10 +38,12 @@ const UpdateProduct = () => {
       console.log(error);
     }
   };
+
   useEffect(() => {
     getSingleProduct();
     //eslint-disable-next-line
   }, []);
+
   //get all category
   const getAllCategory = async () => {
     try {
@@ -51,7 +53,7 @@ const UpdateProduct = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error("Something wwent wrong in getting catgeory");
+      toast.error("Something went wrong in getting category");
     }
   };
 
@@ -77,30 +79,31 @@ const UpdateProduct = () => {
       if (data?.success) {
         toast.error(data?.message);
       } else {
-        toast.success("Product Updated Successfully");
+        toast.success("Product updated successfully");
         navigate("/dashboard/admin/products");
       }
     } catch (error) {
       console.log(error);
-      toast.error("something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
   //delete a product
   const handleDelete = async () => {
     try {
-      let answer = window.prompt("Are You Sure want to delete this product ? ");
+      let answer = window.prompt("Are you sure you want to delete this product ? ");
       if (!answer) return;
       const { data } = await axios.delete(
         `/api/v1/product/delete-product/${id}`
       );
-      toast.success("Product DEleted Succfully");
+      toast.success("Product deleted successfully");
       navigate("/dashboard/admin/products");
     } catch (error) {
       console.log(error);
       toast.error("Something went wrong");
     }
   };
+
   return (
     <Layout title={"Dashboard - Create Product"}>
       <div className="container-fluid m-3 p-3">
