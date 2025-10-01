@@ -4,6 +4,7 @@ import {
   productPhotoController,
   productFiltersController,
   productCountController,
+  searchProductController,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
 
@@ -321,6 +322,53 @@ describe("Product controllers", () => {
       const res = createMockRes();
 
       await productFiltersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("searchProductController", () => {
+    it("returns [] for blank keyword", async () => {
+      const blankKeyword = "   ";
+      const req = createMockReq({ params: { keyword: blankKeyword } });
+      const res = createMockRes();
+
+      await searchProductController(req, res);
+
+      expect(res.json).toHaveBeenCalledWith([]);
+      expect(productModel.find).not.toHaveBeenCalled();
+    });
+
+    it("searches by name/description", async () => {
+      const searchKeyword = "phone";
+      const result = [{ _id: "p" }];
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({ params: { keyword: searchKeyword } });
+      const res = createMockRes();
+
+      await searchProductController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        $or: [
+          { name: { $regex: searchKeyword, $options: "i" } },
+          { description: { $regex: searchKeyword, $options: "i" } },
+        ],
+      });
+      expect(res.json).toHaveBeenCalledWith(result);
+    });
+
+    it("handles errors with 500", async () => {
+      const searchKeyword = "phone";
+      productModel.find.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq({ params: { keyword: searchKeyword } });
+      const res = createMockRes();
+
+      await searchProductController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
