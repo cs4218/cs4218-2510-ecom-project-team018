@@ -1,3 +1,4 @@
+import { getProductController } from "./productController.js";
 import productModel from "../models/productModel.js";
 
 // Mocks
@@ -29,4 +30,30 @@ const makeQuery = (value) => ({
   sort: jest.fn().mockReturnThis(),
   then: (resolve) => Promise.resolve(value).then(resolve),
   catch: (reject) => Promise.resolve(value).catch(reject),
+});
+
+describe("getProductController", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("returns 0 product successfully", async () => {
+    const mockProducts = [];
+    productModel.find.mockReturnValue(makeQuery(mockProducts));
+
+    const req = createMockReq();
+    const res = createMockRes();
+
+    await getProductController(req, res);
+
+    expect(productModel.find).toHaveBeenCalledWith({});
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        products: expect.arrayContaining(mockProducts),
+        countTotal: mockProducts.length,
+      })
+    );
+  });
 });
