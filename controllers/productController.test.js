@@ -135,5 +135,19 @@ describe("Product controllers", () => {
         })
       );
     });
+
+    it("returns 404 when product not found", async () => {
+      productModel.findOne.mockReturnValue(makeQuery(null));
+
+      const req = createMockReq({ params: { slug: "missing" } });
+      const res = createMockRes();
+
+      await getSingleProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
   });
 });
