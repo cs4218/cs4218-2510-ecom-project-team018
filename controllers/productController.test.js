@@ -178,5 +178,17 @@ describe("Product controllers", () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
+
+    it("returns 404 when no photo found", async () => {
+      productModel.findById.mockReturnValue(
+        makeQuery({ _id: "p1", photo: {} })
+      );
+      const req = createMockReq({ params: { pid: "p1" } });
+      const res = createMockRes();
+
+      await productPhotoController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
   });
 });
