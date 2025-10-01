@@ -59,7 +59,10 @@ beforeEach(() => {
 });
 
 describe("Update Product page components", () => {
-  test("components are rendered successfully", async () => {
+  test("renders components and prepopulates fields with fetched product data", async () => {
+    // the page loads an existing product's information into the fields
+    // this test checks for if: 1. the components are there;
+    // and 2. the fields are populated correctly (from the getSingleProduct() function);
     render(
       <MemoryRouter initialEntries={["/dashboard/admin/product/test-slug"]}>
         <Routes>
