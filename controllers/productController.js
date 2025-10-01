@@ -385,7 +385,7 @@ export const productCategoryController = async (req, res) => {
   }
 };
 
-// get total products by category
+// Get total product count by category
 export const productCategoryCountController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -397,16 +397,17 @@ export const productCategoryCountController = async (req, res) => {
     }
 
     const total = await productModel.countDocuments({ category: category._id });
+
     res.status(200).send({
       success: true,
       total,
       category,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       success: false,
-      error,
+      error: error.message,
       message: "Error while getting products count",
     });
   }
