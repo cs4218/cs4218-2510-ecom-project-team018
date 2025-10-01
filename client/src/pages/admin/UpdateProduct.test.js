@@ -11,7 +11,6 @@ import "@testing-library/jest-dom";
 import UpdateProduct from "./UpdateProduct";
 import axios from "axios";
 import toast from "react-hot-toast";
-import userEvent from "@testing-library/user-event";
 
 /* mocks */
 jest.mock("axios");
@@ -32,6 +31,9 @@ jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useNavigate: () => mockNavigate,
 }));
+
+// mock URL.createObjectURL for file input preview
+global.URL.createObjectURL = jest.fn(() => "mocked-url");
 
 // sample data
 const SAMPLE_CATEGORIES = [
@@ -54,6 +56,17 @@ const SAMPLE_PRODUCT = [
       quantity: 10,
       shipping: SHIPPING.NO,
       category: { _id: "1", name: "Electronics" },
+    },
+  },
+  {
+    product: {
+      _id: "456",
+      name: "Test Product 2",
+      description: "Test Description 2",
+      price: 23,
+      quantity: 5,
+      shipping: SHIPPING.YES,
+      category: { _id: "2", name: "Books" },
     },
   },
 ];
@@ -178,7 +191,7 @@ describe("Update Product actions - handleUpdate", () => {
       data: {
         success: true,
         message: "Product Updated Successfully",
-        products: SAMPLE_PRODUCT[0],
+        products: SAMPLE_PRODUCT[1],
       },
     });
 
@@ -199,6 +212,38 @@ describe("Update Product actions - handleUpdate", () => {
         screen.getByDisplayValue(SAMPLE_PRODUCT[0].product.name)
       ).toBeInTheDocument()
     );
+
+    /* simulate changing fields */
+    // category
+    const selectCategory = screen.getAllByRole("combobox")[0];
+    fireEvent.mouseDown(selectCategory);
+    fireEvent.click(screen.getByText(SAMPLE_PRODUCT[1].product.category.name));
+    // photo
+    const file = new File(["dummy content"], "photo.png", {
+      type: "image/png",
+    });
+    const photoInput = screen.getByLabelText(/upload photo/i);
+    fireEvent.change(photoInput, { target: { files: [file] } });
+    // name
+    fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
+      target: { value: SAMPLE_PRODUCT[1].product.name },
+    });
+    // description
+    fireEvent.change(screen.getByPlaceholderText(/write a description/i), {
+      target: { value: SAMPLE_PRODUCT[1].product.description },
+    });
+    // price
+    fireEvent.change(screen.getByPlaceholderText(/write a Price/i), {
+      target: { value: SAMPLE_PRODUCT[1].product.price },
+    });
+    // quantity
+    fireEvent.change(screen.getByPlaceholderText(/write a quantity/i), {
+      target: { value: SAMPLE_PRODUCT[1].product.quantity },
+    });
+    // shipping
+    const selectShipping = screen.getAllByRole("combobox")[1];
+    fireEvent.mouseDown(selectShipping);
+    fireEvent.click(screen.getByText(SAMPLE_PRODUCT[1].product.shipping));
 
     // simulate clicking 'update' button
     fireEvent.click(screen.getByRole("button", { name: /update product/i }));
