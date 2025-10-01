@@ -2,6 +2,7 @@ import {
   getProductController,
   getSingleProductController,
   productPhotoController,
+  productFiltersController,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
 
@@ -199,6 +200,94 @@ describe("Product controllers", () => {
       const res = createMockRes();
 
       await getProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("productFiltersController", () => {
+    const categories = ["c1", "c2"];
+    const priceRange = [40, 59];
+    const result = [{ _id: "p1" }];
+
+    it("filters by categories and price range", async () => {
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({
+        body: { checked: categories, radio: priceRange },
+      });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: { $in: categories },
+        price: { $gte: priceRange[0], $lte: priceRange[1] },
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: result })
+      );
+    });
+
+    it("filters by categories only", async () => {
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({
+        body: { checked: categories },
+      });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: { $in: categories },
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: result })
+      );
+    });
+
+    it("filters price range only", async () => {
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({
+        body: { radio: priceRange },
+      });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        price: { $gte: priceRange[0], $lte: priceRange[1] },
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: result })
+      );
+    });
+
+    it("handles no filters gracefully", async () => {
+      const result = [];
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({ body: {} });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it("handles errors with 500", async () => {
+      productModel.find.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
