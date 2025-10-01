@@ -32,83 +32,85 @@ const makeQuery = (value) => ({
   catch: (reject) => Promise.resolve(value).catch(reject),
 });
 
-describe("getProductController", () => {
+describe("Product controllers", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("returns 0 product successfully", async () => {
-    const mockProducts = [];
-    productModel.find.mockReturnValue(makeQuery(mockProducts));
+  describe("getProductController", () => {
+    it("returns 0 product successfully", async () => {
+      const mockProducts = [];
+      productModel.find.mockReturnValue(makeQuery(mockProducts));
 
-    const req = createMockReq();
-    const res = createMockRes();
+      const req = createMockReq();
+      const res = createMockRes();
 
-    await getProductController(req, res);
+      await getProductController(req, res);
 
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: true,
-        products: expect.arrayContaining(mockProducts),
-        countTotal: mockProducts.length,
-      })
-    );
-  });
-
-  it("returns 1 product successfully", async () => {
-    const mockProducts = [{ _id: "p2" }];
-    productModel.find.mockReturnValue(makeQuery(mockProducts));
-
-    const req = createMockReq();
-    const res = createMockRes();
-
-    await getProductController(req, res);
-
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: true,
-        products: expect.arrayContaining(mockProducts),
-        countTotal: mockProducts.length,
-      })
-    );
-  });
-
-  it("returns more than 1 products successfully", async () => {
-    const mockProducts = [{ _id: "p1" }, { _id: "p2" }];
-    productModel.find.mockReturnValue(makeQuery(mockProducts));
-
-    const req = createMockReq();
-    const res = createMockRes();
-
-    await getProductController(req, res);
-
-    expect(productModel.find).toHaveBeenCalledWith({});
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        success: true,
-        products: expect.arrayContaining(mockProducts),
-        countTotal: mockProducts.length,
-      })
-    );
-  });
-
-  it("handles errors with 500", async () => {
-    productModel.find.mockImplementation(() => {
-      throw new Error("Network error");
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          products: expect.arrayContaining(mockProducts),
+          countTotal: mockProducts.length,
+        })
+      );
     });
-    const req = createMockReq();
-    const res = createMockRes();
 
-    await getProductController(req, res);
+    it("returns 1 product successfully", async () => {
+      const mockProducts = [{ _id: "p2" }];
+      productModel.find.mockReturnValue(makeQuery(mockProducts));
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false })
-    );
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await getProductController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          products: expect.arrayContaining(mockProducts),
+          countTotal: mockProducts.length,
+        })
+      );
+    });
+
+    it("returns more than 1 products successfully", async () => {
+      const mockProducts = [{ _id: "p1" }, { _id: "p2" }];
+      productModel.find.mockReturnValue(makeQuery(mockProducts));
+
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await getProductController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          products: expect.arrayContaining(mockProducts),
+          countTotal: mockProducts.length,
+        })
+      );
+    });
+
+    it("handles errors with 500", async () => {
+      productModel.find.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await getProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
   });
 });
