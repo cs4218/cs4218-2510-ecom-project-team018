@@ -26,6 +26,13 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="AdminMenu" />
 ));
 
+// mock navigate (page auto navigates to '/dashboard/admin/products' upon successful product update)
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
+
 // sample data
 const SAMPLE_CATEGORIES = [
   { _id: "1", name: "Electronics" },
@@ -162,5 +169,45 @@ describe("Update Product actions - getAllCategory", () => {
     });
     expect(electronicsOption).toBeInTheDocument();
     expect(booksOption).toBeInTheDocument();
+  });
+});
+
+describe("Update Product actions - handleUpdate", () => {
+  test("successfully updates a product", async () => {
+    axios.put.mockResolvedValueOnce({
+      data: {
+        success: true,
+        message: "Product Updated Successfully",
+        products: SAMPLE_PRODUCT[0],
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/admin/product/test-slug"]}>
+        <Routes>
+          <Route
+            path="/dashboard/admin/product/:slug"
+            element={<UpdateProduct />}
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // wait till form is populated
+    await waitFor(() =>
+      expect(
+        screen.getByDisplayValue(SAMPLE_PRODUCT[0].product.name)
+      ).toBeInTheDocument()
+    );
+
+    // simulate clicking 'update' button
+    fireEvent.click(screen.getByRole("button", { name: /update product/i }));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Product updated successfully"
+      );
+    });
+    expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
   });
 });
