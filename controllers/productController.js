@@ -318,10 +318,11 @@ export const searchProductController = async (req, res) => {
   }
 };
 
-// similar products
-export const realtedProductController = async (req, res) => {
+// Get related products
+export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+
     const products = await productModel
       .find({
         category: cid,
@@ -330,16 +331,17 @@ export const realtedProductController = async (req, res) => {
       .select("-photo")
       .limit(3)
       .populate("category");
+
     res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       success: false,
-      message: "error while geting related product",
-      error,
+      message: "Error while getting related products",
+      error: error.message,
     });
   }
 };
