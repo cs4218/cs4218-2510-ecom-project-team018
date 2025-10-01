@@ -245,19 +245,20 @@ export const productFiltersController = async (req, res) => {
   }
 };
 
-// product count
+// Get total product count
 export const productCountController = async (req, res) => {
   try {
-    const total = await productModel.find({}).estimatedDocumentCount();
+    const total = await productModel.estimatedDocumentCount();
+
     res.status(200).send({
       success: true,
       total,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       message: "Error in product count",
-      error,
+      error: error.message,
       success: false,
     });
   }
