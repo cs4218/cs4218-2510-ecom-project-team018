@@ -237,7 +237,7 @@ export const productFiltersController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: "Error while filtering products",
       error: error.message,
@@ -256,7 +256,7 @@ export const productCountController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       message: "Error in product count",
       error: error.message,
       success: false,
@@ -282,7 +282,7 @@ export const productListController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: "Error in per page product controller",
       error: error.message,
@@ -310,7 +310,7 @@ export const searchProductController = async (req, res) => {
     res.json(results);
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: "Error in Search Product API",
       error: error.message,
@@ -338,7 +338,7 @@ export const relatedProductController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: "Error while getting related products",
       error: error.message,
@@ -377,7 +377,7 @@ export const productCategoryController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       error: error.message,
       message: "Error while getting products by category",
@@ -405,7 +405,7 @@ export const productCategoryCountController = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       error: error.message,
       message: "Error while getting products count",
