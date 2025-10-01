@@ -3,6 +3,7 @@ import {
   getSingleProductController,
   productPhotoController,
   productFiltersController,
+  productCountController,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
 
@@ -282,6 +283,38 @@ describe("Product controllers", () => {
 
     it("handles errors with 500", async () => {
       productModel.find.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("productCountController", () => {
+    it("returns total count", async () => {
+      const total = 42;
+      productModel.estimatedDocumentCount.mockResolvedValueOnce(total);
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productCountController(req, res);
+
+      expect(productModel.estimatedDocumentCount).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ total: total })
+      );
+    });
+
+    it("handles errors with 500", async () => {
+      productModel.estimatedDocumentCount.mockImplementation(() => {
         throw new Error("Network error");
       });
       const req = createMockReq();
