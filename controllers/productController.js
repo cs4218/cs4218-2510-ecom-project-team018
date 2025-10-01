@@ -211,24 +211,36 @@ export const updateProductController = async (req, res) => {
   }
 };
 
-// filters
+// Get filtered products
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked, radio } = req.body;
-    let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
-    const products = await productModel.find(args);
+    const { checked = [], radio = [] } = req.body;
+
+    const args = {};
+    // Set category filters
+    if (Array.isArray(checked) && checked.length > 0) {
+      args.category = { $in: checked };
+    }
+    // Set price range filter
+    if (Array.isArray(radio) && radio.length === 2) {
+      const [min, max] = radio.map(Number);
+      if (!Number.isNaN(min) && !Number.isNaN(max)) {
+        args.price = { $gte: min, $lte: max };
+      }
+    }
+
+    const products = await productModel.find(args).select("-photo");
+
     res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       success: false,
-      message: "Error While Filtering Products",
-      error,
+      message: "Error while filtering products",
+      error: error.message,
     });
   }
 };
