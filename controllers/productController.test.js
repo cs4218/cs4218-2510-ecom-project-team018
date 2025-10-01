@@ -1,4 +1,7 @@
-import { getProductController } from "./productController.js";
+import {
+  getProductController,
+  getSingleProductController,
+} from "./productController.js";
 import productModel from "../models/productModel.js";
 
 // Mocks
@@ -110,6 +113,26 @@ describe("Product controllers", () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("getSingleProductController", () => {
+    it("returns product successfully when found", async () => {
+      productModel.findOne.mockReturnValue(makeQuery({ _id: "p1", slug: "s" }));
+
+      const req = createMockReq({ params: { slug: "s" } });
+      const res = createMockRes();
+
+      await getSingleProductController(req, res);
+
+      expect(productModel.findOne).toHaveBeenCalledWith({ slug: "s" });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          product: expect.objectContaining({ _id: "p1" }),
+        })
       );
     });
   });
