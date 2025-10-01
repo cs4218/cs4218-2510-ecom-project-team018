@@ -190,5 +190,20 @@ describe("Product controllers", () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
+
+    it("handles errors with 500", async () => {
+      productModel.findById.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await getProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
   });
 });
