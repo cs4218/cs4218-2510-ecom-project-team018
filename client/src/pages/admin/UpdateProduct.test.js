@@ -26,7 +26,7 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="AdminMenu" />
 ));
 
-// mock navigate (page auto navigates to '/dashboard/admin/products' upon successful product update)
+// mock navigate (page auto navigates to '/dashboard/admin/products' upon successful product update or delete)
 const mockNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
@@ -209,5 +209,52 @@ describe("Update Product actions - handleUpdate", () => {
       );
     });
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
+  });
+});
+
+describe("Update Product actions - handleDelete", () => {
+  test("successfully deletes a product", async () => {
+    axios.delete.mockResolvedValueOnce({ data: { success: true } });
+
+    // mock window prompt to enter "yes"
+    const promptSpy = jest.spyOn(window, "prompt").mockReturnValue("yes");
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard/admin/product/test-slug"]}>
+        <Routes>
+          <Route
+            path="/dashboard/admin/product/:slug"
+            element={<UpdateProduct />}
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // wait till form is populated
+    await waitFor(() =>
+      expect(
+        screen.getByDisplayValue(SAMPLE_PRODUCT[0].product.name)
+      ).toBeInTheDocument()
+    );
+
+    // simulate clicking 'update' button
+    fireEvent.click(screen.getByRole("button", { name: /delete product/i }));
+
+    // ensure prompt pops up
+    await waitFor(() => {
+      expect(window.prompt).toHaveBeenCalledWith(
+        "Are you sure you want to delete this product ? "
+      );
+    });
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Product deleted successfully"
+      );
+      expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
+    });
+
+    // restore the original prompt
+    promptSpy.mockRestore();
   });
 });
