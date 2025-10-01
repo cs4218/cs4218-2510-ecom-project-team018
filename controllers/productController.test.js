@@ -56,4 +56,24 @@ describe("getProductController", () => {
       })
     );
   });
+
+  it("returns 1 product successfully", async () => {
+    const mockProducts = [{ _id: "p2" }];
+    productModel.find.mockReturnValue(makeQuery(mockProducts));
+
+    const req = createMockReq();
+    const res = createMockRes();
+
+    await getProductController(req, res);
+
+    expect(productModel.find).toHaveBeenCalledWith({});
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        products: expect.arrayContaining(mockProducts),
+        countTotal: mockProducts.length,
+      })
+    );
+  });
 });
