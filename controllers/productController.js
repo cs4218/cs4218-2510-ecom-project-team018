@@ -346,7 +346,7 @@ export const relatedProductController = async (req, res) => {
   }
 };
 
-// get paginated products by category
+// Get category products by page
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -376,11 +376,11 @@ export const productCategoryController = async (req, res) => {
       limit,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send({
       success: false,
-      error,
-      message: "Error while getting products",
+      error: error.message,
+      message: "Error while getting products by category",
     });
   }
 };
