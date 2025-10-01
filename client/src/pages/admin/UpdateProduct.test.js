@@ -1,10 +1,17 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import "@testing-library/jest-dom";
 import UpdateProduct from "./UpdateProduct";
 import axios from "axios";
 import toast from "react-hot-toast";
+import userEvent from "@testing-library/user-event";
 
 /* mocks */
 jest.mock("axios");
@@ -39,23 +46,25 @@ const SAMPLE_PRODUCT = [
       price: 99,
       quantity: 10,
       shipping: SHIPPING.NO,
-      category: { _id: "1" },
+      category: { _id: "1", name: "Electronics" },
     },
   },
 ];
 
 beforeEach(() => {
+  jest.clearAllMocks();
+
   // check with url bc the page uses get() twice
   axios.get.mockImplementation((url) => {
     if (url.includes("/get-product/")) {
       return Promise.resolve({ data: SAMPLE_PRODUCT[0] });
     }
     if (url.includes("/get-category")) {
-      return Promise.resolve({ data: SAMPLE_CATEGORIES });
+      return Promise.resolve({
+        data: { success: true, category: SAMPLE_CATEGORIES },
+      });
     }
   });
-
-  jest.clearAllMocks();
 });
 
 describe("Update Product page components", () => {
@@ -85,7 +94,7 @@ describe("Update Product page components", () => {
       ).toBeInTheDocument();
       /* fields */
       expect(
-        screen.getByText(SAMPLE_PRODUCT[0].product.category._id)
+        screen.getByText(SAMPLE_PRODUCT[0].product.category.name)
       ).toBeInTheDocument(); // category
       expect(screen.getByAltText("product_photo")).toHaveAttribute(
         "src",
@@ -115,5 +124,43 @@ describe("Update Product page components", () => {
         screen.getByRole("button", { name: /delete product/i })
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe("Update Product actions - getAllCategory", () => {
+  test("loads categories and displays them in the 'select a category' field", async () => {
+    // checks if the getAllCategory() function retrieves all (>1) the categories successfully
+    // and correctly displays them in the 'select a category' field for the new product to-be-created to be under that category
+    render(
+      <MemoryRouter initialEntries={["/dashboard/admin/product/test-slug"]}>
+        <Routes>
+          <Route
+            path="/dashboard/admin/product/:slug"
+            element={<UpdateProduct />}
+          />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // wait for categories to load
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/category/get-category");
+    });
+
+    // find the 'select category' combobox
+    const selectCategory = screen.getAllByRole("combobox")[0];
+    // open the dropdown
+    fireEvent.mouseDown(selectCategory);
+
+    const listbox = await screen.findByRole("listbox");
+
+    const electronicsOption = within(listbox).getByRole("option", {
+      name: SAMPLE_CATEGORIES[0].name,
+    });
+    const booksOption = within(listbox).getByRole("option", {
+      name: SAMPLE_CATEGORIES[1].name,
+    });
+    expect(electronicsOption).toBeInTheDocument();
+    expect(booksOption).toBeInTheDocument();
   });
 });
