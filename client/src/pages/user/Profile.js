@@ -5,9 +5,7 @@ import { useAuth } from "../../context/auth";
 import toast from "react-hot-toast";
 import axios from "axios";
 const Profile = () => {
-  //context
   const [auth, setAuth] = useAuth();
-  //state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,16 +14,26 @@ const Profile = () => {
 
   //get user data
   useEffect(() => {
-    const { email, name, phone, address } = auth?.user;
-    setName(name);
-    setPhone(phone);
-    setEmail(email);
-    setAddress(address);
-  }, [auth?.user]);
+    if (!auth || !auth.user) {
+      toast.error("Unable to retrieve profile, please sign out and sign in again.");
+      return
+    } else {
+      const { email, name, phone, address } = auth?.user;
+      setName(name);
+      setPhone(phone);
+      setEmail(email);
+      setAddress(address);
+    }
+  }, [auth]);
 
-  // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (password && password.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
@@ -34,8 +42,15 @@ const Profile = () => {
         phone,
         address,
       });
-      if (data?.errro) {
-        toast.error(data?.error);
+
+      if (!data?.updatedUser) {
+        toast.error("Updated Profile not found, please try again later");
+        return;
+      }
+
+      if (!data?.success) {
+        console.error(data?.error);
+        toast.error("Updating Profile unsuccessful, please try again later");
       } else {
         setAuth({ ...auth, user: data?.updatedUser });
         let ls = localStorage.getItem("auth");
@@ -45,10 +60,10 @@ const Profile = () => {
         toast.success("Profile Updated Successfully");
       }
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong");
+      toast.error("Updating Profile failed, please try again later");
     }
   };
+
   return (
     <Layout title={"Your Profile"}>
       <div className="container-fluid m-3 p-3">
@@ -66,7 +81,7 @@ const Profile = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileNameInput"
                     placeholder="Enter Your Name"
                     autoFocus
                   />
@@ -75,9 +90,8 @@ const Profile = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileEmailInput"
                     placeholder="Enter Your Email "
                     disabled
                   />
@@ -88,7 +102,7 @@ const Profile = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="form-control"
-                    id="exampleInputPassword1"
+                    id="profilePasswordInput"
                     placeholder="Enter Your Password"
                   />
                 </div>
@@ -98,7 +112,7 @@ const Profile = () => {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profilePhoneInput"
                     placeholder="Enter Your Phone"
                   />
                 </div>
@@ -108,7 +122,7 @@ const Profile = () => {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     className="form-control"
-                    id="exampleInputEmail1"
+                    id="profileAddressInput"
                     placeholder="Enter Your Address"
                   />
                 </div>
