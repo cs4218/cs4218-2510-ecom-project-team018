@@ -3,7 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import Products from "./Products";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { BrowserRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 
 /* mocks */
 jest.mock("axios");
@@ -36,16 +36,16 @@ const SAMPLE_PRODUCTS = [
 
 beforeEach(() => {
   jest.clearAllMocks();
+
+  axios.get.mockResolvedValue({ data: { products: SAMPLE_PRODUCTS } });
 });
 
 describe("Products Page", () => {
   test("successfully renders products", async () => {
-    axios.get.mockResolvedValue({ data: { products: SAMPLE_PRODUCTS } });
-
     render(
-      <BrowserRouter>
+      <MemoryRouter>
         <Products />
-      </BrowserRouter>
+      </MemoryRouter>
     );
 
     expect(await screen.findByTestId("Layout")).toBeInTheDocument();
@@ -68,4 +68,23 @@ describe("Products Page", () => {
   });
 });
 
-// test navigation
+describe("Products Page navigation", () => {
+  test("has correct links for products", async () => {
+    render(
+      <MemoryRouter>
+        <Products />
+      </MemoryRouter>
+    );
+
+    for (const product of SAMPLE_PRODUCTS) {
+      const productName = await screen.findByText(product.name);
+      const link = productName.closest("a"); // find the parent <Link>
+      expect(link).toHaveAttribute(
+        "href",
+        `/dashboard/admin/product/${product.slug}`
+      );
+    }
+  });
+
+  test("able to navigate", async () => {});
+});
