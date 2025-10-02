@@ -274,6 +274,22 @@ describe("Product controllers", () => {
       );
     });
 
+    it("does not filter by price when price range is NaN", async () => {
+      productModel.find.mockReturnValue(makeQuery(result));
+      const req = createMockReq({
+        body: { radio: ["abc", "def"] },
+      });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: result })
+      );
+    });
+
     it("handles no filters gracefully", async () => {
       const result = [];
 
