@@ -5,11 +5,14 @@ import {
   productFiltersController,
   productCountController,
   searchProductController,
+  productCategoryCountController,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
+import categoryModel from "../models/categoryModel.js";
 
 // Mocks
 jest.mock("../models/productModel.js");
+jest.mock("../models/categoryModel.js");
 
 // Helper functions
 const createMockRes = () => ({
@@ -28,6 +31,7 @@ const createMockReq = (overrides = {}) => ({
   ...overrides,
 });
 
+// Helper to create a mock query chain
 const makeQuery = (value) => ({
   _value: value,
   populate: jest.fn().mockReturnThis(),
@@ -272,6 +276,7 @@ describe("Product controllers", () => {
 
     it("handles no filters gracefully", async () => {
       const result = [];
+
       productModel.find.mockReturnValue(makeQuery(result));
       const req = createMockReq({ body: {} });
       const res = createMockRes();
@@ -301,6 +306,7 @@ describe("Product controllers", () => {
   describe("productCountController", () => {
     it("returns total count", async () => {
       const total = 42;
+
       productModel.estimatedDocumentCount.mockResolvedValueOnce(total);
       const req = createMockReq();
       const res = createMockRes();
@@ -333,6 +339,7 @@ describe("Product controllers", () => {
   describe("searchProductController", () => {
     it("returns [] for blank keyword", async () => {
       const blankKeyword = "   ";
+
       const req = createMockReq({ params: { keyword: blankKeyword } });
       const res = createMockRes();
 
@@ -345,6 +352,7 @@ describe("Product controllers", () => {
     it("searches by name/description", async () => {
       const searchKeyword = "phone";
       const result = [{ _id: "p" }];
+
       productModel.find.mockReturnValue(makeQuery(result));
       const req = createMockReq({ params: { keyword: searchKeyword } });
       const res = createMockRes();
@@ -362,6 +370,7 @@ describe("Product controllers", () => {
 
     it("handles errors with 500", async () => {
       const searchKeyword = "phone";
+
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
@@ -369,6 +378,55 @@ describe("Product controllers", () => {
       const res = createMockRes();
 
       await searchProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("productCategoryCountController", () => {
+    it("returns count for category", async () => {
+      const count = 7;
+      const shirtSlug = "shirts";
+      const categoryId = "cat1";
+
+      categoryModel.findOne.mockReturnValue(makeQuery({ _id: categoryId }));
+      productModel.countDocuments.mockResolvedValueOnce(count);
+      const req = createMockReq({ params: { slug: shirtSlug } });
+      const res = createMockRes();
+
+      await productCategoryCountController(req, res);
+
+      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: shirtSlug });
+      expect(productModel.countDocuments).toHaveBeenCalledWith({
+        category: categoryId,
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ total: count })
+      );
+    });
+
+    it("404 when category missing", async () => {
+      categoryModel.findOne.mockReturnValue(makeQuery(null));
+      const req = createMockReq({ params: { slug: "missing" } });
+      const res = createMockRes();
+
+      await productCategoryCountController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it("handles errors with 500", async () => {
+      categoryModel.findOne.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productCategoryCountController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
