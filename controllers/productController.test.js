@@ -55,7 +55,7 @@ describe("braintreeTokenController", () => {
         await braintreeTokenController(req, res);
 
         expect(generateMock).toHaveBeenCalledWith({}, expect.any(Function));
-        expect(res.send).toHaveBeenCalledWith({ clientToken: "tok" });
+        expect(res.send).toHaveBeenCalledWith({ clientToken: "tok", success: true });
     });
 
     test("handles gateway error", async () => {
