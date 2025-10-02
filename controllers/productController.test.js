@@ -205,7 +205,7 @@ describe("Product controllers", () => {
       const req = createMockReq();
       const res = createMockRes();
 
-      await getProductController(req, res);
+      await productPhotoController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
@@ -327,7 +327,7 @@ describe("Product controllers", () => {
       const req = createMockReq();
       const res = createMockRes();
 
-      await productFiltersController(req, res);
+      await productCountController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
@@ -337,14 +337,24 @@ describe("Product controllers", () => {
   });
 
   describe("searchProductController", () => {
-    it("returns [] for blank keyword", async () => {
-      const blankKeyword = "   ";
+    it("returns [] for keyword with whitespaces only", async () => {
+      const whitespaceKeyword = "   ";
 
-      const req = createMockReq({ params: { keyword: blankKeyword } });
+      const req = createMockReq({ params: { keyword: whitespaceKeyword } });
       const res = createMockRes();
 
       await searchProductController(req, res);
 
+      expect(res.json).toHaveBeenCalledWith([]);
+      expect(productModel.find).not.toHaveBeenCalled();
+    });
+
+    it("returns [] for empty string keyword", async () => {
+      const emptyKeyword = "";
+      const req = createMockReq({ params: { keyword: emptyKeyword } });
+      const res = createMockRes();
+
+      await searchProductController(req, res);
       expect(res.json).toHaveBeenCalledWith([]);
       expect(productModel.find).not.toHaveBeenCalled();
     });
