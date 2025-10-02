@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import Products from "./Products";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -17,6 +17,13 @@ jest.mock("../../components/Layout", () => (props) => (
 jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="AdminMenu" />
 ));
+
+// mock navigate (page navigates when clicking on a product)
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
 
 // sample data
 const SAMPLE_PRODUCTS = [
@@ -68,8 +75,8 @@ describe("Products Page", () => {
   });
 });
 
-describe("Products Page navigation", () => {
-  test("has correct links for products", async () => {
+describe("Products Page links", () => {
+  test("links to correct product page", async () => {
     render(
       <MemoryRouter>
         <Products />
@@ -85,6 +92,4 @@ describe("Products Page navigation", () => {
       );
     }
   });
-
-  test("able to navigate", async () => {});
 });
