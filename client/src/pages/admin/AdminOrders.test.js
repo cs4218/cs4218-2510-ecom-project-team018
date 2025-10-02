@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import AdminOrders from "./AdminOrders";
 import axios from "axios";
 import { useAuth } from "../../context/auth";
@@ -67,11 +67,11 @@ beforeEach(() => {
 });
 
 describe("Admin Orders components", () => {
-  it("renders multiple orders correctly", async () => {
+  test("renders multiple orders correctly", async () => {
     // check if getAllOrders retrieve all (>1) orders and loads them in the page
     render(<AdminOrders />);
 
-    // wait for data to load
+    // wait for orders to load
     await waitFor(() => {
       expect(screen.getByText(SAMPLE_ORDERS[0].buyer.name)).toBeInTheDocument();
       expect(screen.getByText(SAMPLE_ORDERS[1].buyer.name)).toBeInTheDocument();
@@ -101,6 +101,36 @@ describe("Admin Orders components", () => {
         expect(screen.getByText(p.description)).toBeInTheDocument();
         expect(screen.getByText(`Price : ${p.price}`)).toBeInTheDocument();
       });
+    });
+  });
+});
+
+describe("Admin Orders actions - handleChange", () => {
+  test("successfully updates a product's status", async () => {
+    axios.put.mockResolvedValue({ data: { success: true } });
+
+    render(<AdminOrders />);
+
+    // wait for orders to load
+    await waitFor(() => {
+      expect(screen.getByText(SAMPLE_ORDERS[0].buyer.name)).toBeInTheDocument();
+      expect(screen.getByText(SAMPLE_ORDERS[1].buyer.name)).toBeInTheDocument();
+    });
+
+    // find the 'status' dropdown
+    const selectStatus = screen.getAllByRole("combobox")[0];
+    // open the dropdown
+    fireEvent.mouseDown(selectStatus);
+
+    // change status
+    const option = screen.getByText("Delivered");
+    fireEvent.click(option);
+
+    await waitFor(() => {
+      expect(axios.put).toHaveBeenCalledWith(
+        `/api/v1/auth/order-status/${SAMPLE_ORDERS[0]._id}`,
+        { status: "Delivered" }
+      );
     });
   });
 });
