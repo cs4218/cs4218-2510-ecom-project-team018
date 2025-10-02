@@ -6,11 +6,13 @@ import {
   productCountController,
   productListController,
   searchProductController,
+  relatedProductController,
   productCategoryController,
   productCategoryCountController,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_NUMBER,
 } from "./productController.js";
+import mongoose from "mongoose";
 import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 
@@ -186,6 +188,22 @@ describe("Product controllers", () => {
 
       expect(productModel.findById).toHaveBeenCalledWith("p1");
       expect(res.set).toHaveBeenCalledWith("Content-Type", "image/png");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(buf);
+    });
+
+    it("defaults content-type to image/jpeg when missing", async () => {
+      const buf = Buffer.from([4, 5, 6]);
+      productModel.findById.mockReturnValue(
+        makeQuery({ _id: "p2", photo: { data: buf } })
+      );
+      const req = createMockReq({ params: { pid: "p2" } });
+      const res = createMockRes();
+
+      await productPhotoController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith("p2");
+      expect(res.set).toHaveBeenCalledWith("Content-Type", "image/jpeg");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
@@ -513,6 +531,167 @@ describe("Product controllers", () => {
     });
   });
 
+  describe("relatedProductController", () => {
+    const mockProductId = "mockProductId";
+    const mockCategoryId = "mockCategoryId";
+    const mockParams = {
+      pid: mockProductId,
+      cid: mockCategoryId,
+    };
+    let isValidObjectIdSpy;
+
+    beforeAll(() => {
+      isValidObjectIdSpy = jest.spyOn(mongoose, "isValidObjectId");
+    });
+
+    afterAll(() => {
+      isValidObjectIdSpy.mockRestore();
+    });
+
+    it("returns related products", async () => {
+      mongoose.isValidObjectId.mockReturnValue(true);
+
+      categoryModel.exists.mockResolvedValueOnce({
+        _id: mockCategoryId,
+      });
+      productModel.findById.mockReturnValue(
+        makeQuery({
+          _id: mockProductId,
+          category: mockCategoryId,
+        })
+      );
+
+      const related = [{ _id: "x1" }, { _id: "x2" }];
+      const relatedQuery = makeQuery(related);
+      productModel.find.mockReturnValue(relatedQuery);
+
+      const req = createMockReq({
+        params: mockParams,
+      });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: mockCategoryId,
+        _id: { $ne: mockProductId },
+      });
+      expect(relatedQuery.select).toHaveBeenCalledWith("-photo");
+      expect(relatedQuery.limit).toHaveBeenCalledWith(3);
+      expect(relatedQuery.populate).toHaveBeenCalledWith("category");
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: true, products: related })
+      );
+    });
+
+    it("returns 400 when pid or cid is missing", async () => {
+      const req = createMockReq({ params: { pid: "pOnly" } }); // cid missing
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+      expect(productModel.find).not.toHaveBeenCalled();
+      expect(categoryModel.exists).not.toHaveBeenCalled();
+    });
+
+    it("returns 400 when invalid ObjectId format", async () => {
+      mongoose.isValidObjectId.mockReturnValue(false);
+      const req = createMockReq({ params: { pid: "bad", cid: "alsoBad" } });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(mongoose.isValidObjectId).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(productModel.find).not.toHaveBeenCalled();
+    });
+
+    it("returns 404 when product not found", async () => {
+      mongoose.isValidObjectId.mockReturnValue(true);
+
+      // category exists
+      categoryModel.exists.mockResolvedValueOnce({ _id: "cid" });
+      // findById().select() chain returns null
+      productModel.findById.mockReturnValue(makeQuery(null));
+
+      const req = createMockReq({
+        params: mockParams,
+      });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(categoryModel.exists).toHaveBeenCalledWith({
+        _id: mockParams.cid,
+      });
+      expect(productModel.findById).toHaveBeenCalledWith(mockParams.pid);
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "Product not found" })
+      );
+    });
+
+    it("returns 404 when category not found", async () => {
+      mongoose.isValidObjectId.mockReturnValue(true);
+
+      // category missing
+      categoryModel.exists.mockResolvedValueOnce(null);
+      // product exists
+      productModel.findById.mockReturnValue(
+        makeQuery({ _id: "p1", category: mockCategoryId })
+      );
+
+      const req = createMockReq({
+        params: mockParams,
+      });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith(mockProductId);
+      expect(categoryModel.exists).toHaveBeenCalledWith({
+        _id: mockCategoryId,
+      });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "Category not found" })
+      );
+    });
+
+    it("handles errors with 500", async () => {
+      mongoose.isValidObjectId.mockReturnValue(true);
+
+      categoryModel.exists.mockResolvedValueOnce({
+        _id: mockCategoryId,
+      });
+      productModel.findById.mockReturnValue(
+        makeQuery({ _id: "p1", category: mockCategoryId })
+      );
+
+      productModel.find.mockImplementation(() => {
+        throw new Error("DB down");
+      });
+
+      const req = createMockReq({
+        params: mockParams,
+      });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
   describe("productCategoryController", () => {
     it("paginates by query params (page & limit) and returns products", async () => {
       const docs = [{ _id: "p1" }, { _id: "p2" }];
@@ -709,7 +888,7 @@ describe("Product controllers", () => {
       );
     });
 
-    it("404 when category missing", async () => {
+    it("returns 404 when category is missing", async () => {
       categoryModel.findOne.mockReturnValue(makeQuery(null));
       const req = createMockReq({ params: { slug: "missing" } });
       const res = createMockRes();
