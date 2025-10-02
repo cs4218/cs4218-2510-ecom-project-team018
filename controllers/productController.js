@@ -273,9 +273,9 @@ export const productListController = async (req, res) => {
     const products = await productModel
       .find({})
       .select("-photo")
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * DEFAULT_PAGE_SIZE)
-      .limit(DEFAULT_PAGE_SIZE)
-      .sort({ createdAt: -1 });
+      .limit(DEFAULT_PAGE_SIZE);
 
     res.status(200).send({
       success: true,
@@ -398,9 +398,9 @@ export const productCategoryController = async (req, res) => {
       .find({ category: category._id })
       .select("-photo")
       .populate("category")
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+      .limit(limit);
 
     res.status(200).send({
       success: true,
