@@ -4,8 +4,10 @@ import {
   productPhotoController,
   productFiltersController,
   productCountController,
+  productListController,
   searchProductController,
   productCategoryCountController,
+  DEFAULT_PAGE_SIZE,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
@@ -344,6 +346,101 @@ describe("Product controllers", () => {
       const res = createMockRes();
 
       await productCountController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ success: false })
+      );
+    });
+  });
+
+  describe("productListController", () => {
+    it("paginates by page param", async () => {
+      const docs = [{ _id: "p1" }, { _id: "p2" }];
+      const pageNumber = 3;
+
+      const query = makeQuery(docs);
+      productModel.find.mockReturnValue(query);
+      const req = createMockReq({ params: { page: pageNumber } });
+      const res = createMockRes();
+
+      await productListController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.select).toHaveBeenCalledWith("-photo");
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(query.limit).toHaveBeenCalledWith(DEFAULT_PAGE_SIZE);
+      expect(query.skip).toHaveBeenCalledWith(
+        (pageNumber - 1) * DEFAULT_PAGE_SIZE
+      );
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: docs })
+      );
+    });
+
+    it("uses default page when param is missing", async () => {
+      const docs = [{ _id: "pA" }];
+
+      const query = makeQuery(docs);
+      productModel.find.mockReturnValue(query);
+      const req = createMockReq(); // no params.page
+      const res = createMockRes();
+
+      await productListController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(query.skip).toHaveBeenCalledWith(0); // no skip since first page
+      expect(query.limit).toHaveBeenCalledWith(DEFAULT_PAGE_SIZE);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: docs })
+      );
+    });
+
+    it("defaults to page 1 for non-numeric page param", async () => {
+      const docs = [{ _id: "pX" }];
+      const query = makeQuery(docs);
+      productModel.find.mockReturnValue(query);
+
+      const req = createMockReq({ params: { page: "abc" } });
+      const res = createMockRes();
+
+      await productListController(req, res);
+
+      expect(query.skip).toHaveBeenCalledWith(0); // no skip since first page
+      expect(query.limit).toHaveBeenCalledWith(DEFAULT_PAGE_SIZE);
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
+    it("returns an empty array gracefully", async () => {
+      const docs = [];
+      const pageNumber = 2;
+
+      const query = makeQuery(docs);
+      productModel.find.mockReturnValue(query);
+      const req = createMockReq({ params: { page: pageNumber } });
+      const res = createMockRes();
+
+      await productListController(req, res);
+
+      expect(productModel.find).toHaveBeenCalledWith({});
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({ products: docs })
+      );
+    });
+
+    it("handles errors with 500", async () => {
+      productModel.find.mockImplementation(() => {
+        throw new Error("Network error");
+      });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productListController(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith(
