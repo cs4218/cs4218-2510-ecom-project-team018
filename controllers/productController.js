@@ -169,7 +169,7 @@ export const updateProductController = async (req, res) => {
       case photo && photo.size > 1000000:
         return res
           .status(500)
-          .send({ error: "photo is required and should be less then 1MB" });
+          .send({ error: "Photo is required and should be less then 1MB" });
     }
 
     const products = await productModel.findByIdAndUpdate(
