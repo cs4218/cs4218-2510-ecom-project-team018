@@ -189,6 +189,9 @@ export const updateProfileController = async (req, res) => {
       },
       { new: true }
     );
+
+    delete updatedUser.password;
+    
     res.status(200).send({
       success: true,
       message: "Profile Updated Successfully",
@@ -197,7 +200,7 @@ export const updateProfileController = async (req, res) => {
   } catch (error) {
     res.status(400).send({
       success: false,
-      message: "Error While Updating profile",
+      message: "Error While Update profile",
       error,
     });
   }
