@@ -6,9 +6,10 @@ import fs from "fs";
 import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-const DEFAULT_PAGE_SIZE = 6;
-const DEFAULT_PAGE_NUMBER = 1;
+export const DEFAULT_PAGE_SIZE = 6;
+export const DEFAULT_PAGE_NUMBER = 1;
 
 dotenv.config();
 
@@ -323,22 +324,55 @@ export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
 
+    // Required params
+    if (!pid || !cid) {
+      return res.status(400).send({
+        success: false,
+        message: "Missing required params: 'pid' and 'cid' are required.",
+      });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.isValidObjectId(pid) || !mongoose.isValidObjectId(cid)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid 'pid' or 'cid' format.",
+      });
+    }
+
+    // Check existence of category and product
+    const [catExists, prod] = await Promise.all([
+      categoryModel.exists({ _id: cid }),
+      productModel.findById(pid).select("_id category"),
+    ]);
+
+    if (!prod) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    if (!catExists) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // Query for related products
     const products = await productModel
-      .find({
-        category: cid,
-        _id: { $ne: pid },
-      })
+      .find({ category: cid, _id: { $ne: pid } })
       .select("-photo")
       .limit(3)
       .populate("category");
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
       message: "Error while getting related products",
       error: error.message,
