@@ -44,4 +44,13 @@ describe("db", () => {
             expect.stringContaining("connection failed")
         );
     });
+
+    test("logs error when MONGO_URL is missing", async () => {
+        delete process.env.MONGO_URL;
+        const err = new Error("MONGO_URL not set");
+        mongoose.connect.mockRejectedValue(err);
+        await connectDB();
+        expect(mongoose.connect).toHaveBeenCalledWith(undefined);
+        expect(logSpy).toHaveBeenCalledWith(expect.stringContaining("MONGO_URL not set"));
+    });
 });
