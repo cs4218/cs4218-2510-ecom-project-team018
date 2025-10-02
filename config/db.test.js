@@ -1,22 +1,6 @@
 import mongoose from "mongoose";
 import connectDB from "./db";
 
-// Mock colors
-jest.mock("colors", () => {
-    const proto = String.prototype;
-    ["bgMagenta", "bgRed", "white"].forEach((k) => {
-        if (!Object.getOwnPropertyDescriptor(proto, k)) {
-            Object.defineProperty(proto, k, {
-                get() {
-                    return this.toString();
-                },
-                configurable: true,
-            });
-        }
-    });
-    return { __esModule: true, default: {} };
-});
-
 // Mock mongoose
 jest.mock("mongoose", () => ({
     __esModule: true,
