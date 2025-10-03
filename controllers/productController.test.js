@@ -1,4 +1,7 @@
-import { createProductController } from "./productController.js";
+import {
+  createProductController,
+  deleteProductController,
+} from "./productController.js";
 import productModel from "../models/productModel.js";
 import fs from "fs";
 import slugify from "slugify";
@@ -15,6 +18,7 @@ jest.mock("braintree", () => ({
 // sample data
 const SAMPLE_PRODUCT = [
   {
+    _id: "fake-product-id",
     name: "Test Product",
     description: "Nice product",
     price: 100,
@@ -148,5 +152,39 @@ describe("Product Controller - creating a product", () => {
         error: "Photo is required and should be less then 1MB",
       })
     );
+  });
+});
+
+describe("Product Controller - deleting a product", () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      params: { pid: SAMPLE_PRODUCT[0]._id },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+  });
+
+  test("successfully delete a product", async () => {
+    productModel.findByIdAndDelete = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(true),
+    });
+
+    await deleteProductController(req, res);
+
+    expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id
+    );
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Product deleted successfully",
+    });
   });
 });
