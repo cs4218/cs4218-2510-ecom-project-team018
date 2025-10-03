@@ -189,18 +189,20 @@ export const updateProfileController = async (req, res) => {
       },
       { new: true }
     );
-
-    delete updatedUser.password;
     
     res.status(200).send({
       success: true,
       message: "Profile Updated Successfully",
-      updatedUser,
+      updatedUser: {
+        name: updatedUser.name,
+        phone: updatedUser.phone,
+        address: updatedUser.address
+      },
     });
   } catch (error) {
     res.status(400).send({
       success: false,
-      message: "Error While Update profile",
+      message: "Error While Updating profile",
       error,
     });
   }
@@ -215,7 +217,6 @@ export const getOrdersController = async (req, res) => {
       .populate("buyer", "name");
     res.status(200).send(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error While Getting Orders",
@@ -233,7 +234,6 @@ export const getAllOrdersController = async (req, res) => {
       .sort({ createdAt: "-1" });
     res.status(200).send(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error While Getting All Orders",
