@@ -210,9 +210,9 @@ const UpdateProduct = () => {
                   showSearch
                   className="form-select mb-3"
                   onChange={(value) => {
-                    setShipping(value);
+                    setShipping(value === "1"); // convert to boolean
                   }}
-                  value={shipping ? shipping : "No"}
+                  value={shipping ? "1" : "0"} // map boolean back to string for the Select
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>

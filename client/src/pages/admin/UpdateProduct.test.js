@@ -11,6 +11,7 @@ import "@testing-library/jest-dom";
 import UpdateProduct from "./UpdateProduct";
 import axios from "axios";
 import toast from "react-hot-toast";
+import slugify from "slugify";
 
 /* mocks */
 jest.mock("axios");
@@ -296,6 +297,11 @@ describe("Update Product actions - handleDelete", () => {
       expect(toast.success).toHaveBeenCalledWith(
         "Product deleted successfully"
       );
+
+      expect(axios.delete).toHaveBeenCalledWith(
+        `/api/v1/product/delete-product/${SAMPLE_PRODUCT[0].product._id}`
+      );
+
       expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
     });
 
