@@ -132,7 +132,7 @@ describe("Login Component", () => {
       },
     });
 
-    const { screen } = render(
+    render(
       <MemoryRouter initialEntries={["/login"]}>
         <Routes>
           <Route path="/login" element={<Login />} />
