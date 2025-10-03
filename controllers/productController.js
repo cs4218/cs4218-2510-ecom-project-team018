@@ -89,7 +89,6 @@ export const getProductController = async (req, res) => {
     });
   }
 };
-
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
@@ -378,50 +377,89 @@ export const productCategoryCountController = async (req, res) => {
 
 // payment gateway api
 // token
+const generateClientToken = (opts = {}) =>
+  new Promise((resolve, reject) =>
+    gateway.clientToken.generate(opts, (err, res) =>
+      err ? reject(err) : resolve(res)
+    )
+  );
+
 export const braintreeTokenController = async (req, res) => {
   try {
-    gateway.clientToken.generate({}, function (err, response) {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.send(response);
-      }
-    });
+    const { clientToken } = await generateClientToken({});
+    return res.status(200).send({ success: true, clientToken });
   } catch (error) {
     console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Failed to generate client token",
+      error: String(error),
+    });
   }
 };
 
 // payment
+const sale = (opts) =>
+  new Promise((resolve, reject) =>
+    gateway.transaction.sale(opts, (err, res) =>
+      err ? reject(err) : resolve(res)
+    )
+  );
+
 export const brainTreePaymentController = async (req, res) => {
   try {
-    const { nonce, cart } = req.body;
-    let total = 0;
-    cart.map((i) => {
-      total += i.price;
+    const { nonce, cart } = req.body || {};
+
+    if (!nonce || !Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Missing payment nonce or empty cart",
+      });
+    }
+
+
+    const totalCents = cart.reduce((sum, item) => {
+      const price = Number(item.price);
+      const qty = Number(item.quantity ?? 1);
+      if (Number.isNaN(price) || Number.isNaN(qty) || price < 0 || qty <= 0)
+        return sum;
+      return sum + Math.round(price * 100) * qty;
+    }, 0);
+    const amount = (totalCents / 100).toFixed(2);
+
+    const result = await sale({
+      amount,
+      paymentMethodNonce: nonce,
+      options: { submitForSettlement: true },
     });
-    let newTransaction = gateway.transaction.sale(
-      {
-        amount: total,
-        paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
-        },
-      },
-      function (error, result) {
-        if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
-        }
-      }
-    );
+
+    if (!result?.success) {
+      return res.status(402).send({
+        success: false,
+        message: "Payment failed",
+        processorResponse: result?.message ?? "Unknown error",
+      });
+    }
+
+    await orderModel.create({
+      products: cart,
+      payment: result,
+      buyer: req.user?._id ?? req.user?.id ?? null,
+    })
+
+    return res.status(201).send({
+      success: true,
+      ok: true,
+      transactionId: result.transaction?.id ?? null,
+      amount,
+    });
+
+
   } catch (error) {
-    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Payment error",
+      error: String(error),
+    });
   }
 };

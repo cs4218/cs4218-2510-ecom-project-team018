@@ -15,7 +15,10 @@ import {
 } from "./productController.js";
 
 // Mocks
-jest.mock("../models/orderModel.js", () => jest.fn());
+jest.mock("../models/orderModel.js", () => ({
+    __esModule: true,
+    default: { create: jest.fn() },
+}));
 
 // braintree
 jest.mock("braintree", () => {
@@ -74,30 +77,80 @@ describe("brainTreePaymentController", () => {
             nonce: "fake-nonce",
             cart: [
                 { _id: "a", price: 10 },
-                { _id: "b", price: 5 },
+                { _id: "b", price: 2.5, quantity: 2 },
             ],
         };
 
-        saleMock.mockImplementation((payload, cb) => cb(null, { id: "tr_1" }));
+        saleMock.mockImplementation((payload, cb) =>
+            cb(null, { success: true, transaction: { id: "tr_1"} })
+        );
 
-        const saveOrderMock = jest.fn().mockResolvedValue({});
-        orderModel.mockImplementation(() => ({ save: saveOrderMock }));
+        orderModel.create.mockResolvedValue({ _id: "order1" });
 
         await brainTreePaymentController(req, res);
 
         expect(saleMock).toHaveBeenCalledWith(
             {
-                amount: 15,
+                amount: "15.00",
                 paymentMethodNonce: "fake-nonce",
                 options: { submitForSettlement: true },
             },
           expect.any(Function)
         );
-        expect(saveOrderMock).toHaveBeenCalled();
-        expect(res.json).toHaveBeenCalledWith({ ok: true });
+        expect(orderModel.create).toHaveBeenCalledWith({
+            products: req.body.cart,
+            payment: { success: true, transaction: { id: "tr_1" } },
+            buyer: "u1",
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.send).toHaveBeenCalledWith({
+            success: true,
+            ok: true ,
+            transactionId: "tr_1",
+            amount: "15.00",
+        });
     });
 
-    test("sends 500 on failed sale", async () => {
+    test("sends 400 when nonce is missing", async () => {
+        req.body = { cart: [{ price: 10 }] };
+        await brainTreePaymentController(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Missing payment nonce or empty cart",
+        });
+    });
+
+    test("sends 400 when cart is empty", async () => {
+        req.body = { nonce: "x", cart: [] };
+        await brainTreePaymentController(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Missing payment nonce or empty cart",
+        });
+    });
+
+    test("sends 402 when processor declines the payment", async () => {
+        req.body = { nonce: "n", cart: [{ price: 7 }] };
+            saleMock.mockImplementation((payload, cb) =>
+                cb(null, { success: false, message: "Declined" })
+            );
+
+        await brainTreePaymentController(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(402);
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Payment failed",
+            processorResponse: "Declined",
+        });
+        expect(orderModel.create).not.toHaveBeenCalled();
+    });
+
+
+
+    test("sends 500 when gateway sale throws", async () => {
         req.body = { nonce: "n", cart: [{ price: 1 }] };
         saleMock.mockImplementation((payload, cb) =>
             cb("gateway-error", null)
@@ -105,7 +158,12 @@ describe("brainTreePaymentController", () => {
 
         await brainTreePaymentController(req, res);
 
+        expect(orderModel.create).not.toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.send).toHaveBeenCalledWith("gateway-error");
+        expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Payment error",
+            error: expect.any(String),
+        });
     });
 });
