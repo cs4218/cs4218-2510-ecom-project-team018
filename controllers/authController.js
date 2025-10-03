@@ -164,15 +164,24 @@ export const testController = (req, res) => {
   }
 };
 
-//update prfole
+//update profile
 export const updateProfileController = async (req, res) => {
   try {
     const { name, email, password, address, phone } = req.body;
     const user = await userModel.findById(req.user._id);
-    //password
+
     if (password && password.length < 6) {
-      return res.json({ error: "Passsword is required and 6 character long" });
+      return res.status(400).send({ message: "Password is required and 6 character long" });
     }
+
+    if (user === null) {
+      return res.status(400).send({ message: "User is not found" });
+    }
+
+    if (!name && !password && !address && !phone) {
+      return res.status(400).send({ message: "Change Name, Password, Address or Phone to Update profile" });
+    }
+    
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
@@ -184,19 +193,20 @@ export const updateProfileController = async (req, res) => {
       },
       { new: true }
     );
-
-    delete updatedUser.password;
     
     res.status(200).send({
       success: true,
       message: "Profile Updated Successfully",
-      updatedUser,
+      updatedUser: {
+        name: updatedUser.name,
+        phone: updatedUser.phone,
+        address: updatedUser.address
+      },
     });
   } catch (error) {
-    console.log(error);
     res.status(400).send({
       success: false,
-      message: "Error While Update profile",
+      message: "Error While Updating profile",
       error,
     });
   }
@@ -209,12 +219,11 @@ export const getOrdersController = async (req, res) => {
       .find({ buyer: req.user._id })
       .populate("products", "-photo")
       .populate("buyer", "name");
-    res.json(orders);
+    res.status(200).send(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
+      message: "Error While Getting Orders",
       error,
     });
   }
@@ -226,13 +235,12 @@ export const getAllOrdersController = async (req, res) => {
       .find({})
       .populate("products", "-photo")
       .populate("buyer", "name")
-      .sort({ createdAt: "desc" });
-    res.json(orders);
+      .sort({ createdAt: "-1" });
+    res.status(200).send(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error WHile Geting Orders",
+      message: "Error While Getting All Orders",
       error,
     });
   }
@@ -248,12 +256,11 @@ export const orderStatusController = async (req, res) => {
       { status },
       { new: true }
     );
-    res.json(orders);
+    res.status(200).send(orders);
   } catch (error) {
-    console.log(error);
     res.status(500).send({
       success: false,
-      message: "Error While Updateing Order",
+      message: "Error While Updating Order Status",
       error,
     });
   }
