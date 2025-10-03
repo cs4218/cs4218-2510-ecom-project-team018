@@ -16,11 +16,15 @@ import mongoose from "mongoose";
 import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 
-// Mocks
+// Module Mocks
 jest.mock("../models/productModel.js");
 jest.mock("../models/categoryModel.js");
 
-// Helper functions
+// Test Utilities
+
+/**
+ * Express response double.
+ */
 const createMockRes = () => ({
   status: jest.fn().mockReturnThis(),
   send: jest.fn().mockReturnThis(),
@@ -28,6 +32,9 @@ const createMockRes = () => ({
   set: jest.fn().mockReturnThis(),
 });
 
+/**
+ * Express request double.
+ */
 const createMockReq = (overrides = {}) => ({
   params: {},
   query: {},
@@ -37,7 +44,9 @@ const createMockReq = (overrides = {}) => ({
   ...overrides,
 });
 
-// Helper to create a mock query chain
+/**
+ * Chainable Mongoose query stub
+ */
 const makeQuery = (value) => ({
   _value: value,
   populate: jest.fn().mockReturnThis(),
