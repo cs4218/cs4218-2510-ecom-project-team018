@@ -177,6 +177,10 @@ export const updateProfileController = async (req, res) => {
     if (user === null) {
       return res.status(400).send({ message: "User is not found" });
     }
+
+    if (!name && !password && !address && !phone) {
+      return res.status(400).send({ message: "Change Name, Password, Address or Phone to Update profile" });
+    }
     
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(

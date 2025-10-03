@@ -43,7 +43,9 @@ const MOCK_REQUEST_DATA = {
 };
 
 const MOCK_REQUEST_USER = {
-  _id: "user123"
+  user: {
+    _id: "user123"
+  }
 }
 
 const MOCK_ORDER_DATA = [{
@@ -367,7 +369,7 @@ describe("Auth Controller", () => {
       
       userModel.findById.mockResolvedValue(MOCK_USER_DATA);
       hashPassword.mockResolvedValue("newHashedPassword");
-      userModel.findByIdAndUpdate.mockResolvedValue({
+        userModel.findByIdAndUpdate.mockResolvedValue({
         name: mockReq.body.name,
         password: "newHashedPassword",
         phone: mockReq.body.phone,
@@ -401,7 +403,7 @@ describe("Auth Controller", () => {
     })
 
     it("should update user without changing password, name, phone, or address if not provided", async () => {
-      mockReq.body = { name: null, phone: null, address: null, password: null };
+      mockReq.body = { name: null, phone: null, address: null, password: undefined };
       mockReq.user = MOCK_REQUEST_USER;
 
       userModel.findById.mockResolvedValue(MOCK_USER_DATA);
@@ -411,26 +413,9 @@ describe("Auth Controller", () => {
 
       expect(hashPassword).not.toHaveBeenCalled();
 
-      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        mockReq.user._id,
-        {
-          name: MOCK_USER_DATA.name,
-          password: MOCK_USER_DATA.password,
-          phone: MOCK_USER_DATA.phone,
-          address: MOCK_USER_DATA.address,
-        },
-        { new: true }
-      );
-
-      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.send).toHaveBeenCalledWith({
-        success: true,
-        message: "Profile Updated Successfully",
-        updatedUser: {
-          name: MOCK_USER_DATA.name,
-          phone: MOCK_USER_DATA.phone,
-          address: MOCK_USER_DATA.address
-        },
+        message: "Change Name, Password, Address or Phone to Update profile",
       });
     });
 
