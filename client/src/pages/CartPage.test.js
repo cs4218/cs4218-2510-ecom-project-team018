@@ -81,6 +81,19 @@ describe("CartPage", () => {
         expect(screen.getByText(/Total :/)).toHaveTextContent("$15.50");
     });
 
+    test("handles total price computation failure", async () => {
+        const err = new Error("failed to get totalPrice");
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+        const tlsSpy = jest
+            .spyOn(Number.prototype, "toLocaleString")
+            .mockImplementation(() => { throw err; });
+        renderWithRouter(<CartPage />);
+        expect(logSpy).toHaveBeenCalledWith(err);
+
+        logSpy.mockRestore();
+        tlsSpy.mockRestore();
+    });
+
     test("handles getToken failure", async () => {
         // Spy on console to silence error logs in testing
         const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -103,6 +116,21 @@ describe("CartPage", () => {
         expect(Array.isArray(newCart)).toBe(true);
         expect(newCart.find((p) => p._id === "p1")).toBeUndefined();
         expect(stored.find((p) => p._id === "p1")).toBeUndefined();
+    });
+
+    test("handles item removal failure", async () => {
+        const err = new Error("failed to remove item from cart");
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+        const setItemSpy = jest
+            .spyOn(Storage.prototype, "setItem")
+            .mockImplementation(() => { throw err; });
+        renderWithRouter(<CartPage />);
+        const removeBtns = await screen.findAllByRole("button", { name: /remove/i });
+        await userEvent.click(removeBtns[0]);
+        expect(logSpy).toHaveBeenCalledWith(err);
+
+        logSpy.mockRestore();
+        setItemSpy.mockRestore();
     });
 
     test("shows DropIn and enables Make Payment when token, address, and cart exist", async () => {
@@ -137,6 +165,25 @@ describe("CartPage", () => {
             expect(mockNavigate).toHaveBeenCalledWith("/dashboard/user/orders");
             expect(toast.success).toHaveBeenCalled();
         });
+    });
+
+    test("handles payment failure", async () => {
+        const err = new Error("payment failed");
+        const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+        axios.post.mockRejectedValueOnce(err);
+        renderWithRouter(<CartPage />);
+
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+        await userEvent.click(payBtn);
+        await waitFor(() => expect(logSpy).toHaveBeenCalled());
+        expect(logSpy.mock.calls[0][0]).toBe(err);
+        expect(payBtn).toHaveTextContent(/make payment/i);
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+
+        logSpy.mockRestore();
     });
 
     test("navigates to profile when Update Address is clicked (address provided)", async () => {
