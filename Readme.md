@@ -219,7 +219,7 @@ To begin unit testing with Jest in your project, follow these steps:
       </tr>
       <!-- Kenvyn -->
       <tr>
-         <td rowspan="4"><strong>Kenvyn Kwek Shiu Chien</strong></td>
+         <td rowspan="5"><strong>Kenvyn Kwek Shiu Chien</strong></td>
          <td><strong>Admin Dashboard</strong></td>
          <td>
             <ul>
@@ -281,9 +281,18 @@ To begin unit testing with Jest in your project, follow these steps:
             </ul>
          </td>
       </tr>
+      <tr>
+         <td><strong>Admin View Users</strong></td>
+            <td>
+               <ul>
+                  <li><code>pages/admin/Users.js</code></li>
+               </ul>
+            </td>
+         <td></td>
+      </tr>
       <!-- Brendan -->
       <tr>
-         <td rowspan="5"><strong>Brendan Soh Ray Yang</strong></td>
+         <td rowspan="4"><strong>Brendan Soh Ray Yang</strong></td>
          <td><strong>Order</strong></td>
          <td>
             <ul>
@@ -310,15 +319,6 @@ To begin unit testing with Jest in your project, follow these steps:
          <td>
             <ul>
                <li><code>pages/user/Profile.js</code></li>
-            </ul>
-         </td>
-         <td></td>
-      </tr>
-      <tr>
-         <td><strong>Admin View Users</strong></td>
-         <td>
-            <ul>
-               <li><code>pages/admin/Users.js</code></li>
             </ul>
          </td>
          <td></td>
