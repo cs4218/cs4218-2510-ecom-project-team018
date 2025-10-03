@@ -64,11 +64,17 @@ describe("Product controllers", () => {
   });
 
   describe("getProductController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("returns 0 product successfully", async () => {
-      const mockProducts = [];
-      productModel.find.mockReturnValue(makeQuery(mockProducts));
+      const products = []; // no products
+      productModel.find.mockReturnValue(makeQuery(products));
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await getProductController(req, res);
 
@@ -77,17 +83,17 @@ describe("Product controllers", () => {
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          products: expect.arrayContaining(mockProducts),
-          countTotal: mockProducts.length,
+          products: expect.arrayContaining(products),
+          countTotal: products.length,
         })
       );
     });
 
     it("returns 1 product successfully", async () => {
-      const mockProducts = [{ _id: "p2" }];
-      productModel.find.mockReturnValue(makeQuery(mockProducts));
+      const products = [{ _id: "p2" }]; // single product
+      productModel.find.mockReturnValue(makeQuery(products));
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await getProductController(req, res);
 
@@ -96,17 +102,17 @@ describe("Product controllers", () => {
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          products: expect.arrayContaining(mockProducts),
-          countTotal: mockProducts.length,
+          products: expect.arrayContaining(products),
+          countTotal: products.length,
         })
       );
     });
 
     it("returns more than 1 products successfully", async () => {
-      const mockProducts = [{ _id: "p1" }, { _id: "p2" }];
-      productModel.find.mockReturnValue(makeQuery(mockProducts));
+      const products = [{ _id: "p1" }, { _id: "p2" }]; // multiple products
+      productModel.find.mockReturnValue(makeQuery(products));
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await getProductController(req, res);
 
@@ -115,8 +121,8 @@ describe("Product controllers", () => {
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          products: expect.arrayContaining(mockProducts),
-          countTotal: mockProducts.length,
+          products: expect.arrayContaining(products),
+          countTotal: products.length,
         })
       );
     });
@@ -125,8 +131,8 @@ describe("Product controllers", () => {
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await getProductController(req, res);
 
