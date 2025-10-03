@@ -514,11 +514,15 @@ describe("Product controllers", () => {
   });
 
   describe("searchProductController", () => {
-    it("returns [] for keyword with whitespaces only", async () => {
-      const whitespaceKeyword = "   ";
+    let res;
 
-      const req = createMockReq({ params: { keyword: whitespaceKeyword } });
-      const res = createMockRes();
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
+    it("returns [] for keyword with whitespaces only", async () => {
+      const keyword = "   "; // only spaces
+      const req = createMockReq({ params: { keyword } });
 
       await searchProductController(req, res);
 
@@ -527,42 +531,40 @@ describe("Product controllers", () => {
     });
 
     it("returns [] for empty string keyword", async () => {
-      const emptyKeyword = "";
-      const req = createMockReq({ params: { keyword: emptyKeyword } });
-      const res = createMockRes();
+      const keyword = ""; // empty string
+      const req = createMockReq({ params: { keyword } });
 
       await searchProductController(req, res);
+
       expect(res.json).toHaveBeenCalledWith([]);
       expect(productModel.find).not.toHaveBeenCalled();
     });
 
     it("searches by name/description", async () => {
-      const searchKeyword = "phone";
+      const keyword = "phone";
       const result = [{ _id: "p" }];
-
       productModel.find.mockReturnValue(makeQuery(result));
-      const req = createMockReq({ params: { keyword: searchKeyword } });
-      const res = createMockRes();
+
+      const req = createMockReq({ params: { keyword } });
 
       await searchProductController(req, res);
 
       expect(productModel.find).toHaveBeenCalledWith({
         $or: [
-          { name: { $regex: searchKeyword, $options: "i" } },
-          { description: { $regex: searchKeyword, $options: "i" } },
+          { name: { $regex: keyword, $options: "i" } },
+          { description: { $regex: keyword, $options: "i" } },
         ],
       });
       expect(res.json).toHaveBeenCalledWith(result);
     });
 
     it("handles errors with 500", async () => {
-      const searchKeyword = "phone";
-
+      const keyword = "phone";
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
-      const req = createMockReq({ params: { keyword: searchKeyword } });
-      const res = createMockRes();
+
+      const req = createMockReq({ params: { keyword } });
 
       await searchProductController(req, res);
 
