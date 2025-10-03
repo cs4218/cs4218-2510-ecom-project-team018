@@ -43,8 +43,8 @@ const SAMPLE_CATEGORIES = [
 ];
 
 const SHIPPING = {
-  YES: "Yes",
-  NO: "No",
+  YES: true,
+  NO: false,
 };
 
 const SAMPLE_PRODUCT = [
@@ -133,9 +133,7 @@ describe("Update Product page components", () => {
       expect(screen.getByPlaceholderText(/write a quantity/i)).toHaveValue(
         SAMPLE_PRODUCT[0].product.quantity
       ); // quantity
-      expect(
-        screen.getByText(SAMPLE_PRODUCT[0].product.shipping)
-      ).toBeInTheDocument(); // shipping
+      expect(screen.getByText("No")).toBeInTheDocument(); // shipping
 
       // buttons
       expect(
@@ -244,7 +242,7 @@ describe("Update Product actions - handleUpdate", () => {
     // shipping
     const selectShipping = screen.getAllByRole("combobox")[1];
     fireEvent.mouseDown(selectShipping);
-    fireEvent.click(screen.getByText(SAMPLE_PRODUCT[1].product.shipping));
+    fireEvent.click(screen.getByText("Yes"));
 
     // simulate clicking 'update' button
     fireEvent.click(screen.getByRole("button", { name: /update product/i }));
