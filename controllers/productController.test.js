@@ -256,4 +256,15 @@ describe("Product Controller - updating a product", () => {
       expect.objectContaining({ error: "Name is required" })
     );
   });
+
+  test("return error when missing description field", async () => {
+    req.fields.description = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Description is required" })
+    );
+  });
 });
