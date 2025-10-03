@@ -268,16 +268,21 @@ describe("Product controllers", () => {
   });
 
   describe("productFiltersController", () => {
+    let res;
     const categories = ["c1", "c2"];
     const priceRange = [40, 59];
-    const result = [{ _id: "p1" }];
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
 
     it("filters by categories and price range", async () => {
+      const result = [{ _id: "p1" }];
       productModel.find.mockReturnValue(makeQuery(result));
+
       const req = createMockReq({
         body: { checked: categories, radio: priceRange },
       });
-      const res = createMockRes();
 
       await productFiltersController(req, res);
 
@@ -292,11 +297,10 @@ describe("Product controllers", () => {
     });
 
     it("filters by categories only", async () => {
+      const result = [{ _id: "p1" }];
       productModel.find.mockReturnValue(makeQuery(result));
-      const req = createMockReq({
-        body: { checked: categories },
-      });
-      const res = createMockRes();
+
+      const req = createMockReq({ body: { checked: categories } });
 
       await productFiltersController(req, res);
 
@@ -309,12 +313,11 @@ describe("Product controllers", () => {
       );
     });
 
-    it("filters price range only", async () => {
+    it("filters by price range only", async () => {
+      const result = [{ _id: "p1" }];
       productModel.find.mockReturnValue(makeQuery(result));
-      const req = createMockReq({
-        body: { radio: priceRange },
-      });
-      const res = createMockRes();
+
+      const req = createMockReq({ body: { radio: priceRange } });
 
       await productFiltersController(req, res);
 
@@ -327,16 +330,16 @@ describe("Product controllers", () => {
       );
     });
 
-    it("does not filter by price when for non-numeric price range", async () => {
+    it("does not filter by price for non-numeric price range", async () => {
+      const result = [{ _id: "p1" }];
       productModel.find.mockReturnValue(makeQuery(result));
-      const req = createMockReq({
-        body: { radio: ["abc", "def"] },
-      }); // contains non-numeric price filter
-      const res = createMockRes();
+
+      const req = createMockReq({ body: { radio: ["abc", "def"] } }); // non-numeric price range
 
       await productFiltersController(req, res);
 
-      expect(productModel.find).toHaveBeenCalledWith({}); // no filters
+      // Falls back to no filters
+      expect(productModel.find).toHaveBeenCalledWith({});
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({ products: result })
@@ -345,10 +348,9 @@ describe("Product controllers", () => {
 
     it("handles no filters gracefully", async () => {
       const result = [];
-
       productModel.find.mockReturnValue(makeQuery(result));
-      const req = createMockReq({ body: {} });
-      const res = createMockRes();
+
+      const req = createMockReq({ body: {} }); // no filters
 
       await productFiltersController(req, res);
 
@@ -360,8 +362,8 @@ describe("Product controllers", () => {
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productFiltersController(req, res);
 
