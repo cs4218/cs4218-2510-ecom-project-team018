@@ -81,4 +81,25 @@ describe("Product Controller - creating a product", () => {
       })
     );
   });
+
+  test("return error when missing name field", async () => {
+    req.fields.name = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Name is required" })
+    );
+  });
+
+  test("return error when missing description field", async () => {});
+
+  test("return error when missing price field", async () => {});
+
+  test("return error when missing category field", async () => {});
+
+  test("return error when missing quantity field", async () => {});
+
+  test("return error when photo file is >1MB", async () => {});
 });
