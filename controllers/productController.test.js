@@ -289,4 +289,15 @@ describe("Product Controller - updating a product", () => {
       expect.objectContaining({ error: "Category is required" })
     );
   });
+
+  test("return error when missing quantity field", async () => {
+    req.fields.quantity = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Quantity is required" })
+    );
+  });
 });
