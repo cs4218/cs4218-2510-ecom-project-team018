@@ -200,44 +200,51 @@ describe("Product controllers", () => {
   });
 
   describe("productPhotoController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("returns photo when exists", async () => {
+      const pid = "p1";
       const buf = Buffer.from([1, 2, 3]);
       productModel.findById.mockReturnValue(
-        makeQuery({ _id: "p1", photo: { data: buf, contentType: "image/png" } })
-      );
-      const req = createMockReq({ params: { pid: "p1" } });
-      const res = createMockRes();
+        makeQuery({ _id: pid, photo: { data: buf, contentType: "image/png" } })
+      ); // photo exists
+
+      const req = createMockReq({ params: { pid } });
 
       await productPhotoController(req, res);
 
-      expect(productModel.findById).toHaveBeenCalledWith("p1");
+      expect(productModel.findById).toHaveBeenCalledWith(pid);
       expect(res.set).toHaveBeenCalledWith("Content-Type", "image/png");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
 
     it("defaults content-type to image/jpeg when missing", async () => {
+      const pid = "p2";
       const buf = Buffer.from([4, 5, 6]);
       productModel.findById.mockReturnValue(
-        makeQuery({ _id: "p2", photo: { data: buf } })
-      );
-      const req = createMockReq({ params: { pid: "p2" } });
-      const res = createMockRes();
+        makeQuery({ _id: pid, photo: { data: buf } })
+      ); // photo exists, but contentType missing
+
+      const req = createMockReq({ params: { pid } });
 
       await productPhotoController(req, res);
 
-      expect(productModel.findById).toHaveBeenCalledWith("p2");
+      expect(productModel.findById).toHaveBeenCalledWith(pid);
       expect(res.set).toHaveBeenCalledWith("Content-Type", "image/jpeg");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
 
     it("returns 404 when no photo found", async () => {
-      productModel.findById.mockReturnValue(
-        makeQuery({ _id: "p1", photo: {} })
-      );
-      const req = createMockReq({ params: { pid: "p1" } });
-      const res = createMockRes();
+      const pid = "p1";
+      productModel.findById.mockReturnValue(makeQuery({ _id: pid, photo: {} })); // no photo
+
+      const req = createMockReq({ params: { pid } });
 
       await productPhotoController(req, res);
 
@@ -248,8 +255,8 @@ describe("Product controllers", () => {
       productModel.findById.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productPhotoController(req, res);
 
