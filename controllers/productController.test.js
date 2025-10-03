@@ -411,14 +411,20 @@ describe("Product controllers", () => {
   });
 
   describe("productListController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("paginates by page param", async () => {
       const docs = [{ _id: "p1" }, { _id: "p2" }];
       const pageNumber = 3;
 
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
+
       const req = createMockReq({ params: { page: pageNumber } });
-      const res = createMockRes();
 
       await productListController(req, res);
 
@@ -441,8 +447,8 @@ describe("Product controllers", () => {
 
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
+
       const req = createMockReq(); // no params.page
-      const res = createMockRes();
 
       await productListController(req, res);
 
@@ -458,11 +464,11 @@ describe("Product controllers", () => {
 
     it("defaults to page 1 for non-numeric page param", async () => {
       const docs = [{ _id: "pX" }];
+
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
 
-      const req = createMockReq({ params: { page: "abc" } });
-      const res = createMockRes();
+      const req = createMockReq({ params: { page: "abc" } }); // non-numeric page
 
       await productListController(req, res);
 
@@ -477,10 +483,10 @@ describe("Product controllers", () => {
       const docs = [];
       const pageNumber = 2;
 
-      const query = makeQuery(docs);
+      const query = makeQuery(docs); // no products
       productModel.find.mockReturnValue(query);
+
       const req = createMockReq({ params: { page: pageNumber } });
-      const res = createMockRes();
 
       await productListController(req, res);
 
@@ -495,8 +501,8 @@ describe("Product controllers", () => {
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productListController(req, res);
 
