@@ -115,7 +115,16 @@ describe("Product Controller - creating a product", () => {
     );
   });
 
-  test("return error when missing category field", async () => {});
+  test("return error when missing category field", async () => {
+    req.fields.category = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Category is required" })
+    );
+  });
 
   test("return error when missing quantity field", async () => {});
 
