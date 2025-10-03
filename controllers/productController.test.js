@@ -137,5 +137,16 @@ describe("Product Controller - creating a product", () => {
     );
   });
 
-  test("return error when photo file is >1MB", async () => {});
+  test("return error when photo file is >1MB", async () => {
+    req.files.photo.size = 2000000; // 2MB
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "Photo is required and should be less then 1MB",
+      })
+    );
+  });
 });
