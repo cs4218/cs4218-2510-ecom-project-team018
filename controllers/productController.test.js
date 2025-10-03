@@ -267,4 +267,15 @@ describe("Product Controller - updating a product", () => {
       expect.objectContaining({ error: "Description is required" })
     );
   });
+
+  test("return error when missing price field", async () => {
+    req.fields.price = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Price is required" })
+    );
+  });
 });
