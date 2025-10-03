@@ -375,28 +375,31 @@ describe("Product controllers", () => {
   });
 
   describe("productCountController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("returns total count", async () => {
       const total = 42;
-
       productModel.estimatedDocumentCount.mockResolvedValueOnce(total);
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productCountController(req, res);
 
       expect(productModel.estimatedDocumentCount).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith(
-        expect.objectContaining({ total: total })
-      );
+      expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ total }));
     });
 
     it("handles errors with 500", async () => {
       productModel.estimatedDocumentCount.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productCountController(req, res);
 
