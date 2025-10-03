@@ -1,6 +1,10 @@
 # CS4218 Project - Virtual Vault
 
-This is the URL to our Team's CICD Workflow
+This is the URL to the latest Workflow Run
+
+https://github.com/cs4218/cs4218-2510-ecom-project-team018/actions/runs/18224388108/job/51891745709
+
+This is the URL to our Team's CICD YML File
 
 https://github.com/cs4218/cs4218-2510-ecom-project-team018/blob/main/.github/workflows/main.yml
 
