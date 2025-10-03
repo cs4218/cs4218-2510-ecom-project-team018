@@ -144,14 +144,22 @@ describe("Product controllers", () => {
   });
 
   describe("getSingleProductController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("returns product successfully when found", async () => {
-      productModel.findOne.mockReturnValue(makeQuery({ _id: "p1", slug: "s" }));
-      const req = createMockReq({ params: { slug: "s" } });
-      const res = createMockRes();
+      const slug = "s";
+      const doc = { _id: "p1", slug };
+      productModel.findOne.mockReturnValue(makeQuery(doc)); // product found
+
+      const req = createMockReq({ params: { slug } });
 
       await getSingleProductController(req, res);
 
-      expect(productModel.findOne).toHaveBeenCalledWith({ slug: "s" });
+      expect(productModel.findOne).toHaveBeenCalledWith({ slug });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -162,9 +170,10 @@ describe("Product controllers", () => {
     });
 
     it("returns 404 when product not found", async () => {
-      productModel.findOne.mockReturnValue(makeQuery(null));
-      const req = createMockReq({ params: { slug: "missing" } });
-      const res = createMockRes();
+      const slug = "missing";
+      productModel.findOne.mockReturnValue(makeQuery(null)); // product not found
+
+      const req = createMockReq({ params: { slug } });
 
       await getSingleProductController(req, res);
 
@@ -178,8 +187,8 @@ describe("Product controllers", () => {
       productModel.findOne.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await getSingleProductController(req, res);
 
