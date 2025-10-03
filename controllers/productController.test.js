@@ -430,7 +430,7 @@ describe("Product controllers", () => {
 
       expect(productModel.find).toHaveBeenCalledWith({});
       expect(query.select).toHaveBeenCalledWith("-photo");
-      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1, _id: -1 });
       expect(query.limit).toHaveBeenCalledWith(DEFAULT_PAGE_SIZE);
       expect(query.skip).toHaveBeenCalledWith(
         (pageNumber - 1) * DEFAULT_PAGE_SIZE
@@ -751,7 +751,7 @@ describe("Product controllers", () => {
       expect(query.populate).toHaveBeenCalledWith("category");
       expect(query.limit).toHaveBeenCalledWith(limit);
       expect(query.skip).toHaveBeenCalledWith((page - 1) * limit);
-      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(query.sort).toHaveBeenCalledWith({ createdAt: -1, _id: -1 });
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(
