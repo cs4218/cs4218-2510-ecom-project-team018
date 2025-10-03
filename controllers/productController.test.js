@@ -166,4 +166,30 @@ describe("brainTreePaymentController", () => {
             error: expect.any(String),
         });
     });
+
+    test("ignores invalid items when computing totalCents", async () => {
+        req.body = {
+            nonce: "n",
+            cart: [
+                { price: "nope", quantity: 2 }, // NaN price
+                { price: 3.33, quantity: "x" }, // NaN quantity
+                { price: -7, quantity: 1 }, // price < 0
+                { price: 1, quantity: 0 }, // quantity <= 0
+            ],
+        };
+        saleMock.mockImplementation((payload, cb) =>
+            cb(null, { success: true, transaction: { id: "tr_0" } })
+        );
+
+        await brainTreePaymentController(req, res);
+
+        expect(saleMock).toHaveBeenCalledWith(
+            {
+                amount: "0.00",
+                paymentMethodNonce: "n",
+                options: { submitForSettlement: true },
+            },
+            expect.any(Function)
+        );
+    });
 });
