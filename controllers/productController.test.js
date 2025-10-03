@@ -245,4 +245,15 @@ describe("Product Controller - updating a product", () => {
       })
     );
   });
+
+  test("return error when missing name field", async () => {
+    req.fields.name = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Name is required" })
+    );
+  });
 });
