@@ -6,7 +6,7 @@ const orderSchema = new mongoose.Schema(
       type: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Prodcuts",
+          ref: "Products",
           required: true,
         }
       ],
@@ -35,7 +35,7 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Not Processed",
-      enum: ["Not Processed", "Processing", "Shipped", "delivered", "cancel"],
+      enum: ["Not Processed", "Processing", "Shipped", "Delivered", "Cancel"],
       required: true,
     },
   },
