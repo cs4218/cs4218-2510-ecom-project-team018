@@ -48,7 +48,23 @@ beforeEach(() => {
 });
 
 describe("Products Page", () => {
-  test("successfully renders products", async () => {
+  test("renders 0 products correctly", async () => {
+    axios.get.mockResolvedValueOnce({ data: { products: [] } });
+
+    render(
+      <MemoryRouter>
+        <Products />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      // ensure no product cards rendered
+      const cards = screen.queryAllByRole("img");
+      expect(cards.length).toBe(0);
+    });
+  });
+
+  test("successfully renders all (>1) products", async () => {
     render(
       <MemoryRouter>
         <Products />
