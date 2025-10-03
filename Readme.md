@@ -1,5 +1,13 @@
 # CS4218 Project - Virtual Vault
 
+This is the URL to the latest Workflow Run
+
+https://github.com/cs4218/cs4218-2510-ecom-project-team018/actions/runs/18224388108/job/51891745709
+
+This is the URL to our Team's CICD YML File
+
+https://github.com/cs4218/cs4218-2510-ecom-project-team018/blob/main/.github/workflows/main.yml
+
 ## 1. Project Introduction
 
 Virtual Vault is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) e-commerce website, offering seamless connectivity and user-friendly features. The platform provides a robust framework for online shopping. The website is designed to adapt to evolving business needs and can be efficiently extended.
