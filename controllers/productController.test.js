@@ -1,0 +1,84 @@
+import { createProductController } from "./productController.js";
+import productModel from "../models/productModel.js";
+import fs from "fs";
+import slugify from "slugify";
+
+/* mocks */
+jest.mock("../models/productModel.js");
+jest.mock("fs");
+
+jest.mock("braintree", () => ({
+  BraintreeGateway: jest.fn().mockImplementation(() => ({})),
+  Environment: { Sandbox: "sandbox" },
+}));
+
+// sample data
+const SAMPLE_PRODUCT = [
+  {
+    name: "Test Product",
+    description: "Nice product",
+    price: 100,
+    category: "Electronics",
+    quantity: 10,
+    shipping: true,
+    photo: {
+      path: "fake/path/photo.jpg",
+      type: "image/jpeg",
+      size: 500000,
+    },
+  },
+];
+
+// status codes
+const SUCCESS_STATUS = 200;
+const CREATED_STATUS = 201;
+const BAD_REQUEST_STATUS = 401;
+const SERVER_ERROR_STATUS = 500;
+
+describe("Product Controller - creating a product", () => {
+  // fake server request and response
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      fields: { ...SAMPLE_PRODUCT[0] },
+      files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    productModel.mockImplementation(() => ({
+      save: jest.fn().mockResolvedValue(true),
+      photo: {},
+    }));
+
+    fs.readFileSync.mockReturnValue(Buffer.from("fake-image"));
+  });
+
+  test("successfully create a product", async () => {
+    await createProductController(req, res);
+
+    expect(productModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      })
+    );
+
+    expect(fs.readFileSync).toHaveBeenCalledWith(SAMPLE_PRODUCT[0].photo.path);
+
+    expect(res.status).toHaveBeenCalledWith(CREATED_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        message: "Product created successfully",
+        products: expect.any(Object),
+      })
+    );
+  });
+});
