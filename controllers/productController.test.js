@@ -720,41 +720,47 @@ describe("Product controllers", () => {
   });
 
   describe("productCategoryController", () => {
+    // Common params for this suite
+    const slug = "c";
+    const categoryDoc = { _id: "cat1", name: "C" };
+
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("paginates by query params (page & limit) and returns products", async () => {
       const docs = [{ _id: "p1" }, { _id: "p2" }];
-      const pageNumber = 3;
-      const pageLimit = 5;
+      const page = 3;
+      const limit = 5;
 
-      categoryModel.findOne.mockReturnValue(
-        makeQuery({ _id: "cat1", name: "C" })
-      );
+      categoryModel.findOne.mockReturnValue(makeQuery(categoryDoc));
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
 
-      const req = createMockReq({
-        params: { slug: "c" },
-        query: { page: pageNumber, limit: pageLimit },
-      });
-      const res = createMockRes();
+      const req = createMockReq({ params: { slug }, query: { page, limit } });
 
       await productCategoryController(req, res);
 
-      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "c" });
-      expect(productModel.find).toHaveBeenCalledWith({ category: "cat1" });
+      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug });
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: categoryDoc._id,
+      });
       expect(query.select).toHaveBeenCalledWith("-photo");
       expect(query.populate).toHaveBeenCalledWith("category");
-      expect(query.limit).toHaveBeenCalledWith(pageLimit);
-      expect(query.skip).toHaveBeenCalledWith((pageNumber - 1) * pageLimit);
+      expect(query.limit).toHaveBeenCalledWith(limit);
+      expect(query.skip).toHaveBeenCalledWith((page - 1) * limit);
       expect(query.sort).toHaveBeenCalledWith({ createdAt: -1 });
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
-          category: expect.objectContaining({ _id: "cat1" }),
+          category: expect.objectContaining({ _id: categoryDoc._id }),
           products: docs,
-          page: pageNumber,
-          limit: pageLimit,
+          page,
+          limit,
         })
       );
     });
@@ -762,18 +768,17 @@ describe("Product controllers", () => {
     it("uses default page number and size when query params are missing", async () => {
       const docs = [{ _id: "pA" }];
 
-      categoryModel.findOne.mockReturnValue(
-        makeQuery({ _id: "cat1", name: "C" })
-      );
+      categoryModel.findOne.mockReturnValue(makeQuery(categoryDoc));
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
 
-      const req = createMockReq({ params: { slug: "c" } }); // no query.page / query.limit
-      const res = createMockRes();
+      const req = createMockReq({ params: { slug } }); // no query params
 
       await productCategoryController(req, res);
 
-      expect(productModel.find).toHaveBeenCalledWith({ category: "cat1" });
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: categoryDoc._id,
+      });
       expect(query.skip).toHaveBeenCalledWith(
         (DEFAULT_PAGE_NUMBER - 1) * DEFAULT_PAGE_SIZE
       );
@@ -793,17 +798,14 @@ describe("Product controllers", () => {
     it("defaults to page 1 & default limit for non-numeric query params", async () => {
       const docs = [{ _id: "pX" }];
 
-      categoryModel.findOne.mockReturnValue(
-        makeQuery({ _id: "cat1", name: "C" })
-      );
+      categoryModel.findOne.mockReturnValue(makeQuery(categoryDoc));
       const query = makeQuery(docs);
       productModel.find.mockReturnValue(query);
 
       const req = createMockReq({
-        params: { slug: "c" },
-        query: { page: "abc", limit: "xyz" },
+        params: { slug },
+        query: { page: "abc", limit: "xyz" }, // non-numeric params
       });
-      const res = createMockRes();
 
       await productCategoryController(req, res);
 
@@ -814,49 +816,42 @@ describe("Product controllers", () => {
 
     it("returns an empty array gracefully", async () => {
       const docs = [];
-      const pageNumber = 2;
-      const pageLimit = 4;
+      const page = 2;
+      const limit = 4;
 
-      categoryModel.findOne.mockReturnValue(
-        makeQuery({ _id: "cat1", name: "C" })
-      );
-      const query = makeQuery(docs);
+      categoryModel.findOne.mockReturnValue(makeQuery(categoryDoc));
+      const query = makeQuery(docs); // no products
       productModel.find.mockReturnValue(query);
 
-      const req = createMockReq({
-        params: { slug: "c" },
-        query: { page: pageNumber, limit: pageLimit },
-      });
-      const res = createMockRes();
+      const req = createMockReq({ params: { slug }, query: { page, limit } });
 
       await productCategoryController(req, res);
 
-      expect(productModel.find).toHaveBeenCalledWith({ category: "cat1" });
+      expect(productModel.find).toHaveBeenCalledWith({
+        category: categoryDoc._id,
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,
           products: docs,
-          page: pageNumber,
-          limit: pageLimit,
+          page,
+          limit,
         })
       );
     });
 
     it("returns 404 when category not found", async () => {
-      // category missing
-      categoryModel.findOne.mockReturnValue(makeQuery(null));
+      categoryModel.findOne.mockReturnValue(makeQuery(null)); // category missing
 
       const req = createMockReq({
         params: { slug: "unknown" },
         query: { page: 1, limit: 6 },
       });
-      const res = createMockRes();
 
       await productCategoryController(req, res);
 
       expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: "unknown" });
-      // Should not query products if category not found
       expect(productModel.find).not.toHaveBeenCalled();
 
       expect(res.status).toHaveBeenCalledWith(404);
@@ -869,19 +864,15 @@ describe("Product controllers", () => {
     });
 
     it("handles errors with 500", async () => {
-      // category exists, but product query throws error
-      categoryModel.findOne.mockReturnValue(
-        makeQuery({ _id: "cat1", name: "C" })
-      );
+      categoryModel.findOne.mockReturnValue(makeQuery(categoryDoc));
       productModel.find.mockImplementation(() => {
         throw new Error("Network error");
       });
 
       const req = createMockReq({
-        params: { slug: "c" },
+        params: { slug },
         query: { page: DEFAULT_PAGE_NUMBER, limit: DEFAULT_PAGE_SIZE },
       });
-      const res = createMockRes();
 
       await productCategoryController(req, res);
 
