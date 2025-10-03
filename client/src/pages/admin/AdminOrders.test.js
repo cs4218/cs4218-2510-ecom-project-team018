@@ -67,7 +67,25 @@ beforeEach(() => {
 });
 
 describe("Admin Orders components", () => {
-  test("renders multiple orders correctly", async () => {
+  test("renders 0 orders correctly", async () => {
+    axios.get.mockResolvedValueOnce({ data: [] });
+
+    render(<AdminOrders />);
+
+    await waitFor(() => {
+      // ensure no order container is rendered
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      // ensure table headers dont exist
+      expect(screen.queryByText("#")).not.toBeInTheDocument();
+      expect(screen.queryByText("Status")).not.toBeInTheDocument();
+      expect(screen.queryByText("Buyer")).not.toBeInTheDocument();
+      expect(screen.queryByText("Date")).not.toBeInTheDocument();
+      expect(screen.queryByText("Payment")).not.toBeInTheDocument();
+      expect(screen.queryByText("Quantity")).not.toBeInTheDocument();
+    });
+  });
+
+  test("renders 2 orders with 1 product and 2 products respectively correctly", async () => {
     // check if getAllOrders retrieve all (>1) orders and loads them in the page
     render(<AdminOrders />);
 
