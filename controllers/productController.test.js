@@ -1,6 +1,7 @@
 import {
   createProductController,
   deleteProductController,
+  updateProductController,
 } from "./productController.js";
 import productModel from "../models/productModel.js";
 import fs from "fs";
@@ -36,7 +37,6 @@ const SAMPLE_PRODUCT = [
 // status codes
 const SUCCESS_STATUS = 200;
 const CREATED_STATUS = 201;
-const BAD_REQUEST_STATUS = 401;
 const SERVER_ERROR_STATUS = 500;
 
 describe("Product Controller - creating a product", () => {
@@ -186,5 +186,63 @@ describe("Product Controller - deleting a product", () => {
       success: true,
       message: "Product deleted successfully",
     });
+  });
+});
+
+describe("Product Controller - updating a product", () => {
+  let req, res;
+  let mockProductInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      params: { pid: SAMPLE_PRODUCT[0]._id },
+      fields: { ...SAMPLE_PRODUCT[0] },
+      files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    mockProductInstance = {
+      ...SAMPLE_PRODUCT[0],
+      save: jest.fn().mockResolvedValue(true),
+      photo: {},
+    };
+
+    productModel.findByIdAndUpdate = jest
+      .fn()
+      .mockResolvedValue(mockProductInstance);
+
+    fs.readFileSync.mockReturnValue(Buffer.from("fake-image"));
+  });
+
+  test("successfully updates a product", async () => {
+    await updateProductController(req, res);
+
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id,
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      }),
+      { new: true }
+    );
+
+    expect(fs.readFileSync).toHaveBeenCalledWith(SAMPLE_PRODUCT[0].photo.path);
+
+    expect(mockProductInstance.save).toHaveBeenCalled();
+
+    expect(res.status).toHaveBeenCalledWith(CREATED_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        message: "Product updated successfully",
+        products: mockProductInstance,
+      })
+    );
   });
 });
