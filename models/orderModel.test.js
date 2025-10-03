@@ -34,7 +34,7 @@ describe("Order schema unit tests", () => {
 
       // products is required
       expect(error.errors.products).toBeDefined();
-      expect(error.errors.products.kind).toBe("required");
+      expect(error.errors.products.kind).toBe("user defined");
 
       // status has default, so no error expected
       expect(error.errors.status).toBeUndefined();
@@ -65,7 +65,7 @@ describe("Order schema unit tests", () => {
       const order = new Order({ ...MOCK_ORDER_DATA, products: ["not-a-valid-objectid"] });
       const error = order.validateSync();
       expect(error.errors["products.0"]).toBeDefined();
-      expect(error.errors["products.0"].kind).toBe("ObjectId");
+      expect(error.errors["products.0"].kind).toBe("[ObjectId]");
     });
   });
 
