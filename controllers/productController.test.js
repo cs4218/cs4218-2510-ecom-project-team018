@@ -884,19 +884,27 @@ describe("Product controllers", () => {
   });
 
   describe("productCategoryCountController", () => {
+    // Common params for this suite
+    const slug = "shirts";
+    const categoryId = "cat1";
+
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+    });
+
     it("returns count for category", async () => {
       const count = 7;
-      const shirtSlug = "shirts";
-      const categoryId = "cat1";
 
       categoryModel.findOne.mockReturnValue(makeQuery({ _id: categoryId }));
       productModel.countDocuments.mockResolvedValueOnce(count);
-      const req = createMockReq({ params: { slug: shirtSlug } });
-      const res = createMockRes();
+
+      const req = createMockReq({ params: { slug } });
 
       await productCategoryCountController(req, res);
 
-      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: shirtSlug });
+      expect(categoryModel.findOne).toHaveBeenCalledWith({ slug });
       expect(productModel.countDocuments).toHaveBeenCalledWith({
         category: categoryId,
       });
@@ -907,9 +915,9 @@ describe("Product controllers", () => {
     });
 
     it("returns 404 when category is missing", async () => {
-      categoryModel.findOne.mockReturnValue(makeQuery(null));
+      categoryModel.findOne.mockReturnValue(makeQuery(null)); // category does not exist
+
       const req = createMockReq({ params: { slug: "missing" } });
-      const res = createMockRes();
 
       await productCategoryCountController(req, res);
 
@@ -920,8 +928,8 @@ describe("Product controllers", () => {
       categoryModel.findOne.mockImplementation(() => {
         throw new Error("Network error");
       });
+
       const req = createMockReq();
-      const res = createMockRes();
 
       await productCategoryCountController(req, res);
 
