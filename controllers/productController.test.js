@@ -93,7 +93,16 @@ describe("Product Controller - creating a product", () => {
     );
   });
 
-  test("return error when missing description field", async () => {});
+  test("return error when missing description field", async () => {
+    req.fields.description = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Description is required" })
+    );
+  });
 
   test("return error when missing price field", async () => {});
 
