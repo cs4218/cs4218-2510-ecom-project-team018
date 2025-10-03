@@ -300,4 +300,17 @@ describe("Product Controller - updating a product", () => {
       expect.objectContaining({ error: "Quantity is required" })
     );
   });
+
+  it("return error when photo file is >1MB", async () => {
+    req.files.photo.size = 2000000; // 2MB
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "Photo is required and should be less then 1MB",
+      })
+    );
+  });
 });
