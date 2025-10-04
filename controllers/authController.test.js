@@ -3,13 +3,21 @@ import {
   loginController,
   forgotPasswordController,
   testController,
+  updateProfileController,
+  getOrdersController,
+  getAllOrdersController,
+  orderStatusController
 } from "./authController.js";
 import userModel from "../models/userModel.js";
+import orderModel from "../models/orderModel.js";
 import { comparePassword, hashPassword } from "../helpers/authHelper.js";
 import JWT from "jsonwebtoken";
+import { describe } from "node:test";
+import mongoose from "mongoose";
 
 // Mock dependencies
 jest.mock("../models/userModel.js");
+jest.mock(("../models/orderModel.js"))
 jest.mock("../helpers/authHelper.js");
 jest.mock("jsonwebtoken");
 
@@ -33,6 +41,30 @@ const MOCK_REQUEST_DATA = {
   address: "123 Main St",
   answer: "mockAnswer",
 };
+
+const MOCK_REQUEST_USER = {
+  user: {
+    _id: "user123"
+  }
+}
+
+const MOCK_ORDER_DATA = [{
+  _id: "order1",
+  products: [ new mongoose.Types.ObjectId() ],
+  payment: {
+    success: true,
+  },
+  buyer: new mongoose.Types.ObjectId(),
+  status: "Processing"
+}]
+
+const MOCK_REQUEST_PARAM = {
+  orderId: new mongoose.Types.ObjectId(),
+}
+
+const MOCK_ORDER_STATUS_BODY = {
+  status: "Shipped"
+}
 
 // Mock response object
 const createMockRes = () => ({
@@ -296,5 +328,207 @@ describe("Auth Controller", () => {
 
       expect(() => testController(mockReq, mockRes)).toThrow();
     });
+  });
+
+  describe("updateProfileController", () => {
+    it("should handle password length less than 6 with error in response", async () => {
+      mockReq.body = {
+        ...MOCK_REQUEST_DATA,
+        password: "abcde"
+      };
+
+      mockReq.user = MOCK_REQUEST_USER;
+
+      userModel.findById.mockResolvedValue(MOCK_USER_DATA);
+
+      await updateProfileController(mockReq, mockRes);
+      expect(hashPassword).not.toHaveBeenCalled();
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        message: "Password is required and 6 character long",
+      });
+    })
+
+    it("should handle user not found with the req.user._id", async () => {
+      mockReq.body = MOCK_REQUEST_DATA;
+      mockReq.user = MOCK_REQUEST_USER;
+      userModel.findById.mockResolvedValue(null); //findById returns null when there is no document found
+
+      await updateProfileController(mockReq, mockRes);
+      expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith ({
+        message: "User is not found"
+      });
+    })
+
+    it("should successfully update users", async () => {
+      mockReq.body = MOCK_REQUEST_DATA;
+      mockReq.user = MOCK_REQUEST_USER;
+      
+      userModel.findById.mockResolvedValue(MOCK_USER_DATA);
+      hashPassword.mockResolvedValue("newHashedPassword");
+        userModel.findByIdAndUpdate.mockResolvedValue({
+        name: mockReq.body.name,
+        password: "newHashedPassword",
+        phone: mockReq.body.phone,
+        address: mockReq.body.address
+      });
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
+
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockReq.user._id , {
+          name: mockReq.body.name,
+          password: "newHashedPassword",
+          phone: mockReq.body.phone,
+          address: mockReq.body.address
+        },
+        { new: true }
+      );
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith ({
+        success: true,
+        message: "Profile Updated Successfully",
+        updatedUser: {
+          name: mockReq.body.name,
+          phone: mockReq.body.phone,
+          address: mockReq.body.address
+        }
+      })
+    })
+
+    it("should update user without changing password, name, phone, or address if not provided", async () => {
+      mockReq.body = { name: null, phone: null, address: null, password: undefined };
+      mockReq.user = MOCK_REQUEST_USER;
+
+      userModel.findById.mockResolvedValue(MOCK_USER_DATA);
+      userModel.findByIdAndUpdate.mockResolvedValue(MOCK_USER_DATA);
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(hashPassword).not.toHaveBeenCalled();
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        message: "Change Name, Password, Address or Phone to Update profile",
+      });
+    });
+
+
+    it("should handle update Profile Controller Errors", async () => {
+      mockReq.body = MOCK_REQUEST_DATA;
+      userModel.findById.mockRejectedValue(new Error("Database error"));
+
+      await updateProfileController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error While Updating profile",
+        error: expect.any(Error),
+      });
+    })
+  });
+
+  describe("getOrdersController", () => {
+    it("should return orders successfully", async () => {
+      mockReq.user = MOCK_REQUEST_USER;
+      const mockOrders = MOCK_ORDER_DATA;
+
+      const populateBuyer = jest.fn().mockResolvedValue(mockOrders);
+      const populateProducts = jest.fn(() => ({ populate: populateBuyer }));
+      orderModel.find.mockReturnValue({ populate: populateProducts });
+
+      await getOrdersController(mockReq, mockRes);
+
+      expect(orderModel.find).toHaveBeenCalledWith({ buyer: mockReq.user._id });
+      expect(populateProducts).toHaveBeenCalledWith("products", "-photo");
+      expect(populateBuyer).toHaveBeenCalledWith("buyer", "name");
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith(mockOrders);
+    });
+
+    it("should handle getOrdersController errors", async () => {
+      orderModel.find.mockRejectedValue(new Error("Database error"));
+
+      await getOrdersController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error While Getting Orders",
+        error: expect.any(Error),
+      });
+    });
+  });
+
+  describe("getAllOrdersController", () => {
+    it("should return orders successfully", async () => {
+      mockReq.user = MOCK_REQUEST_USER;
+      const mockOrders = MOCK_ORDER_DATA;
+
+      //find -> populate("products") -> populate("buyer") -> sort
+      const sort = jest.fn().mockResolvedValue(mockOrders);
+      const populateBuyer = jest.fn(() => ({ sort }));
+      const populateProducts = jest.fn(() => ({ populate: populateBuyer }));
+
+      orderModel.find.mockReturnValue({ populate: populateProducts });
+
+      await getAllOrdersController(mockReq, mockRes);
+
+      expect(orderModel.find).toHaveBeenCalledWith({});
+      expect(populateProducts).toHaveBeenCalledWith("products", "-photo");
+      expect(populateBuyer).toHaveBeenCalledWith("buyer", "name");
+      expect(sort).toHaveBeenCalledWith({ createdAt: "-1" });
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith(mockOrders);
+    });
+
+    it("should handle getAllOrdersController errors", async () => {
+      orderModel.find.mockRejectedValue(new Error("Database error"));
+
+      await getAllOrdersController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error While Getting All Orders",
+        error: expect.any(Error),
+      });
+    });
+  });
+
+  describe("orderStatusController", () => {
+    it("should update order status successfully", async () => {
+      mockReq.params = MOCK_REQUEST_PARAM;
+      mockReq.body = MOCK_ORDER_STATUS_BODY;
+      orderModel.findByIdAndUpdate.mockReturnValue({ ...MOCK_ORDER_DATA, status: mockReq.body.status });
+
+      await orderStatusController(mockReq, mockRes);
+
+      expect(orderModel.findByIdAndUpdate).toHaveBeenCalledWith(mockReq.params.orderId, { status: mockReq.body.status }, { new: true });
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.send).toHaveBeenCalledWith({ ...MOCK_ORDER_DATA, status: mockReq.body.status });
+    })
+    
+    it("should handle orderStatusController errors", async () => {
+      orderModel.findByIdAndUpdate.mockRejectedValue(new Error("Database error"));
+
+      await orderStatusController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error While Updating Order Status",
+        error: expect.any(Error),
+      });
+    })
   });
 });

@@ -1,5 +1,13 @@
 # CS4218 Project - Virtual Vault
 
+This is the URL to the latest Workflow Run
+
+https://github.com/cs4218/cs4218-2510-ecom-project-team018/actions/runs/18224388108/job/51891745709
+
+This is the URL to our Team's CICD YML File
+
+https://github.com/cs4218/cs4218-2510-ecom-project-team018/blob/main/.github/workflows/main.yml
+
 ## 1. Project Introduction
 
 Virtual Vault is a full-stack MERN (MongoDB, Express.js, React.js, Node.js) e-commerce website, offering seamless connectivity and user-friendly features. The platform provides a robust framework for online shopping. The website is designed to adapt to evolving business needs and can be efficiently extended.
@@ -144,3 +152,321 @@ To begin unit testing with Jest in your project, follow these steps:
      ```bash
      npm run test
      ```
+
+## Milestone 1 Contributions
+
+<table>
+   <thead>
+      <tr>
+         <th>Member</th>
+         <th>Feature</th>
+         <th>Client Related Files (<code>/client/src/</code>)</th>
+         <th>Server Related Files (<code>./</code>)</th>
+      </tr>
+   </thead>
+   <tbody>
+      <!-- Wei Rong -->
+      <tr>
+         <td rowspan="4"><strong>Chu Wei Rong</strong></td>
+         <td><strong>Protected Routes</strong></td>
+         <td>
+            <ul>
+               <li><code>context/auth.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>helpers/authHelper.js</code></li>
+               <li><code>middlewares/authMiddleware.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Registration</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/Auth/Register.js</code></li>
+            </ul>
+         </td>
+         <td rowspan="2">
+            <ul>
+               <li>
+                  <strong><code>controllers/authController.js</code></strong>
+                  <ol>
+                     <li><code>registerController</code></li>
+                     <li><code>loginController</code></li>
+                     <li><code>forgotPasswordController</code></li>
+                     <li><code>testController</code></li>
+                  </ol>
+               </li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Login</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/Auth/Login.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>General</strong></td>
+         <td>
+            <ul>
+               <li><code>components/Routes/Private.js</code></li>
+               <li><code>components/UserMenu.js</code></li>
+               <li><code>pages/user/Dashboard.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>models/userModel.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <!-- Kenvyn -->
+      <tr>
+         <td rowspan="5"><strong>Kenvyn Kwek Shiu Chien</strong></td>
+         <td><strong>Admin Dashboard</strong></td>
+         <td>
+            <ul>
+               <li><code>components/AdminMenu.js</code></li>
+               <li><code>pages/admin/AdminDashboard.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Admin Actions</strong></td>
+         <td>
+            <ul>
+               <li><code>components/Form/CategoryForm.js</code></li>
+               <li><code>pages/admin/CreateCategory.js</code></li>
+               <li><code>pages/admin/CreateProduct.js</code></li>
+               <li><code>pages/admin/UpdateProduct.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/categoryController.js</code></strong>
+                  <ol>
+                     <li><code>createCategoryController</code></li>
+                     <li><code>updateCategoryController</code></li>
+                     <li><code>deleteCategoryController</code></li>
+                  </ol>
+               </li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Admin View Orders</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/admin/AdminOrders.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Admin View Products</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/admin/Products.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/productController.js</code></strong>
+                  <ol>
+                     <li><code>createProductController</code></li>
+                     <li><code>deleteProductController</code></li>
+                     <li><code>updateProductController</code></li>
+                  </ol>
+               </li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Admin View Users</strong></td>
+            <td>
+               <ul>
+                  <li><code>pages/admin/Users.js</code></li>
+               </ul>
+            </td>
+         <td></td>
+      </tr>
+      <!-- Brendan -->
+      <tr>
+         <td rowspan="4"><strong>Brendan Soh Ray Yang</strong></td>
+         <td><strong>Order</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/user/Orders.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/authController.js</code></strong>
+                  <ol>
+                     <li><code>updateProfileController</code></li>
+                     <li><code>getOrdersController</code></li>
+                     <li><code>getAllOrdersController</code></li>
+                     <li><code>orderStatusController</code></li>
+                  </ol>
+               </li>
+               <li><code>models/orderModel.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Profile</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/user/Profile.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Search</strong></td>
+         <td>
+            <ul>
+               <li><code>components/Form/SearchInput.js</code></li>
+               <li><code>context/search.js</code></li>
+               <li><code>pages/Search.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Home</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/Homepage.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <!-- Andre -->
+      <tr>
+         <td rowspan="3"><strong>Andre Chua Kai Jun</strong></td>
+         <td><strong>Product</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/ProductDetails.js</code></li>
+               <li><code>pages/CategoryProduct.js</code></li>
+               <li><code>utils/ProductUtils.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/productController.js</code></strong>
+                  <ol>
+                     <li><code>getProductController</code></li>
+                     <li><code>getSingleProductController</code></li>
+                     <li><code>productPhotoController</code></li>
+                     <li><code>productFiltersController</code></li>
+                     <li><code>productCountController</code></li>
+                     <li><code>productListController</code></li>
+                     <li><code>searchProductController</code></li>
+                     <li><code>relatedProductController</code></li>
+                     <li><code>productCategoryController</code></li>
+                     <li><code>productCategoryCountController</code></li>
+                  </ol>
+               </li>
+               <li><code>models/productModel.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Contact</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/Contact.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Policy</strong></td>
+         <td>
+            <ul>
+               <li><code>pages/Policy.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <!-- Kuei -->
+      <tr>
+         <td rowspan="4"><strong>Chen Kuei</strong></td>
+         <td><strong>General</strong></td>
+         <td>
+            <ul>
+               <li><code>components/Footer.js</code></li>
+               <li><code>components/Header.js</code></li>
+               <li><code>components/Layout.js</code></li>
+               <li><code>components/Spinner.js</code></li>
+               <li><code>pages/About.js</code></li>
+               <li><code>pages/Pagenotfound.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>config/db.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Cart</strong></td>
+         <td>
+            <ul>
+               <li><code>context/cart.js</code></li>
+               <li><code>pages/CartPage.js</code></li>
+            </ul>
+         </td>
+         <td></td>
+      </tr>
+      <tr>
+         <td><strong>Category</strong></td>
+         <td>
+            <ul>
+               <li><code>hooks/useCategory.js</code></li>
+               <li><code>pages/Categories.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/categoryController.js</code></strong>
+                  <ol>
+                     <li><code>categoryController</code></li>
+                     <li><code>singleCategoryController</code></li>
+                  </ol>
+               </li>
+               <li><code>models/categoryModel.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td><strong>Payment</strong></td>
+         <td>
+         </td>
+         <td>
+            <ul>
+               <li>
+                  <strong><code>controllers/productController.js</code></strong>
+                  <ol>
+                     <li><code>braintreeTokenController</code></li>
+                     <li><code>brainTreePaymentController</code></li>
+                  </ol>
+               </li>
+            </ul>
+         </td>
+      </tr>
+   </tbody>
+</table>

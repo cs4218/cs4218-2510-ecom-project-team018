@@ -2,21 +2,41 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    products: [
-      {
-        type: mongoose.ObjectId,
-        ref: "Products",
+    products: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Products",
+          required: true,
+        }
+      ],
+      required: true,
+      validate: {
+        validator: function (v) {
+          return Array.isArray(v) && v.length > 0;
+        },
+        message: "Order must contain at least one product.",
       },
-    ],
-    payment: {},
+    },
+
+    payment: {
+      type: {
+        success: { type: Boolean, required: true}
+      },
+      required: true
+    },
+
     buyer: {
       type: mongoose.ObjectId,
       ref: "users",
+      required: true,
     },
+
     status: {
       type: String,
-      default: "Not Process",
-      enum: ["Not Process", "Processing", "Shipped", "deliverd", "cancel"],
+      default: "Not Processed",
+      enum: ["Not Processed", "Processing", "Shipped", "Delivered", "Cancel"],
+      required: true,
     },
   },
   { timestamps: true }

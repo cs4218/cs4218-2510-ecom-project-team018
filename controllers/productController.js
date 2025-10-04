@@ -6,9 +6,10 @@ import fs from "fs";
 import slugify from "slugify";
 import braintree from "braintree";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 
-const DEFAULT_PAGE_SIZE = 6;
-const DEFAULT_PAGE_NUMBER = 1;
+export const DEFAULT_PAGE_SIZE = 6;
+export const DEFAULT_PAGE_NUMBER = 1;
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ export const createProductController = async (req, res) => {
     const { name, description, price, category, quantity, shipping } =
       req.fields;
     const { photo } = req.files;
+
     // validation
     switch (true) {
       case !name:
@@ -64,7 +66,7 @@ export const createProductController = async (req, res) => {
   }
 };
 
-// get all products
+// Get all products
 export const getProductController = async (req, res) => {
   try {
     const products = await productModel
@@ -73,58 +75,73 @@ export const getProductController = async (req, res) => {
       .select("-photo")
       .limit(12)
       .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
-      counTotal: products.length,
-      message: "ALlProducts ",
+      countTotal: products.length,
+      message: "All products ",
       products,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({
       success: false,
-      message: "Erorr in getting products",
+      message: "Error while getting products",
       error: error.message,
     });
   }
 };
 
-// get single product
+// Get single product
 export const getSingleProductController = async (req, res) => {
   try {
     const product = await productModel
       .findOne({ slug: req.params.slug })
       .select("-photo")
       .populate("category");
+
+    if (!product) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     res.status(200).send({
       success: true,
-      message: "Single Product Fetched",
+      message: "Single product fetched",
       product,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({
       success: false,
-      message: "Eror while getitng single product",
-      error,
+      message: "Error while getting single product",
+      error: error.message,
     });
   }
 };
 
-// get photo
+// Get photo
 export const productPhotoController = async (req, res) => {
   try {
     const product = await productModel.findById(req.params.pid).select("photo");
-    if (product.photo.data) {
-      res.set("Content-type", product.photo.contentType);
-      return res.status(200).send(product.photo.data);
+
+    if (!product || !product.photo?.data) {
+      return res.status(404).send({
+        success: false,
+        message: "Photo not found",
+      });
     }
+
+    res.set("Content-Type", product.photo.contentType || "image/jpeg");
+    return res.status(200).send(product.photo.data);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({
       success: false,
-      message: "Erorr while getting photo",
-      error,
+      message: "Error while getting photo",
+      error: error.message,
     });
   }
 };
@@ -196,120 +213,175 @@ export const updateProductController = async (req, res) => {
   }
 };
 
-// filters
+// Get filtered products
 export const productFiltersController = async (req, res) => {
   try {
-    const { checked, radio } = req.body;
-    let args = {};
-    if (checked.length > 0) args.category = checked;
-    if (radio.length) args.price = { $gte: radio[0], $lte: radio[1] };
-    const products = await productModel.find(args);
+    const { checked = [], radio = [] } = req.body;
+
+    const args = {};
+    // Set category filters
+    if (Array.isArray(checked) && checked.length > 0) {
+      args.category = { $in: checked };
+    }
+    // Set price range filter
+    if (Array.isArray(radio) && radio.length === 2) {
+      const [min, max] = radio.map(Number);
+      if (!Number.isNaN(min) && !Number.isNaN(max)) {
+        args.price = { $gte: min, $lte: max };
+      }
+    }
+
+    const products = await productModel.find(args).select("-photo");
+
     res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       success: false,
-      message: "Error While Filtering Products",
-      error,
+      message: "Error while filtering products",
+      error: error.message,
     });
   }
 };
 
-// product count
+// Get total product count
 export const productCountController = async (req, res) => {
   try {
-    const total = await productModel.find({}).estimatedDocumentCount();
+    const total = await productModel.estimatedDocumentCount();
+
     res.status(200).send({
       success: true,
       total,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       message: "Error in product count",
-      error,
+      error: error.message,
       success: false,
     });
   }
 };
 
-// product list based on page
+// Get products by page
 export const productListController = async (req, res) => {
   try {
-    const page = req.params.page ? req.params.page : DEFAULT_PAGE_NUMBER;
+    const page = parseInt(req.params.page, 10) || DEFAULT_PAGE_NUMBER;
+
     const products = await productModel
       .find({})
       .select("-photo")
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * DEFAULT_PAGE_SIZE)
-      .limit(DEFAULT_PAGE_SIZE)
-      .sort({ createdAt: -1 });
+      .limit(DEFAULT_PAGE_SIZE);
+
     res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       success: false,
-      message: "error in per page ctrl",
-      error,
+      message: "Error in per page product controller",
+      error: error.message,
     });
   }
 };
 
-// search product
+// Search products by name or description
 export const searchProductController = async (req, res) => {
   try {
-    const { keyword } = req.params;
+    const searchKeyword = (req.params.keyword || "").trim();
+    if (!searchKeyword) {
+      return res.json([]);
+    }
+
     const results = await productModel
       .find({
         $or: [
-          { name: { $regex: keyword, $options: "i" } },
-          { description: { $regex: keyword, $options: "i" } },
+          { name: { $regex: searchKeyword, $options: "i" } },
+          { description: { $regex: searchKeyword, $options: "i" } },
         ],
       })
       .select("-photo");
+
     res.json(results);
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       success: false,
-      message: "Error In Search Product API",
-      error,
+      message: "Error in Search Product API",
+      error: error.message,
     });
   }
 };
 
-// similar products
-export const realtedProductController = async (req, res) => {
+// Get related products
+export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
+
+    // Required params
+    if (!pid || !cid) {
+      return res.status(400).send({
+        success: false,
+        message: "Missing required params: 'pid' and 'cid' are required.",
+      });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.isValidObjectId(pid) || !mongoose.isValidObjectId(cid)) {
+      return res.status(400).send({
+        success: false,
+        message: "Invalid 'pid' or 'cid' format.",
+      });
+    }
+
+    // Check existence of category and product
+    const [catExists, prod] = await Promise.all([
+      categoryModel.exists({ _id: cid }),
+      productModel.findById(pid).select("_id category"),
+    ]);
+
+    if (!prod) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+    if (!catExists) {
+      return res.status(404).send({
+        success: false,
+        message: "Category not found",
+      });
+    }
+
+    // Query for related products
     const products = await productModel
-      .find({
-        category: cid,
-        _id: { $ne: pid },
-      })
+      .find({ category: cid, _id: { $ne: pid } })
       .select("-photo")
       .limit(3)
       .populate("category");
-    res.status(200).send({
+
+    return res.status(200).send({
       success: true,
       products,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    return res.status(500).send({
       success: false,
-      message: "error while geting related product",
-      error,
+      message: "Error while getting related products",
+      error: error.message,
     });
   }
 };
 
-// get paginated products by category
+// Get category products by page
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -327,9 +399,9 @@ export const productCategoryController = async (req, res) => {
       .find({ category: category._id })
       .select("-photo")
       .populate("category")
+      .sort({ createdAt: -1, _id: -1 })
       .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
+      .limit(limit);
 
     res.status(200).send({
       success: true,
@@ -339,16 +411,16 @@ export const productCategoryController = async (req, res) => {
       limit,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       success: false,
-      error,
-      message: "Error while getting products",
+      error: error.message,
+      message: "Error while getting products by category",
     });
   }
 };
 
-// get total products by category
+// Get total product count by category
 export const productCategoryCountController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -360,16 +432,17 @@ export const productCategoryCountController = async (req, res) => {
     }
 
     const total = await productModel.countDocuments({ category: category._id });
+
     res.status(200).send({
       success: true,
       total,
       category,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({
+    console.error(error);
+    res.status(500).send({
       success: false,
-      error,
+      error: error.message,
       message: "Error while getting products count",
     });
   }
@@ -377,50 +450,89 @@ export const productCategoryCountController = async (req, res) => {
 
 // payment gateway api
 // token
+const generateClientToken = (opts = {}) =>
+  new Promise((resolve, reject) =>
+    gateway.clientToken.generate(opts, (err, res) =>
+      err ? reject(err) : resolve(res)
+    )
+  );
+
 export const braintreeTokenController = async (req, res) => {
   try {
-    gateway.clientToken.generate({}, function (err, response) {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        res.send(response);
-      }
-    });
+    const { clientToken } = await generateClientToken({});
+    return res.status(200).send({ success: true, clientToken });
   } catch (error) {
     console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Failed to generate client token",
+      error: String(error),
+    });
   }
 };
 
 // payment
+const sale = (opts) =>
+  new Promise((resolve, reject) =>
+    gateway.transaction.sale(opts, (err, res) =>
+      err ? reject(err) : resolve(res)
+    )
+  );
+
 export const brainTreePaymentController = async (req, res) => {
   try {
-    const { nonce, cart } = req.body;
-    let total = 0;
-    cart.map((i) => {
-      total += i.price;
+    const { nonce, cart } = req.body || {};
+
+    if (!nonce || !Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).send({
+        success: false,
+        message: "Missing payment nonce or empty cart",
+      });
+    }
+
+
+    const totalCents = cart.reduce((sum, item) => {
+      const price = Number(item.price);
+      const qty = Number(item.quantity ?? 1);
+      if (Number.isNaN(price) || Number.isNaN(qty) || price < 0 || qty <= 0)
+        return sum;
+      return sum + Math.round(price * 100) * qty;
+    }, 0);
+    const amount = (totalCents / 100).toFixed(2);
+
+    const result = await sale({
+      amount,
+      paymentMethodNonce: nonce,
+      options: { submitForSettlement: true },
     });
-    let newTransaction = gateway.transaction.sale(
-      {
-        amount: total,
-        paymentMethodNonce: nonce,
-        options: {
-          submitForSettlement: true,
-        },
-      },
-      function (error, result) {
-        if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
-        } else {
-          res.status(500).send(error);
-        }
-      }
-    );
+
+    if (!result?.success) {
+      return res.status(402).send({
+        success: false,
+        message: "Payment failed",
+        processorResponse: result?.message ?? "Unknown error",
+      });
+    }
+
+    await orderModel.create({
+      products: cart,
+      payment: result,
+      buyer: req.user?._id ?? req.user?.id ?? null,
+    })
+
+    return res.status(201).send({
+      success: true,
+      ok: true,
+      transactionId: result.transaction?.id ?? null,
+      amount,
+    });
+
+
   } catch (error) {
-    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Payment error",
+      error: String(error),
+    });
   }
 };
