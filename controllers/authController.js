@@ -18,7 +18,7 @@ export const registerController = async (req, res) => {
 
     //validations
     if (missing.length > 0) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: `Missing required fields: ${missing.join(", ")}`,
       });
@@ -27,7 +27,7 @@ export const registerController = async (req, res) => {
     const exisitingUser = await userModel.findOne({ email });
     //exisiting user
     if (exisitingUser) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: "Already Registered, please login",
       });
@@ -84,7 +84,7 @@ export const loginController = async (req, res) => {
     }
     const match = await comparePassword(password, user.password);
     if (!match) {
-      return res.status(200).send({
+      return res.status(400).send({
         success: false,
         message: "Invalid Password",
       });
