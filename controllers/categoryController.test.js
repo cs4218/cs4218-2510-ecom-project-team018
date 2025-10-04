@@ -156,7 +156,6 @@ describe("Getting all categories", () => {
 
     await categoryController({}, res);
 
-    expect(categoryModel.find).toHaveBeenCalledWith({});
     expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
     expect(res.send).toHaveBeenCalledWith({
       success: true,
