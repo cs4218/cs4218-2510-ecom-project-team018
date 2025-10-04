@@ -145,3 +145,78 @@ describe("Deleting a category", () => {
     });
   });
 });
+
+describe("Getting all categories", () => {
+  test("returns all categories", async () => {
+    const items = [
+      { _id: CATEGORY_ID_0, name: CATEGORY_NAME_0, slug: CATEGORY_SLUG_0 },
+      { _id: CATEGORY_ID_1, name: CATEGORY_NAME_1, slug: CATEGORY_SLUG_1 },
+    ];
+    categoryModel.find.mockResolvedValue(items);
+
+    await categoryController({}, res);
+
+    expect(categoryModel.find).toHaveBeenCalledWith({});
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "All categories list",
+      category: items,
+    });
+  });
+
+  test("handles error when getting all categories", async () => {
+    const err = new Error("db error");
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    categoryModel.find.mockRejectedValue(err);
+
+    await categoryController({}, res);
+
+    expect(logSpy).toHaveBeenCalledWith(err);
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      error: err,
+      message: "Error while getting all categories",
+    });
+
+    logSpy.mockRestore();
+  });
+});
+
+describe("Getting single category", () => {
+  test("returns single category by slug", async () => {
+    const doc = { _id: CATEGORY_ID_0, name: CATEGORY_NAME_0, slug: CATEGORY_SLUG_0 };
+    const req = { params: { slug: CATEGORY_SLUG_0 } };
+    categoryModel.findOne.mockResolvedValue(doc);
+
+    await singleCategoryController(req, res);
+
+    expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: CATEGORY_SLUG_0 });
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Get single category successfully",
+      category: doc,
+    });
+  });
+
+  test("handles error when getting single category", async () => {
+    const err = new Error("query failed");
+    const req = { params: { slug: "missing" } };
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    categoryModel.findOne.mockRejectedValue(err);
+
+    await singleCategoryController(req, res);
+
+    expect(logSpy).toHaveBeenCalledWith(err);
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      error: err,
+      message: "Error while getting single category",
+    });
+
+    logSpy.mockRestore();
+  });
+});
