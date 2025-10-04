@@ -514,6 +514,42 @@ export const brainTreePaymentController = async (req, res) => {
       });
     }
 
+    // decrement stock guarded
+    try {
+      const decremented = [];
+      for (const item of cart) {
+        const qty = Number(item.quantity ?? 1);
+        if (!Number.isFinite(qty) || qty <= 0) continue;
+
+        const upd = await productModel.updateOne(
+          { _id: item._id, quantity: { $gte: qty } },
+          { $inc: { quantity: -qty } }
+        );
+
+        if (upd.modifiedCount !== 1) {
+          // rollback
+          for (const done of decremented) {
+            await productModel.updateOne(
+              { _id: done._id },
+              { $inc: { quantity: done.qty } }
+            );
+          }
+
+          return res.status(409).send({
+            success: false,
+            message: "Insufficient quantity for one or more items",
+            itemId: item._id,
+          });
+        }
+        decremented.push({ _id: item._id, qty });
+      }
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: "Stock update failed",
+      });
+    }
+
     await orderModel.create({
       products: cart,
       payment: result,

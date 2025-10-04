@@ -1036,6 +1036,10 @@ describe("Product controllers", () => {
         cb(null, { success: true, transaction: { id: "tr_1" } })
       );
 
+      productModel.updateOne
+        .mockResolvedValueOnce({ modifiedCount: 1 })
+        .mockResolvedValueOnce({ modifiedCount: 1 });
+
       orderModel.create.mockResolvedValue({ _id: "order1" });
 
       await brainTreePaymentController(req, res);
@@ -1138,6 +1142,125 @@ describe("Product controllers", () => {
         },
         expect.any(Function)
       );
+    });
+
+    test("decrements stock for purchased items", async () => {
+      req.body = {
+        nonce: "n",
+        cart: [
+          { _id: "0", price: 10, quantity: 1 },
+          { _id: "1", price: 5, quantity: 2 },
+        ],
+      };
+
+      saleMock.mockImplementation((payload, cb) =>
+        cb(null, { success: true, transaction: { id: "tr_ok" } })
+      );
+
+      productModel.updateOne
+        .mockResolvedValueOnce({ modifiedCount: 1 })
+        .mockResolvedValueOnce({ modifiedCount: 1 });
+
+      orderModel.create.mockResolvedValue({ _id: "order_ok" });
+
+      await brainTreePaymentController(req, res);
+
+      expect(saleMock).toHaveBeenCalledWith(
+        {
+          amount: "20.00",
+          paymentMethodNonce: "n",
+          options: { submitForSettlement: true },
+        },
+        expect.any(Function)
+      );
+      expect(productModel.updateOne).toHaveBeenNthCalledWith(
+        1,
+        { _id: "0", quantity: { $gte: 1 } },
+        { $inc: { quantity: -1 } }
+      );
+      expect(productModel.updateOne).toHaveBeenNthCalledWith(
+        2,
+        { _id: "1", quantity: { $gte: 2 } },
+        { $inc: { quantity: -2 } }
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.send).toHaveBeenCalledWith({
+        success: true,
+        ok: true,
+        transactionId: "tr_ok",
+        amount: "20.00",
+      });
+    });
+
+    test("returns 409 and rolls back previously decremented items when stock insufficient", async () => {
+      req.body = {
+        nonce: "n",
+        cart: [
+          { _id: "0", price: 10, quantity: 1 },
+          { _id: "1", price: 5, quantity: 3 }, // this one will fail
+        ],
+      };
+
+      saleMock.mockImplementation((payload, cb) =>
+        cb(null, { success: true, transaction: { id: "tr_rollback" } })
+      );
+
+      // first decrement succeeds, second fails (insufficient stock)
+      productModel.updateOne
+        .mockResolvedValueOnce({ modifiedCount: 1 })
+        .mockResolvedValueOnce({ modifiedCount: 0 });
+
+      await brainTreePaymentController(req, res);
+
+      // first two calls are the decrements
+      expect(productModel.updateOne).toHaveBeenNthCalledWith(
+        1,
+        { _id: "0", quantity: { $gte: 1 } },
+        { $inc: { quantity: -1 } }
+      );
+      expect(productModel.updateOne).toHaveBeenNthCalledWith(
+        2,
+        { _id: "1", quantity: { $gte: 3 } },
+        { $inc: { quantity: -3 } }
+      );
+
+      // rollback call
+      expect(productModel.updateOne).toHaveBeenNthCalledWith(
+        3,
+        { _id: "0" },
+        { $inc: { quantity: 1 } }
+      );
+      expect(orderModel.create).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Insufficient quantity for one or more items",
+          itemId: "1",
+        })
+      );
+    });
+
+    test("returns 500 when an unexpected error occurs during stock update", async () => {
+      req.body = {
+        nonce: "nonce",
+        cart: [{ _id: "0", price: 10, quantity: 1 }],
+      };
+
+      saleMock.mockImplementation((payload, cb) =>
+        cb(null, { success: true, transaction: { id: "tr_err" } })
+      );
+
+      productModel.updateOne.mockRejectedValue(new Error("db crash"));
+
+      await brainTreePaymentController(req, res);
+
+      expect(orderModel.create).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Stock update failed",
+      });
     });
   });
 });
