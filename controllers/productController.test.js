@@ -105,7 +105,9 @@ const SAMPLE_PRODUCT = [
 // status codes
 const SUCCESS_STATUS = 200;
 const CREATED_STATUS = 201;
-const SERVER_ERROR_STATUS = 500;
+const BAD_REQUEST_STATUS = 400;
+const PAYLOAD_TOO_LARGE_STATUS = 413;
+const NOT_FOUND_STATUS = 404;
 
 describe("Product controllers", () => {
   beforeEach(() => {
@@ -1223,7 +1225,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Name is required" })
     );
@@ -1234,7 +1236,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Description is required" })
     );
@@ -1245,7 +1247,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Price is required" })
     );
@@ -1256,7 +1258,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Category is required" })
     );
@@ -1267,7 +1269,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Quantity is required" })
     );
@@ -1278,7 +1280,7 @@ describe("Product Controller - creating a product", () => {
 
     await createProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         error: "Photo is required and should be less then 1MB",
@@ -1317,6 +1319,23 @@ describe("Product Controller - deleting a product", () => {
     expect(res.send).toHaveBeenCalledWith({
       success: true,
       message: "Product deleted successfully",
+    });
+  });
+
+  test("return 404 when product does not exist", async () => {
+    productModel.findByIdAndDelete = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
+    });
+
+    await deleteProductController(req, res);
+
+    expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id
+    );
+    expect(res.status).toHaveBeenCalledWith(NOT_FOUND_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Product not found",
     });
   });
 });
@@ -1383,7 +1402,7 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Name is required" })
     );
@@ -1394,7 +1413,7 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Description is required" })
     );
@@ -1405,7 +1424,7 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Price is required" })
     );
@@ -1416,7 +1435,7 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Category is required" })
     );
@@ -1427,7 +1446,7 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ error: "Quantity is required" })
     );
@@ -1438,11 +1457,32 @@ describe("Product Controller - updating a product", () => {
 
     await updateProductController(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
         error: "Photo is required and should be less then 1MB",
       })
     );
+  });
+
+  test("return 404 when product does not exist", async () => {
+    productModel.findByIdAndUpdate = jest.fn().mockResolvedValue(null);
+
+    await updateProductController(req, res);
+
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id,
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      }),
+      { new: true }
+    );
+
+    expect(res.status).toHaveBeenCalledWith(NOT_FOUND_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Product not found",
+    });
   });
 });
