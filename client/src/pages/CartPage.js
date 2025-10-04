@@ -63,10 +63,43 @@ const CartPage = () => {
     getToken();
   }, [auth?.token]);
 
+  // verify sufficient quantity
+  const verifyQuantity = async (items) => {
+    try {
+      const { data } = await axios.post("/api/v1/product/check-inventory", { cart: items });
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error?.response?.data?.message ??
+          error?.message ??
+          "Inventory check failed",
+        itemId: error?.response?.data?.itemId,
+        available: error?.response?.data?.available,
+      };
+    }
+  };
+
   //handle payments
   const handlePayment = async () => {
     try {
       setLoading(true);
+
+      const qtyCheck = await verifyQuantity(cart);
+      if (!qtyCheck?.success) {
+        const base = qtyCheck?.message || "Insufficient stock.";
+        toast.error(
+          qtyCheck?.itemId
+            ? `${base} (Item: ${qtyCheck.itemId}${
+                Number.isFinite(qtyCheck.available) ? `, available: ${qtyCheck.available}` : ""
+              })`
+            : base
+        );
+        setLoading(false);
+        return;
+      }
+
       const { nonce } = await instance.requestPaymentMethod();
       const { data } = await axios.post("/api/v1/product/braintree/payment", {
         nonce,

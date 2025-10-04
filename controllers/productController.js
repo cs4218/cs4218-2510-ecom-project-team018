@@ -572,3 +572,31 @@ export const brainTreePaymentController = async (req, res) => {
     });
   }
 };
+
+export const checkInventoryController = async (req, res) => {
+  try {
+    const { cart = [] } = req.body || {};
+    if (!Array.isArray(cart) || cart.length === 0) {
+      return res.status(400).send({ success: false, message: "Empty cart" });
+    }
+    for (const item of cart) {
+      const qty = Number(item.quantity ?? 1);
+      if (!item._id || !Number.isFinite(qty) || qty <= 0) {
+        return res.status(400).send({ success: false, message: "Bad cart item" });
+      }
+      const doc = await productModel.findById(item._id).select("quantity");
+      if (!doc || doc.quantity < qty) {
+        return res.status(409).send({
+          success: false,
+          message: "Insufficient stock",
+          itemId: item._id,
+          available: doc?.quantity ?? 0,
+        });
+      }
+    }
+    return res.status(200).send({ success: true });
+  } catch (e) {
+    return res.status(500).send({ success: false, message: "Inventory check failed" });
+  }
+};
+

@@ -158,9 +158,21 @@ describe("CartPage", () => {
         await screen.findByTestId("dropin");
         const payBtn = await screen.findByRole("button", { name: /make payment/i });
         await waitFor(() => expect(payBtn).toBeEnabled());
+
+        axios.post.mockResolvedValueOnce({ data: { success: true } }); // inventory ok
+        axios.post.mockResolvedValueOnce({ data: { success: true } }); // payment ok
+
         await act(async () => {
             await userEvent.click(payBtn);
         });
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenNthCalledWith(
+                1,
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
 
         await waitFor(() =>
             expect(axios.post).toHaveBeenCalledWith("/api/v1/product/braintree/payment", {
@@ -180,7 +192,13 @@ describe("CartPage", () => {
     test("handles payment failure", async () => {
         const err = new Error("payment failed");
         const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-        axios.post.mockRejectedValueOnce(err);
+
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" }}); // token ok
+
+        axios.post
+            .mockResolvedValueOnce({ data: { success: true } }) // inventory ok
+            .mockRejectedValueOnce(err); // payment not ok
+
         renderWithRouter(<CartPage />);
 
         await screen.findByTestId("dropin");
@@ -252,5 +270,39 @@ describe("CartPage", () => {
         const btn = await screen.findByRole("button", { name: /Please Login to checkout/i });
         await userEvent.click(btn);
         expect(mockNavigate).toHaveBeenCalledWith("/login", { state: "/cart" });
+    });
+
+    test("aborts when inventory is insufficient", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        const invFail = {
+            success: false,
+            message: "Only a few left",
+            itemId: "p2",
+            available: 1,
+        };
+        axios.post.mockResolvedValueOnce({ data: invFail }); // inventory not ok
+
+        renderWithRouter(<CartPage />);
+
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenCalledWith(
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
+        await waitFor(() =>
+            expect(toast.error).toHaveBeenCalledWith(
+                "Only a few left (Item: p2, available: 1)"
+            )
+        );
+        await waitFor(() => expect(payBtn).toHaveTextContent(/make payment/i));
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(toast.success).not.toHaveBeenCalled();
     });
 });
