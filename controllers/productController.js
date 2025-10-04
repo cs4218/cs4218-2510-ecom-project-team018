@@ -30,18 +30,18 @@ export const createProductController = async (req, res) => {
     // validation
     switch (true) {
       case !name:
-        return res.status(500).send({ error: "Name is required" });
+        return res.status(400).send({ error: "Name is required" });
       case !description:
-        return res.status(500).send({ error: "Description is required" });
+        return res.status(400).send({ error: "Description is required" });
       case !price:
-        return res.status(500).send({ error: "Price is required" });
+        return res.status(400).send({ error: "Price is required" });
       case !category:
-        return res.status(500).send({ error: "Category is required" });
+        return res.status(400).send({ error: "Category is required" });
       case !quantity:
-        return res.status(500).send({ error: "Quantity is required" });
+        return res.status(400).send({ error: "Quantity is required" });
       case photo && photo.size > 1000000:
         return res
-          .status(500)
+          .status(413)
           .send({ error: "Photo is required and should be less then 1MB" });
     }
 
@@ -149,7 +149,17 @@ export const productPhotoController = async (req, res) => {
 // delete controller
 export const deleteProductController = async (req, res) => {
   try {
-    await productModel.findByIdAndDelete(req.params.pid).select("-photo");
+    const deletedProduct = await productModel
+      .findByIdAndDelete(req.params.pid)
+      .select("-photo");
+
+    if (!deletedProduct) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     res.status(200).send({
       success: true,
       message: "Product deleted successfully",
@@ -173,18 +183,18 @@ export const updateProductController = async (req, res) => {
     // validation
     switch (true) {
       case !name:
-        return res.status(500).send({ error: "Name is required" });
+        return res.status(400).send({ error: "Name is required" });
       case !description:
-        return res.status(500).send({ error: "Description is required" });
+        return res.status(400).send({ error: "Description is required" });
       case !price:
-        return res.status(500).send({ error: "Price is required" });
+        return res.status(400).send({ error: "Price is required" });
       case !category:
-        return res.status(500).send({ error: "Category is required" });
+        return res.status(400).send({ error: "Category is required" });
       case !quantity:
-        return res.status(500).send({ error: "Quantity is required" });
+        return res.status(400).send({ error: "Quantity is required" });
       case photo && photo.size > 1000000:
         return res
-          .status(500)
+          .status(413)
           .send({ error: "Photo is required and should be less then 1MB" });
     }
 
@@ -193,6 +203,14 @@ export const updateProductController = async (req, res) => {
       { ...req.fields, slug: slugify(name) },
       { new: true }
     );
+
+    if (!products) {
+      return res.status(404).send({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
@@ -490,7 +508,6 @@ export const brainTreePaymentController = async (req, res) => {
       });
     }
 
-
     const totalCents = cart.reduce((sum, item) => {
       const price = Number(item.price);
       const qty = Number(item.quantity ?? 1);
@@ -518,7 +535,7 @@ export const brainTreePaymentController = async (req, res) => {
       products: cart,
       payment: result,
       buyer: req.user?._id ?? req.user?.id ?? null,
-    })
+    });
 
     return res.status(201).send({
       success: true,
@@ -526,8 +543,6 @@ export const brainTreePaymentController = async (req, res) => {
       transactionId: result.transaction?.id ?? null,
       amount,
     });
-
-
   } catch (error) {
     return res.status(500).send({
       success: false,
