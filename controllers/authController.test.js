@@ -91,7 +91,7 @@ describe("Auth Controller", () => {
 
       await registerController(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: false,
         message:
@@ -105,7 +105,7 @@ describe("Auth Controller", () => {
 
       await registerController(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: false,
         message: "Already Registered, please login",
@@ -190,7 +190,7 @@ describe("Auth Controller", () => {
         "wrongpassword",
         "hashedPassword123"
       );
-      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: false,
         message: "Invalid Password",
