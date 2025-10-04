@@ -14,7 +14,7 @@ const Products = () => {
       setProducts(data.products);
     } catch (error) {
       console.log(error);
-      toast.error("Someething Went Wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -22,6 +22,7 @@ const Products = () => {
   useEffect(() => {
     getAllProducts();
   }, []);
+
   return (
     <Layout>
       <div className="row">

@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
 import { useCart } from "../context/cart";
+import { addToCart } from '../utils/productUtils';
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
+
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -28,7 +30,8 @@ const HomePage = () => {
         setCategories(data?.category);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Error getting categories, please try again later")
     }
   };
 
@@ -36,26 +39,41 @@ const HomePage = () => {
     getAllCategory();
     getTotal();
   }, []);
-  //get products
+
   const getAllProducts = async () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
       setProducts(data.products);
-    } catch (error) {
       setLoading(false);
-      console.log(error);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error getting products, please try again later")
+      setLoading(false);
     }
   };
 
-  //getTOtal COunt
+  const filterProduct = async () => {
+    try {
+      const { data } = await axios.post("/api/v1/product/product-filters", {
+        checked,
+        radio,
+      });
+      setProducts(data?.products || []);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error filtering products, please try again later")
+    }
+  };
+
+  //getTotal Count
   const getTotal = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/product-count");
       setTotal(data?.total);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Error fetching product count, please try again later")
     }
   };
 
@@ -63,6 +81,7 @@ const HomePage = () => {
     if (page === 1) return;
     loadMore();
   }, [page]);
+
   //load more
   const loadMore = async () => {
     try {
@@ -71,7 +90,8 @@ const HomePage = () => {
       setLoading(false);
       setProducts([...products, ...data?.products]);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error("Error loading more products, please try again later")
       setLoading(false);
     }
   };
@@ -86,26 +106,15 @@ const HomePage = () => {
     }
     setChecked(all);
   };
-  useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
-  }, [checked.length, radio.length]);
 
   useEffect(() => {
-    if (checked.length || radio.length) filterProduct();
+    if (checked.length === 0 && radio.length === 0) {
+      getAllProducts();
+    } else {
+      filterProduct();
+    }
   }, [checked, radio]);
 
-  //get filterd product
-  const filterProduct = async () => {
-    try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
-        checked,
-        radio,
-      });
-      setProducts(data?.products);
-    } catch (error) {
-      console.log(error);
-    }
-  };
   return (
     <Layout title={"ALL Products - Best offers "}>
       {/* banner image */}
@@ -143,7 +152,11 @@ const HomePage = () => {
           <div className="d-flex flex-column">
             <button
               className="btn btn-danger"
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                setPage(1);
+                setChecked([]);
+                setRadio([]);
+              }}
             >
               RESET FILTERS
             </button>
@@ -151,7 +164,7 @@ const HomePage = () => {
         </div>
         <div className="col-md-9 ">
           <h1 className="text-center">All Products</h1>
-          <div className="d-flex flex-wrap">
+          <div className="d-flex flex-wrap" data-testid="products-grid">
             {products?.map((p) => (
               <div className="card m-2" key={p._id}>
                 <img
@@ -161,7 +174,7 @@ const HomePage = () => {
                 />
                 <div className="card-body">
                   <div className="card-name-price">
-                    <h5 className="card-title">{p.name}</h5>
+                    <h5 className="card-title" data-testid="product-name">{p.name}</h5>
                     <h5 className="card-title card-price">
                       {p.price.toLocaleString("en-US", {
                         style: "currency",
@@ -170,7 +183,7 @@ const HomePage = () => {
                     </h5>
                   </div>
                   <p className="card-text ">
-                    {p.description.substring(0, 60)}...
+                    {p.description.length < 60 ? p.description : p.description.substring(0, 60)  + "..."}
                   </p>
                   <div className="card-name-price">
                     <button
@@ -181,14 +194,7 @@ const HomePage = () => {
                     </button>
                     <button
                       className="btn btn-dark ms-1"
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, p])
-                        );
-                        toast.success("Item Added to cart");
-                      }}
+                      onClick={() => addToCart(cart, setCart, p)}
                     >
                       ADD TO CART
                     </button>
@@ -211,7 +217,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     {" "}
-                    Loadmore <AiOutlineReload />
+                    Load More <AiOutlineReload />
                   </>
                 )}
               </button>
