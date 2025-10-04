@@ -13,8 +13,9 @@ const About = () => {
           />
         </div>
         <div className="col-md-4">
+          <h3>We are a group of software testers from CS4218.</h3>
           <p className="text-justify mt-2">
-            Add text
+            Our goal is to learn new things along the way, be happy, and help each other grow.❤️
           </p>
         </div>
       </div>

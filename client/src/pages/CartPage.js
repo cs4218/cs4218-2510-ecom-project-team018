@@ -32,7 +32,7 @@ const CartPage = () => {
       console.log(error);
     }
   };
-  //detele item
+  //delete item
   const removeCartItem = (pid) => {
     try {
       let myCart = [...cart];
@@ -162,7 +162,7 @@ const CartPage = () => {
                         })
                       }
                     >
-                      Plase Login to checkout
+                      Please Login to checkout
                     </button>
                   )}
                 </div>
