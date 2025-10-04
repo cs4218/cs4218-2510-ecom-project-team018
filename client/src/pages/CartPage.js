@@ -49,7 +49,12 @@ const CartPage = () => {
   const getToken = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/braintree/token");
-      setClientToken(data?.clientToken);
+      if (data?.success === false || !data?.clientToken) {
+        toast.error(data?.message || "Unable to initialize payment.");
+        setClientToken(""); // ensure DropIn won't render
+        return;
+      }
+      setClientToken(data.clientToken);
     } catch (error) {
       console.log(error);
     }
@@ -68,10 +73,14 @@ const CartPage = () => {
         cart,
       });
       setLoading(false);
+      if (!data?.success) {
+        toast.error(data?.message || "Payment failed.");
+        return;
+      }
       localStorage.removeItem("cart");
       setCart([]);
       navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
+      toast.success("Payment Completed Successfully");
     } catch (error) {
       console.log(error);
       setLoading(false);

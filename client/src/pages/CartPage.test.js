@@ -16,7 +16,7 @@ jest.mock("../components/Layout", () => ({ children }) => (
 jest.mock("../context/auth", () => ({ useAuth: jest.fn() }));
 jest.mock("../context/cart", () => ({ useCart: jest.fn() }));
 jest.mock("axios");
-jest.mock("react-hot-toast", () => ({ success: jest.fn() }));
+jest.mock("react-hot-toast", () => ({ success: jest.fn(), error: jest.fn() }));
 jest.mock("braintree-web-drop-in-react", () => {
     const React = require("react");
     return function DropInMock({ onInstance }) {
@@ -106,6 +106,16 @@ describe("CartPage", () => {
         logSpy.mockRestore();
     });
 
+    test("handles error and does not render DropIn when token response has success=false", async () => {
+        axios.get.mockResolvedValueOnce({ data: { success: false, message: "no token" } });
+
+        renderWithRouter(<CartPage />);
+
+        await waitFor(() => expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token"));
+        expect(screen.queryByTestId("dropin")).not.toBeInTheDocument();
+        expect(toast.error).toHaveBeenCalledWith("no token");
+    });
+
     test("removes item from cart when clicking Remove", async () => {
         renderWithRouter(<CartPage />);
         const removeButtons = await screen.findAllByRole("button", { name: /remove/i, });
@@ -185,6 +195,40 @@ describe("CartPage", () => {
 
         logSpy.mockRestore();
     });
+
+    test("handles error when payment API returns success=false", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" }}); // token ok
+        axios.post
+            .mockResolvedValueOnce({ data: { success: true }}) // inventory ok
+            .mockResolvedValueOnce({ data: { success: false, message: "Card declined" }}); // payment not ok
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenNthCalledWith(
+                1,
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenNthCalledWith(
+                2,
+                "/api/v1/product/braintree/payment",
+                { nonce: "nonce_abc", cart: initialCart }
+            )
+        );
+
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Card declined"));
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
 
     test("navigates to profile when Update Address is clicked (address provided)", async () => {
         useAuth.mockReturnValueOnce([{ token: "tok", user: { name: "Alice", address: "123 Test" }}, mockSetAuth]);
