@@ -1267,14 +1267,9 @@ describe("Product controllers", () => {
 
   describe("checkInventoryController", () => {
     let res;
-    const createRes = () => ({
-      status: jest.fn().mockReturnThis(),
-      send: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-    });
 
     beforeEach(() => {
-      res = createRes();
+      res = createMockRes();
       jest.clearAllMocks();
     });
 
