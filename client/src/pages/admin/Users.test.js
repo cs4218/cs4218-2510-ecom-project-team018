@@ -103,4 +103,19 @@ describe("admin's Users page", () => {
       ).toBeInTheDocument();
     }
   });
+
+  test("renders empty state when there are no users", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        success: true,
+        users: [],
+      },
+    });
+
+    renderUsersPage();
+
+    await waitFor(() => expect(axios.get).toHaveBeenCalledWith(USERS_API));
+
+    expect(await screen.findByText("No users found.")).toBeInTheDocument();
+  });
 });
