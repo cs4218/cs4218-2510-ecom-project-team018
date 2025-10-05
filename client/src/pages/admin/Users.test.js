@@ -118,4 +118,17 @@ describe("admin's Users page", () => {
 
     expect(await screen.findByText("No users found.")).toBeInTheDocument();
   });
+
+  test("shows an error toast when the fetch fails", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Network error"));
+
+    renderUsersPage();
+
+    await waitFor(() => expect(axios.get).toHaveBeenCalledWith(USERS_API));
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith("Failed to fetch users")
+    );
+
+    expect(await screen.findByText("No users found.")).toBeInTheDocument();
+  });
 });
