@@ -1,5 +1,5 @@
 import React from "react";
-import { render, act } from "@testing-library/react";
+import { render, act, screen } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 import { AuthProvider, useAuth } from "./auth";
@@ -57,34 +57,36 @@ describe("Auth Context", () => {
     it("should initialize with default auth state", () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
-      const { getByTestId } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
       );
 
-      expect(getByTestId("user-name")).toHaveTextContent("No user");
-      expect(getByTestId("user-email")).toHaveTextContent("No email");
-      expect(getByTestId("token")).toHaveTextContent("No token");
+      expect(screen.getByTestId("user-name")).toHaveTextContent("No user");
+      expect(screen.getByTestId("user-email")).toHaveTextContent("No email");
+      expect(screen.getByTestId("token")).toHaveTextContent("No token");
     });
 
     it("should load auth data from localStorage on initialization", () => {
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(MOCK_AUTH_DATA));
 
-      const { getByTestId } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
       );
 
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith("auth");
-      expect(getByTestId("user-name")).toHaveTextContent(
+      expect(screen.getByTestId("user-name")).toHaveTextContent(
         MOCK_AUTH_DATA.user.name
       );
-      expect(getByTestId("user-email")).toHaveTextContent(
+      expect(screen.getByTestId("user-email")).toHaveTextContent(
         MOCK_AUTH_DATA.user.email
       );
-      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
+      expect(screen.getByTestId("token")).toHaveTextContent(
+        MOCK_AUTH_DATA.token
+      );
     });
 
     it("should set axios authorization header when token is present", () => {
@@ -175,8 +177,8 @@ describe("Auth Context", () => {
       );
 
       // Initial state
-      expect(getByTestId("user-name")).toHaveTextContent("No user");
-      expect(getByTestId("token")).toHaveTextContent("No token");
+      expect(screen.getByTestId("user-name")).toHaveTextContent("No user");
+      expect(screen.getByTestId("token")).toHaveTextContent("No token");
 
       // Update auth state
       act(() => {
@@ -193,13 +195,15 @@ describe("Auth Context", () => {
         </AuthProvider>
       );
 
-      expect(getByTestId("user-name")).toHaveTextContent(
+      expect(screen.getByTestId("user-name")).toHaveTextContent(
         MOCK_AUTH_DATA.user.name
       );
-      expect(getByTestId("user-email")).toHaveTextContent(
+      expect(screen.getByTestId("user-email")).toHaveTextContent(
         MOCK_AUTH_DATA.user.email
       );
-      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
+      expect(screen.getByTestId("token")).toHaveTextContent(
+        MOCK_AUTH_DATA.token
+      );
     });
   });
 
@@ -207,46 +211,48 @@ describe("Auth Context", () => {
     it("should parse localStorage data correctly", () => {
       mockLocalStorage.getItem.mockReturnValue(JSON.stringify(MOCK_AUTH_DATA));
 
-      const { getByTestId } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
       );
 
       expect(mockLocalStorage.getItem).toHaveBeenCalledWith("auth");
-      expect(getByTestId("user-name")).toHaveTextContent(
+      expect(screen.getByTestId("user-name")).toHaveTextContent(
         MOCK_AUTH_DATA.user.name
       );
-      expect(getByTestId("user-email")).toHaveTextContent(
+      expect(screen.getByTestId("user-email")).toHaveTextContent(
         MOCK_AUTH_DATA.user.email
       );
-      expect(getByTestId("token")).toHaveTextContent(MOCK_AUTH_DATA.token);
+      expect(screen.getByTestId("token")).toHaveTextContent(
+        MOCK_AUTH_DATA.token
+      );
     });
 
     it("should handle empty localStorage", () => {
       mockLocalStorage.getItem.mockReturnValue("");
 
-      const { getByTestId } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
       );
 
-      expect(getByTestId("user-name")).toHaveTextContent("No user");
-      expect(getByTestId("token")).toHaveTextContent("No token");
+      expect(screen.getByTestId("user-name")).toHaveTextContent("No user");
+      expect(screen.getByTestId("token")).toHaveTextContent("No token");
     });
 
     it("should handle null localStorage", () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
-      const { getByTestId } = render(
+      render(
         <AuthProvider>
           <TestComponent />
         </AuthProvider>
       );
 
-      expect(getByTestId("user-name")).toHaveTextContent("No user");
-      expect(getByTestId("token")).toHaveTextContent("No token");
+      expect(screen.getByTestId("user-name")).toHaveTextContent("No user");
+      expect(screen.getByTestId("token")).toHaveTextContent("No token");
     });
   });
 });
