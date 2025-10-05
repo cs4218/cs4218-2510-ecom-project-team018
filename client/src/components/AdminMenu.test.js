@@ -28,6 +28,7 @@ describe("AdminMenu", () => {
     expect(screen.getByText("Create Product")).toBeInTheDocument();
     expect(screen.getByText("Products")).toBeInTheDocument();
     expect(screen.getByText("Orders")).toBeInTheDocument();
+    expect(screen.getByText("Users")).toBeInTheDocument();
   });
 
   test("navigation routes", () => {
@@ -42,6 +43,7 @@ describe("AdminMenu", () => {
     const createProductLink = screen.getByText("Create Product");
     const productsLink = screen.getByText("Products");
     const ordersLink = screen.getByText("Orders");
+    const usersLink = screen.getByText("Users");
 
     expect(createCategoryLink).toHaveAttribute(
       "href",
@@ -53,6 +55,7 @@ describe("AdminMenu", () => {
     );
     expect(productsLink).toHaveAttribute("href", "/dashboard/admin/products");
     expect(ordersLink).toHaveAttribute("href", "/dashboard/admin/orders");
+    expect(usersLink).toHaveAttribute("href", "/dashboard/admin/users");
   });
 
   test("links accessibility", () => {
