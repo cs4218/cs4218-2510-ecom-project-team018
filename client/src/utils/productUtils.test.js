@@ -3,6 +3,8 @@ import {
   getImageUrl,
   addToCart,
   handleImgError,
+  truncateDescription30,
+  truncateDescription60,
 } from "./productUtils";
 import toast from "react-hot-toast";
 
@@ -80,5 +82,83 @@ describe("handleImgError", () => {
     const mockEvent = { target: { src: "bad.jpg" } };
     handleImgError(mockEvent);
     expect(mockEvent.target.src).toBe("/images/placeholder.png");
+  });
+});
+
+describe("truncateDescription helpers", () => {
+  describe("truncateDescription30 (limit = 30)", () => {
+    it("should return input unchanged for 29 characters (no ellipsis)", () => {
+      const input = "a".repeat(29);
+
+      const result = truncateDescription30(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
+
+    it("should return input unchanged for exactly 30 characters (no ellipsis)", () => {
+      const input = "a".repeat(30);
+
+      const result = truncateDescription30(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
+
+    it("should append ellipsis and keep first 30 chars for 31 characters", () => {
+      const input = "a".repeat(31);
+      const expected = "a".repeat(30) + "...";
+
+      const result = truncateDescription30(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it("should return empty string unchanged for empty input", () => {
+      const input = "";
+
+      const result = truncateDescription30(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
+  });
+
+  describe("truncateDescription60 (limit = 60)", () => {
+    it("should return input unchanged for 59 characters (no ellipsis)", () => {
+      const input = "a".repeat(59);
+
+      const result = truncateDescription60(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
+
+    it("should return input unchanged for exactly 60 characters (no ellipsis)", () => {
+      const input = "a".repeat(60);
+
+      const result = truncateDescription60(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
+
+    it("should append ellipsis and keep first 60 chars for 61 characters", () => {
+      const input = "a".repeat(61);
+      const expected = "a".repeat(60) + "...";
+
+      const result = truncateDescription60(input);
+
+      expect(result).toBe(expected);
+    });
+
+    it("should return empty string unchanged for empty input", () => {
+      const input = "";
+
+      const result = truncateDescription60(input);
+
+      expect(result).toBe(input);
+      expect(result.endsWith("...")).toBe(false);
+    });
   });
 });
