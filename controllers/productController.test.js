@@ -13,16 +13,22 @@ import {
   brainTreePaymentController,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_NUMBER,
+  createProductController,
+  deleteProductController,
+  updateProductController,
 } from "./productController.js";
 import mongoose from "mongoose";
 import productModel from "../models/productModel.js";
 import categoryModel from "../models/categoryModel.js";
 import orderModel from "../models/orderModel.js";
+import fs from "fs";
+import slugify from "slugify";
 
 // Mocks
 jest.mock("../models/productModel.js");
 jest.mock("../models/categoryModel.js");
 jest.mock("../models/orderModel.js");
+jest.mock("fs");
 jest.mock("braintree", () => {
   const generateMock = jest.fn();
   const saleMock = jest.fn();
@@ -77,6 +83,31 @@ const makeQuery = (value) => ({
   then: (resolve) => Promise.resolve(value).then(resolve),
   catch: (reject) => Promise.resolve(value).catch(reject),
 });
+
+// sample data
+const SAMPLE_PRODUCT = [
+  {
+    _id: "fake-product-id",
+    name: "Test Product",
+    description: "Nice product",
+    price: 100,
+    category: "Electronics",
+    quantity: 10,
+    shipping: true,
+    photo: {
+      path: "fake/path/photo.jpg",
+      type: "image/jpeg",
+      size: 500000,
+    },
+  },
+];
+
+// status codes
+const SUCCESS_STATUS = 200;
+const CREATED_STATUS = 201;
+const BAD_REQUEST_STATUS = 400;
+const PAYLOAD_TOO_LARGE_STATUS = 413;
+const NOT_FOUND_STATUS = 404;
 
 describe("Product controllers", () => {
   beforeEach(() => {
@@ -1261,6 +1292,320 @@ describe("Product controllers", () => {
         success: false,
         message: "Stock update failed",
       });
+    });
+  });
+});
+
+describe("Product Controller - creating a product", () => {
+  // fake server request and response
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      fields: { ...SAMPLE_PRODUCT[0] },
+      files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    productModel.mockImplementation(() => ({
+      save: jest.fn().mockResolvedValue(true),
+      photo: {},
+    }));
+
+    fs.readFileSync.mockReturnValue(Buffer.from("fake-image"));
+  });
+
+  test("successfully create a product", async () => {
+    await createProductController(req, res);
+
+    expect(productModel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      })
+    );
+
+    expect(fs.readFileSync).toHaveBeenCalledWith(SAMPLE_PRODUCT[0].photo.path);
+
+    expect(res.status).toHaveBeenCalledWith(CREATED_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        message: "Product created successfully",
+        products: expect.any(Object),
+      })
+    );
+  });
+
+  test("return error when missing name field", async () => {
+    req.fields.name = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Name is required" })
+    );
+  });
+
+  test("return error when missing description field", async () => {
+    req.fields.description = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Description is required" })
+    );
+  });
+
+  test("return error when missing price field", async () => {
+    req.fields.price = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Price is required" })
+    );
+  });
+
+  test("return error when missing category field", async () => {
+    req.fields.category = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Category is required" })
+    );
+  });
+
+  test("return error when missing quantity field", async () => {
+    req.fields.quantity = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Quantity is required" })
+    );
+  });
+
+  test("return error when photo file is >1MB", async () => {
+    req.files.photo.size = 2000000; // 2MB
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "Photo is required and should be less then 1MB",
+      })
+    );
+  });
+});
+
+describe("Product Controller - deleting a product", () => {
+  let req, res;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      params: { pid: SAMPLE_PRODUCT[0]._id },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+  });
+
+  test("successfully delete a product", async () => {
+    productModel.findByIdAndDelete = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(true),
+    });
+
+    await deleteProductController(req, res);
+
+    expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id
+    );
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  });
+
+  test("return 404 when product does not exist", async () => {
+    productModel.findByIdAndDelete = jest.fn().mockReturnValue({
+      select: jest.fn().mockResolvedValue(null),
+    });
+
+    await deleteProductController(req, res);
+
+    expect(productModel.findByIdAndDelete).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id
+    );
+    expect(res.status).toHaveBeenCalledWith(NOT_FOUND_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Product not found",
+    });
+  });
+});
+
+describe("Product Controller - updating a product", () => {
+  let req, res;
+  let mockProductInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    req = {
+      params: { pid: SAMPLE_PRODUCT[0]._id },
+      fields: { ...SAMPLE_PRODUCT[0] },
+      files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
+    };
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    mockProductInstance = {
+      ...SAMPLE_PRODUCT[0],
+      save: jest.fn().mockResolvedValue(true),
+      photo: {},
+    };
+
+    productModel.findByIdAndUpdate = jest
+      .fn()
+      .mockResolvedValue(mockProductInstance);
+
+    fs.readFileSync.mockReturnValue(Buffer.from("fake-image"));
+  });
+
+  test("successfully updates a product", async () => {
+    await updateProductController(req, res);
+
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id,
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      }),
+      { new: true }
+    );
+
+    expect(fs.readFileSync).toHaveBeenCalledWith(SAMPLE_PRODUCT[0].photo.path);
+
+    expect(mockProductInstance.save).toHaveBeenCalled();
+
+    expect(res.status).toHaveBeenCalledWith(CREATED_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+        message: "Product updated successfully",
+        products: mockProductInstance,
+      })
+    );
+  });
+
+  test("return error when missing name field", async () => {
+    req.fields.name = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Name is required" })
+    );
+  });
+
+  test("return error when missing description field", async () => {
+    req.fields.description = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Description is required" })
+    );
+  });
+
+  test("return error when missing price field", async () => {
+    req.fields.price = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Price is required" })
+    );
+  });
+
+  test("return error when missing category field", async () => {
+    req.fields.category = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Category is required" })
+    );
+  });
+
+  test("return error when missing quantity field", async () => {
+    req.fields.quantity = "";
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({ error: "Quantity is required" })
+    );
+  });
+
+  it("return error when photo file is >1MB", async () => {
+    req.files.photo.size = 2000000; // 2MB
+
+    await updateProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error: "Photo is required and should be less then 1MB",
+      })
+    );
+  });
+
+  test("return 404 when product does not exist", async () => {
+    productModel.findByIdAndUpdate = jest.fn().mockResolvedValue(null);
+
+    await updateProductController(req, res);
+
+    expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
+      SAMPLE_PRODUCT[0]._id,
+      expect.objectContaining({
+        ...SAMPLE_PRODUCT[0],
+        slug: slugify(SAMPLE_PRODUCT[0].name),
+      }),
+      { new: true }
+    );
+
+    expect(res.status).toHaveBeenCalledWith(NOT_FOUND_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      message: "Product not found",
     });
   });
 });
