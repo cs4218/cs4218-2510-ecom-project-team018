@@ -6,6 +6,7 @@ import Layout from "../../components/Layout";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
 import { Select } from "antd";
+import { truncateDescription30 } from "../../utils/productUtils";
 const { Option } = Select;
 
 const AdminOrders = () => {
@@ -102,11 +103,7 @@ const AdminOrders = () => {
                       </div>
                       <div className="col-md-8">
                         <p>{p.name}</p>
-                        <p>
-                          {p.description.length <= 30
-                            ? p.description
-                            : p.description.substring(0, 30) + "..."}
-                        </p>
+                        <p>{truncateDescription30(p.description)}</p>
                         <p>Price : {p.price}</p>
                       </div>
                     </div>

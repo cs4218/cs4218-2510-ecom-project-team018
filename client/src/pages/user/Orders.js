@@ -5,6 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
+import { truncateDescription30 } from "../../utils/productUtils";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -22,10 +23,12 @@ const Orders = () => {
     if (auth?.token) {
       getOrders();
     } else {
-      toast.error("Unable to retrieve Orders, please sign out and sign in again.")
+      toast.error(
+        "Unable to retrieve Orders, please sign out and sign in again."
+      );
     }
   }, [auth]);
-  
+
   return (
     <Layout title={"Your Orders"}>
       <div className="container-flui p-3 m-3 dashboard">
@@ -53,10 +56,18 @@ const Orders = () => {
                       <tr>
                         <td data-testid={"order_index"}>{i + 1}</td>
                         <td data-testid={"order_status"}>{o?.status}</td>
-                        <td data-testid={"order_buyer_name"}>{o?.buyer?.name}</td>
-                        <td data-testid={"order_time"}>{moment(o?.createdAt).fromNow()}</td>
-                        <td data-testid={"order_payment_success"}>{o?.payment.success ? "Success" : "Failed"}</td>
-                        <td data-testid={"order_product_length"}>{o?.products?.length}</td>
+                        <td data-testid={"order_buyer_name"}>
+                          {o?.buyer?.name}
+                        </td>
+                        <td data-testid={"order_time"}>
+                          {moment(o?.createdAt).fromNow()}
+                        </td>
+                        <td data-testid={"order_payment_success"}>
+                          {o?.payment.success ? "Success" : "Failed"}
+                        </td>
+                        <td data-testid={"order_product_length"}>
+                          {o?.products?.length}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -73,7 +84,7 @@ const Orders = () => {
                         </div>
                         <div className="col-md-8">
                           <p>{p.name}</p>
-                          <p>{p.description.length < 30 ? p.description : p.description.substring(0, 30) + "..."}</p>
+                          <p>{truncateDescription30(p.description)}</p>
                           <p>Price : ${p.price}</p>
                         </div>
                       </div>

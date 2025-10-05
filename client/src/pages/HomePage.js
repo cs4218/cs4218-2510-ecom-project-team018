@@ -3,13 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Checkbox, Radio } from "antd";
 import { Prices } from "../components/Prices";
 import { useCart } from "../context/cart";
-import { addToCart } from '../utils/productUtils';
+import { addToCart, truncateDescription60 } from "../utils/productUtils";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { AiOutlineReload } from "react-icons/ai";
 import "../styles/Homepages.css";
-
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -31,7 +30,7 @@ const HomePage = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Error getting categories, please try again later")
+      toast.error("Error getting categories, please try again later");
     }
   };
 
@@ -48,7 +47,7 @@ const HomePage = () => {
       setLoading(false);
     } catch (err) {
       console.error(err);
-      toast.error("Error getting products, please try again later")
+      toast.error("Error getting products, please try again later");
       setLoading(false);
     }
   };
@@ -62,7 +61,7 @@ const HomePage = () => {
       setProducts(data?.products || []);
     } catch (err) {
       console.error(err);
-      toast.error("Error filtering products, please try again later")
+      toast.error("Error filtering products, please try again later");
     }
   };
 
@@ -73,7 +72,7 @@ const HomePage = () => {
       setTotal(data?.total);
     } catch (error) {
       console.error(error);
-      toast.error("Error fetching product count, please try again later")
+      toast.error("Error fetching product count, please try again later");
     }
   };
 
@@ -91,7 +90,7 @@ const HomePage = () => {
       setProducts([...products, ...data?.products]);
     } catch (error) {
       console.error(error);
-      toast.error("Error loading more products, please try again later")
+      toast.error("Error loading more products, please try again later");
       setLoading(false);
     }
   };
@@ -174,7 +173,9 @@ const HomePage = () => {
                 />
                 <div className="card-body">
                   <div className="card-name-price">
-                    <h5 className="card-title" data-testid="product-name">{p.name}</h5>
+                    <h5 className="card-title" data-testid="product-name">
+                      {p.name}
+                    </h5>
                     <h5 className="card-title card-price">
                       {p.price.toLocaleString("en-US", {
                         style: "currency",
@@ -183,7 +184,7 @@ const HomePage = () => {
                     </h5>
                   </div>
                   <p className="card-text ">
-                    {p.description.length < 60 ? p.description : p.description.substring(0, 60)  + "..."}
+                    {truncateDescription60(p.description)}
                   </p>
                   <div className="card-name-price">
                     <button

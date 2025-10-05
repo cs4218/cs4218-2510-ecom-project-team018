@@ -28,3 +28,17 @@ export const addToCart = (cart, setCart, p) => {
 export const handleImgError = (e) => {
   e.target.src = "/images/placeholder.png";
 };
+
+const truncateWithEllipsis = (description = "", limit) => {
+  if (typeof description !== "string") return "";
+  if (description.length <= limit) {
+    return description;
+  }
+  return `${description.substring(0, limit)}...`;
+};
+
+export const truncateDescription30 = (description) =>
+  truncateWithEllipsis(description, 30);
+
+export const truncateDescription60 = (description) =>
+  truncateWithEllipsis(description, 60);

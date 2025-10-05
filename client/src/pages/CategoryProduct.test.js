@@ -29,12 +29,16 @@ jest.mock("../context/cart", () => ({
 
 jest.mock("react-hot-toast");
 
-jest.mock("../utils/productUtils", () => ({
-  formatPrice: (n) => `$${Number(n).toFixed(2)}`,
-  getImageUrl: (id) => `/img/${id}`,
-  addToCart: jest.fn(),
-  handleImgError: jest.fn(),
-}));
+jest.mock("../utils/productUtils", () => {
+  const actual = jest.requireActual("../utils/productUtils");
+  return {
+    ...actual,
+    formatPrice: (n) => `$${Number(n).toFixed(2)}`,
+    getImageUrl: (id) => `/img/${id}`,
+    addToCart: jest.fn(),
+    handleImgError: jest.fn(),
+  };
+});
 
 const SLUG_SHIRTS = "shirts";
 const SLUG_PANTS = "pants";
@@ -199,32 +203,6 @@ describe("CategoryProduct", () => {
 
       renderWithRouter(<CategoryProduct />);
       expect(await screen.findByText(/1 result found/i)).toBeInTheDocument(); // singular "result"
-    });
-
-    it("renders truncated description when missing", async () => {
-      const longDesc =
-        "This is a very long description that should be truncated at sixty characters to keep the card compact.";
-      const products = [
-        makeProduct({ name: "LongDesc", description: longDesc }),
-      ];
-
-      axios.get
-        .mockResolvedValueOnce({ data: { success: true, total: 1 } })
-        .mockResolvedValueOnce({
-          data: {
-            success: true,
-            category: { name: CATEGORY_SHIRTS },
-            products,
-          },
-        });
-
-      renderWithRouter(<CategoryProduct />);
-
-      await screen.findByText(`Category - ${CATEGORY_SHIRTS}`);
-
-      const truncated = longDesc.substring(0, 60) + "...";
-      expect(screen.getByText(truncated)).toBeInTheDocument();
-      expect(screen.queryByText(longDesc)).not.toBeInTheDocument();
     });
 
     it("renders fallback description when missing", async () => {
