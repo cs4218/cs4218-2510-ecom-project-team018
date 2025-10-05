@@ -305,4 +305,124 @@ describe("CartPage", () => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(toast.success).not.toHaveBeenCalled();
     });
+
+    test("does not render DropIn when clientToken is empty", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "" } });
+        renderWithRouter(<CartPage />);
+        await waitFor(() => expect(axios.get).toHaveBeenCalled());
+        expect(screen.queryByTestId("dropin")).not.toBeInTheDocument();
+    });
+
+    test("does not render DropIn when cart is empty", async () => {
+        useCart.mockReturnValueOnce([[], mockSetCart]);
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } });
+        renderWithRouter(<CartPage />);
+        await waitFor(() => expect(axios.get).toHaveBeenCalled());
+        expect(screen.queryByTestId("dropin")).not.toBeInTheDocument();
+    });
+
+    test("aborts when inventory check throws error", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        const err = { response: { data: { message: "Inventory API down", itemId: "p7" } } };
+        axios.post.mockRejectedValueOnce(err);
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenCalledWith(
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Inventory API down"));
+        await waitFor(() => expect(payBtn).toHaveTextContent(/make payment/i));
+        expect(axios.post).toHaveBeenCalledTimes(1); // payment not attempted
+    });
+
+    test("uses error.message when no response.data.message in inventory check", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        axios.post.mockRejectedValueOnce(new Error("Network down"));
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenCalledWith("/api/v1/product/check-inventory", { cart: initialCart })
+        );
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Network down"));
+        await waitFor(() => expect(payBtn).toHaveTextContent(/make payment/i));
+        expect(axios.post).toHaveBeenCalledTimes(1); // payment not attempted
+    });
+
+    test("uses default message in inventory check", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        axios.post.mockRejectedValueOnce({}); // "Inventory check failed"
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenCalledWith(
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
+        expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Inventory check failed"));
+        await waitFor(() => expect(payBtn).toHaveTextContent(/make payment/i));
+        expect(axios.post).toHaveBeenCalledTimes(1);
+    });
+
+    test("shows default message when insufficient inventory", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        axios.post.mockResolvedValueOnce({ data: { success: false } });
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenCalledWith(
+                "/api/v1/product/check-inventory",
+                { cart: initialCart }
+            )
+        );
+        expect(toast.error).toHaveBeenCalledWith("Insufficient stock.");
+        await waitFor(() => expect(payBtn).toHaveTextContent(/make payment/i));
+        expect(axios.post).toHaveBeenCalledTimes(1);
+    });
+
+    test("uses default message in payment API", async () => {
+        axios.get.mockResolvedValueOnce({ data: { clientToken: "tok_123" } }); // token ok
+        axios.post
+            .mockResolvedValueOnce({ data: { success: true } })  // inventory ok
+            .mockResolvedValueOnce({ data: { success: false } }); // no message -> default
+
+        renderWithRouter(<CartPage />);
+        await screen.findByTestId("dropin");
+        const payBtn = await screen.findByRole("button", { name: /make payment/i });
+        await waitFor(() => expect(payBtn).toBeEnabled());
+        await userEvent.click(payBtn);
+
+        await waitFor(() =>
+            expect(axios.post).toHaveBeenNthCalledWith(2, "/api/v1/product/braintree/payment",
+                { nonce: "nonce_abc", cart: initialCart })
+        );
+        expect(toast.error).toHaveBeenCalledWith("Payment failed.");
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
 });

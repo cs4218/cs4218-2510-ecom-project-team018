@@ -11,6 +11,7 @@ import {
   productCategoryCountController,
   braintreeTokenController,
   brainTreePaymentController,
+  checkInventoryController,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_NUMBER,
   createProductController,
@@ -1291,6 +1292,136 @@ describe("Product controllers", () => {
       expect(res.send).toHaveBeenCalledWith({
         success: false,
         message: "Stock update failed",
+      });
+    });
+  });
+
+  describe("checkInventoryController", () => {
+    let res;
+
+    beforeEach(() => {
+      res = createMockRes();
+      jest.clearAllMocks();
+    });
+
+    test("returns 400 for empty cart", async () => {
+      const req = { body: { cart: [] } };
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Empty cart",
+      });
+      expect(productModel.findById).not.toHaveBeenCalled();
+    });
+
+    test("returns 400 for bad cart item (missing _id)", async () => {
+      const req = { body: { cart: [{ quantity: 2 }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Bad cart item",
+      });
+      expect(productModel.findById).not.toHaveBeenCalled();
+    });
+
+    test("returns 400 for bad cart item (non-numeric or <=0 quantity)", async () => {
+      const req = { body: { cart: [{ _id: "p1", quantity: "x" }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Bad cart item",
+      });
+      expect(productModel.findById).not.toHaveBeenCalled();
+    });
+
+    test("returns 409 when product not found", async () => {
+      // first item fails (no doc)
+      productModel.findById.mockReturnValueOnce(
+        {
+          select: jest.fn().mockResolvedValue(null),
+        }
+      );
+
+      const req = { body: { cart: [{ _id: "missing-id", quantity: 1 }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith("missing-id");
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Insufficient stock",
+          itemId: "missing-id",
+          available: 0,
+        })
+      );
+    });
+
+    test("returns 409 when quantity in DB is less than requested", async () => {
+      // doc exists but not enough quantity
+      productModel.findById.mockReturnValueOnce({
+        select: jest.fn().mockResolvedValue({ _id: "p2", quantity: 1 }),
+      });
+
+      const req = { body: { cart: [{ _id: "p2", quantity: 3 }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(productModel.findById).toHaveBeenCalledWith("p2");
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Insufficient stock",
+          itemId: "p2",
+          available: 1,
+        })
+      );
+    });
+
+    test("returns 200 when all items have sufficient stock (default qty=1)", async () => {
+      // Two items: first requests 2, second omits quantity
+      productModel.findById
+        .mockReturnValueOnce({
+          select: jest.fn().mockResolvedValue({ _id: "a", quantity: 5 }),
+        })
+        .mockReturnValueOnce({
+          select: jest.fn().mockResolvedValue({ _id: "b", quantity: 1 }),
+        });
+
+      const req = { body: { cart: [{ _id: "a", quantity: 2 }, { _id: "b" }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(productModel.findById).toHaveBeenNthCalledWith(1, "a");
+      expect(productModel.findById).toHaveBeenNthCalledWith(2, "b");
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({ success: true });
+    });
+
+    test("returns 500 on unexpected error", async () => {
+      productModel.findById.mockImplementation(() => {
+        throw new Error("DB down");
+      });
+
+      const req = { body: { cart: [{ _id: "x", quantity: 1 }] } };
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Inventory check failed",
       });
     });
   });
