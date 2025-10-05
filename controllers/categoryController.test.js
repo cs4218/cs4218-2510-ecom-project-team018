@@ -3,7 +3,9 @@ import slugify from "slugify";
 import {
   createCategoryController,
   updateCategoryController,
-  deleteCategoryCOntroller,
+  deleteCategoryController,
+  categoryController,
+  singleCategoryController,
 } from "./categoryController.js";
 
 // sample data
@@ -92,7 +94,7 @@ describe("Creating a category", () => {
 });
 
 describe("Updating a category", () => {
-  test("succesfully updating a category", async () => {
+  test("successfully updating a category", async () => {
     /* arrange */
     req.body = { name: CATEGORY_NAME_0 };
     req.params = { id: CATEGORY_ID_0 };
@@ -118,7 +120,7 @@ describe("Updating a category", () => {
     expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
     expect(res.send).toHaveBeenCalledWith({
       success: true,
-      messsage: "Category updated successfully",
+      message: "Category updated successfully",
       category: {
         _id: CATEGORY_ID_0,
         name: CATEGORY_NAME_0,
@@ -129,11 +131,11 @@ describe("Updating a category", () => {
 });
 
 describe("Deleting a category", () => {
-  test("succesfully deleting a category", async () => {
+  test("successfully deleting a category", async () => {
     req.params = { id: CATEGORY_ID_0 };
     categoryModel.findByIdAndDelete.mockResolvedValue({}); // returns nth bc deleted alr
 
-    await deleteCategoryCOntroller(req, res);
+    await deleteCategoryController(req, res);
 
     expect(categoryModel.findByIdAndDelete).toHaveBeenCalledWith(CATEGORY_ID_0);
     expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
@@ -141,5 +143,79 @@ describe("Deleting a category", () => {
       success: true,
       message: "Category deleted successfully",
     });
+  });
+});
+
+describe("Getting all categories", () => {
+  test("returns all categories", async () => {
+    const items = [
+      { _id: CATEGORY_ID_0, name: CATEGORY_NAME_0, slug: CATEGORY_SLUG_0 },
+      { _id: CATEGORY_ID_1, name: CATEGORY_NAME_1, slug: CATEGORY_SLUG_1 },
+    ];
+    categoryModel.find.mockResolvedValue(items);
+
+    await categoryController({}, res);
+
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "All categories list",
+      category: items,
+    });
+  });
+
+  test("handles error when getting all categories", async () => {
+    const err = new Error("db error");
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    categoryModel.find.mockRejectedValue(err);
+
+    await categoryController({}, res);
+
+    expect(logSpy).toHaveBeenCalledWith(err);
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      error: err,
+      message: "Error while getting all categories",
+    });
+
+    logSpy.mockRestore();
+  });
+});
+
+describe("Getting single category", () => {
+  test("returns single category by slug", async () => {
+    const doc = { _id: CATEGORY_ID_0, name: CATEGORY_NAME_0, slug: CATEGORY_SLUG_0 };
+    const req = { params: { slug: CATEGORY_SLUG_0 } };
+    categoryModel.findOne.mockResolvedValue(doc);
+
+    await singleCategoryController(req, res);
+
+    expect(categoryModel.findOne).toHaveBeenCalledWith({ slug: CATEGORY_SLUG_0 });
+    expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: true,
+      message: "Get single category successfully",
+      category: doc,
+    });
+  });
+
+  test("handles error when getting single category", async () => {
+    const err = new Error("query failed");
+    const req = { params: { slug: "missing" } };
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    categoryModel.findOne.mockRejectedValue(err);
+
+    await singleCategoryController(req, res);
+
+    expect(logSpy).toHaveBeenCalledWith(err);
+    expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+    expect(res.send).toHaveBeenCalledWith({
+      success: false,
+      error: err,
+      message: "Error while getting single category",
+    });
+
+    logSpy.mockRestore();
   });
 });
