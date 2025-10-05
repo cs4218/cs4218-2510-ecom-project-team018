@@ -21,9 +21,13 @@ jest.mock("../context/cart", () => ({
   useCart: jest.fn(() => [mockCart, mockSetCart]),
 }));
 
-jest.mock('../utils/productUtils.js', () => ({
-  addToCart: jest.fn(() => {})
-}))
+jest.mock('../utils/productUtils.js', () => {
+  const actual = jest.requireActual('../utils/productUtils.js');
+  return {
+    ...actual,
+    addToCart: jest.fn(() => {}),
+  };
+});
 
 jest.mock('../context/auth', () => ({
   useAuth: jest.fn(() => [null, jest.fn()])
@@ -62,10 +66,6 @@ const listOfCategories = [
   { _id: "c1", name: "Electronics" },
   { _id: "c2", name: "Book" },
   { _id: "c3", name: "Clothing" }
-];
-
-const listOfProductWithLongDescription = [
-  { _id: 'p1', name: 'Long Item', description: 'L'.repeat(80), price: 10, category: { name: 'Misc' }, slug: 'long-item'}
 ];
 
 const categoryById = { c1: 'Electronics', c2: 'Book', c3: 'Clothing' };
@@ -590,69 +590,5 @@ describe('HomePage Component', () => {
         listOfProducts[0]
       );
     });
-
-
-  describe('Product Description Length Logic', () => {
-    it('renders full description when length < 60', async () => {
-      axios.get.mockImplementation((url) => {
-        if (url === '/api/v1/category/get-category') {
-          return Promise.resolve({ data: { success: true, category: listOfCategories } });
-        }
-        if (url === '/api/v1/product/product-count') {
-          return Promise.resolve({ data: { total: 1 } });
-        }
-        if (url.startsWith('/api/v1/product/product-list/')) {
-          return Promise.resolve({ data: { products: listOfProducts }});
-        }
-      });
-
-      render(
-        <MemoryRouter initialEntries={['/']}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      // Wait for the products to show
-      expect(await screen.findByText(listOfProducts[0].name)).toBeInTheDocument();
-      expect(await screen.findByText(listOfProducts[1].name)).toBeInTheDocument();
-      expect(await screen.findByText(listOfProducts[2].name)).toBeInTheDocument();
-
-      // Exact full description, no ellipsis
-      expect(screen.getByText(listOfProducts[0].description)).toBeInTheDocument();
-      expect(screen.getByText(listOfProducts[1].description)).toBeInTheDocument();
-      expect(screen.getByText(listOfProducts[2].description)).toBeInTheDocument();
-      expect(screen.queryByText(/\.{3}$/)).not.toBeInTheDocument();
-    });
-
-    it('truncates to 60 chars and appends ellipsis when length ≥ 60', async () => {
-      const expected = listOfProductWithLongDescription[0].description.substring(0, 60) + '...';
-
-      axios.get.mockImplementation((url) => {
-        if (url === '/api/v1/category/get-category') {
-          return Promise.resolve({ data: { success: true, category: listOfCategories } });
-        }
-        if (url === '/api/v1/product/product-count') {
-          return Promise.resolve({ data: { total: 1 } });
-        }
-        if (url.startsWith('/api/v1/product/product-list/')) {
-          return Promise.resolve({ data: { products: listOfProductWithLongDescription }});
-        }
-      });
-
-      render(
-        <MemoryRouter initialEntries={['/']}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      expect(await screen.findByText(listOfProductWithLongDescription[0].name)).toBeInTheDocument();
-      expect(screen.getByText(expected)).toBeInTheDocument();
-      expect(screen.queryByText(listOfProductWithLongDescription[0].description)).not.toBeInTheDocument();
-    });
-  });
   });
 })

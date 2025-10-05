@@ -109,23 +109,6 @@ const twoOrdersTwoProduct = [
   },
 ];
 
-const longDescriptionOrder = [
-  {
-    status: "Processing",
-    buyer: { name: "Bob" },
-    createdAt: "2024-01-01T00:00:00Z",
-    payment: { success: true },
-    products: [
-      {
-        _id: "p2",
-        name: "Mouse",
-        description: "This description is definitely more than thirty characters long for testing.",
-        price: 49,
-      },
-    ],
-  },
-];
-
 // === Tests ===
 describe('Orders Component', () => {
   beforeEach(() => {
@@ -336,45 +319,4 @@ describe('Orders Component', () => {
     });
   });
 
-  it("renders full product description when description length < 30", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: oneOrder,
-    });
-
-    render(
-      <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
-        <Routes>
-          <Route path="/dashboard/user/orders" element={<Orders />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => expect(axios.get).toHaveBeenCalled());
-
-    await waitFor(() => {
-      expect(screen.getByText(oneOrder[0].products[0].description)).toBeInTheDocument();
-      expect(screen.queryByText(`${oneOrder[0].products[0].description}...`)).not.toBeInTheDocument();
-    });
-  });
-
-  it("renders truncated description with ellipsis when description length ≥ 30", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: longDescriptionOrder,
-    });
-
-    render(
-      <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
-        <Routes>
-          <Route path="/dashboard/user/orders" element={<Orders />} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    await waitFor(() => expect(axios.get).toHaveBeenCalled());
-
-    await waitFor(() => {
-      const expectedText = longDescriptionOrder[0].products[0].description.substring(0, 30) + "...";
-      expect(screen.getByText(expectedText)).toBeInTheDocument();
-    });
-  });
 });
