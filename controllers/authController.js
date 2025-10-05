@@ -181,11 +181,9 @@ export const updateProfileController = async (req, res) => {
     }
 
     if (!name && !password && !address && !phone) {
-      return res
-        .status(400)
-        .send({
-          message: "Change Name, Password, Address or Phone to Update profile",
-        });
+      return res.status(400).send({
+        message: "Change Name, Password, Address or Phone to Update profile",
+      });
     }
 
     const hashedPassword = password ? await hashPassword(password) : undefined;
@@ -286,7 +284,7 @@ export const getAllUsersController = async (req, res) => {
   } catch (error) {
     res.status(500).send({
       success: false,
-      message: "Error While Fetching Users",
+      message: "Error while fetching users",
       error,
     });
   }

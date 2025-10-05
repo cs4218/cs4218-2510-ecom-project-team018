@@ -6,7 +6,8 @@ import {
   updateProfileController,
   getOrdersController,
   getAllOrdersController,
-  orderStatusController
+  orderStatusController,
+  getAllUsersController,
 } from "./authController.js";
 import userModel from "../models/userModel.js";
 import orderModel from "../models/orderModel.js";
@@ -17,7 +18,7 @@ import mongoose from "mongoose";
 
 // Mock dependencies
 jest.mock("../models/userModel.js");
-jest.mock(("../models/orderModel.js"))
+jest.mock("../models/orderModel.js");
 jest.mock("../helpers/authHelper.js");
 jest.mock("jsonwebtoken");
 
@@ -44,27 +45,33 @@ const MOCK_REQUEST_DATA = {
 
 const MOCK_REQUEST_USER = {
   user: {
-    _id: "user123"
-  }
-}
-
-const MOCK_ORDER_DATA = [{
-  _id: "order1",
-  products: [ new mongoose.Types.ObjectId() ],
-  payment: {
-    success: true,
+    _id: "user123",
   },
-  buyer: new mongoose.Types.ObjectId(),
-  status: "Processing"
-}]
+};
+
+const MOCK_ORDER_DATA = [
+  {
+    _id: "order1",
+    products: [new mongoose.Types.ObjectId()],
+    payment: {
+      success: true,
+    },
+    buyer: new mongoose.Types.ObjectId(),
+    status: "Processing",
+  },
+];
 
 const MOCK_REQUEST_PARAM = {
   orderId: new mongoose.Types.ObjectId(),
-}
+};
 
 const MOCK_ORDER_STATUS_BODY = {
-  status: "Shipped"
-}
+  status: "Shipped",
+};
+
+// status codes
+const SUCCESS_STATUS = 200;
+const SERVER_ERROR_STATUS = 500;
 
 // Mock response object
 const createMockRes = () => ({
@@ -334,7 +341,7 @@ describe("Auth Controller", () => {
     it("should handle password length less than 6 with error in response", async () => {
       mockReq.body = {
         ...MOCK_REQUEST_DATA,
-        password: "abcde"
+        password: "abcde",
       };
 
       mockReq.user = MOCK_REQUEST_USER;
@@ -348,7 +355,7 @@ describe("Auth Controller", () => {
       expect(mockRes.send).toHaveBeenCalledWith({
         message: "Password is required and 6 character long",
       });
-    })
+    });
 
     it("should handle user not found with the req.user._id", async () => {
       mockReq.body = MOCK_REQUEST_DATA;
@@ -358,22 +365,22 @@ describe("Auth Controller", () => {
       await updateProfileController(mockReq, mockRes);
       expect(userModel.findByIdAndUpdate).not.toHaveBeenCalled();
       expect(mockRes.status).toHaveBeenCalledWith(400);
-      expect(mockRes.send).toHaveBeenCalledWith ({
-        message: "User is not found"
+      expect(mockRes.send).toHaveBeenCalledWith({
+        message: "User is not found",
       });
-    })
+    });
 
     it("should successfully update users", async () => {
       mockReq.body = MOCK_REQUEST_DATA;
       mockReq.user = MOCK_REQUEST_USER;
-      
+
       userModel.findById.mockResolvedValue(MOCK_USER_DATA);
       hashPassword.mockResolvedValue("newHashedPassword");
-        userModel.findByIdAndUpdate.mockResolvedValue({
+      userModel.findByIdAndUpdate.mockResolvedValue({
         name: mockReq.body.name,
         password: "newHashedPassword",
         phone: mockReq.body.phone,
-        address: mockReq.body.address
+        address: mockReq.body.address,
       });
 
       await updateProfileController(mockReq, mockRes);
@@ -381,29 +388,35 @@ describe("Auth Controller", () => {
       expect(hashPassword).toHaveBeenCalledWith(mockReq.body.password);
 
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        mockReq.user._id , {
+        mockReq.user._id,
+        {
           name: mockReq.body.name,
           password: "newHashedPassword",
           phone: mockReq.body.phone,
-          address: mockReq.body.address
+          address: mockReq.body.address,
         },
         { new: true }
       );
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith ({
+      expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
         message: "Profile Updated Successfully",
         updatedUser: {
           name: mockReq.body.name,
           phone: mockReq.body.phone,
-          address: mockReq.body.address
-        }
-      })
-    })
+          address: mockReq.body.address,
+        },
+      });
+    });
 
     it("should update user without changing password, name, phone, or address if not provided", async () => {
-      mockReq.body = { name: null, phone: null, address: null, password: undefined };
+      mockReq.body = {
+        name: null,
+        phone: null,
+        address: null,
+        password: undefined,
+      };
       mockReq.user = MOCK_REQUEST_USER;
 
       userModel.findById.mockResolvedValue(MOCK_USER_DATA);
@@ -419,7 +432,6 @@ describe("Auth Controller", () => {
       });
     });
 
-
     it("should handle update Profile Controller Errors", async () => {
       mockReq.body = MOCK_REQUEST_DATA;
       userModel.findById.mockRejectedValue(new Error("Database error"));
@@ -432,7 +444,7 @@ describe("Auth Controller", () => {
         message: "Error While Updating profile",
         error: expect.any(Error),
       });
-    })
+    });
   });
 
   describe("getOrdersController", () => {
@@ -509,17 +521,29 @@ describe("Auth Controller", () => {
     it("should update order status successfully", async () => {
       mockReq.params = MOCK_REQUEST_PARAM;
       mockReq.body = MOCK_ORDER_STATUS_BODY;
-      orderModel.findByIdAndUpdate.mockReturnValue({ ...MOCK_ORDER_DATA, status: mockReq.body.status });
+      orderModel.findByIdAndUpdate.mockReturnValue({
+        ...MOCK_ORDER_DATA,
+        status: mockReq.body.status,
+      });
 
       await orderStatusController(mockReq, mockRes);
 
-      expect(orderModel.findByIdAndUpdate).toHaveBeenCalledWith(mockReq.params.orderId, { status: mockReq.body.status }, { new: true });
+      expect(orderModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        mockReq.params.orderId,
+        { status: mockReq.body.status },
+        { new: true }
+      );
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect(mockRes.send).toHaveBeenCalledWith({ ...MOCK_ORDER_DATA, status: mockReq.body.status });
-    })
-    
+      expect(mockRes.send).toHaveBeenCalledWith({
+        ...MOCK_ORDER_DATA,
+        status: mockReq.body.status,
+      });
+    });
+
     it("should handle orderStatusController errors", async () => {
-      orderModel.findByIdAndUpdate.mockRejectedValue(new Error("Database error"));
+      orderModel.findByIdAndUpdate.mockRejectedValue(
+        new Error("Database error")
+      );
 
       await orderStatusController(mockReq, mockRes);
 
@@ -529,6 +553,25 @@ describe("Auth Controller", () => {
         message: "Error While Updating Order Status",
         error: expect.any(Error),
       });
-    })
+    });
+  });
+
+  describe("getAllUsersController", () => {
+    it("should return the list of users", async () => {
+      mockRes = createMockRes();
+      const sortMock = jest.fn().mockResolvedValue([MOCK_USER_DATA]);
+      userModel.find.mockReturnValue({ sort: sortMock });
+
+      await getAllUsersController({}, mockRes);
+
+      expect(userModel.find).toHaveBeenCalledWith({}, "-password -answer");
+      expect(sortMock).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(mockRes.status).toHaveBeenCalledWith(SUCCESS_STATUS);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: true,
+        message: "Users fetched successfully",
+        users: [MOCK_USER_DATA],
+      });
+    });
   });
 });
