@@ -573,5 +573,21 @@ describe("Auth Controller", () => {
         users: [MOCK_USER_DATA],
       });
     });
+
+    it("should handle errors while fetching users", async () => {
+      mockRes = createMockRes();
+      const sortMock = jest.fn().mockRejectedValue(new Error("Database error"));
+      userModel.find.mockReturnValue({ sort: sortMock });
+
+      await getAllUsersController({}, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
+      expect(mockRes.send).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          message: "Error while fetching users",
+        })
+      );
+    });
   });
 });
