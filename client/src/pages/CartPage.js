@@ -8,6 +8,7 @@ import { AiFillWarning } from "react-icons/ai";
 import axios from "axios";
 import toast from "react-hot-toast";
 import "../styles/CartStyles.css";
+import { truncateDescription30 } from "../utils/productUtils";
 
 const CartPage = () => {
   const [auth, setAuth] = useAuth();
@@ -66,7 +67,9 @@ const CartPage = () => {
   // verify sufficient quantity
   const verifyQuantity = async (items) => {
     try {
-      const { data } = await axios.post("/api/v1/product/check-inventory", { cart: items });
+      const { data } = await axios.post("/api/v1/product/check-inventory", {
+        cart: items,
+      });
       return data;
     } catch (error) {
       return {
@@ -92,7 +95,9 @@ const CartPage = () => {
         toast.error(
           qtyCheck?.itemId
             ? `${base} (Item: ${qtyCheck.itemId}${
-                Number.isFinite(qtyCheck.available) ? `, available: ${qtyCheck.available}` : ""
+                Number.isFinite(qtyCheck.available)
+                  ? `, available: ${qtyCheck.available}`
+                  : ""
               })`
             : base
         );
@@ -154,7 +159,7 @@ const CartPage = () => {
                   </div>
                   <div className="col-md-4">
                     <p>{p.name}</p>
-                    <p>{p.description.substring(0, 30)}</p>
+                    <p>{truncateDescription30(p.description)}</p>
                     <p>Price : {p.price}</p>
                   </div>
                   <div className="col-md-4 cart-remove-btn">

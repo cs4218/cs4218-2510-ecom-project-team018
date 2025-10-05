@@ -9,6 +9,7 @@ import {
   getImageUrl,
   addToCart,
   handleImgError,
+  truncateDescription60,
 } from "../utils/productUtils";
 
 const ProductDetails = () => {
@@ -154,9 +155,7 @@ const ProductDetails = () => {
                   </h5>
                 </div>
                 <p className="card-text">
-                  {p.description.length < 60
-                    ? p.description
-                    : p.description.substring(0, 60) + "..."}
+                  {truncateDescription60(p.description)}
                 </p>
                 <div className="card-name-price">
                   <button

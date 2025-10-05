@@ -10,6 +10,7 @@ import {
   getImageUrl,
   addToCart,
   handleImgError,
+  truncateDescription60,
 } from "../utils/productUtils";
 import { AiOutlineReload } from "react-icons/ai";
 
@@ -117,9 +118,7 @@ const CategoryProduct = () => {
                     </div>
                     <p className="card-text">
                       {p.description
-                        ? p.description.length <= 60
-                          ? p.description
-                          : p.description.substring(0, 60) + "..."
+                        ? truncateDescription60(p.description)
                         : "No description available"}
                     </p>
                     <div className="card-name-price">
