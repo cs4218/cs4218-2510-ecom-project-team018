@@ -32,7 +32,7 @@ const CartPage = () => {
       console.log(error);
     }
   };
-  //detele item
+  //delete item
   const removeCartItem = (pid) => {
     try {
       let myCart = [...cart];
@@ -49,7 +49,12 @@ const CartPage = () => {
   const getToken = async () => {
     try {
       const { data } = await axios.get("/api/v1/product/braintree/token");
-      setClientToken(data?.clientToken);
+      if (data?.success === false || !data?.clientToken) {
+        toast.error(data?.message || "Unable to initialize payment.");
+        setClientToken(""); // ensure DropIn won't render
+        return;
+      }
+      setClientToken(data.clientToken);
     } catch (error) {
       console.log(error);
     }
@@ -58,20 +63,57 @@ const CartPage = () => {
     getToken();
   }, [auth?.token]);
 
+  // verify sufficient quantity
+  const verifyQuantity = async (items) => {
+    try {
+      const { data } = await axios.post("/api/v1/product/check-inventory", { cart: items });
+      return data;
+    } catch (error) {
+      return {
+        success: false,
+        message:
+          error?.response?.data?.message ??
+          error?.message ??
+          "Inventory check failed",
+        itemId: error?.response?.data?.itemId,
+        available: error?.response?.data?.available,
+      };
+    }
+  };
+
   //handle payments
   const handlePayment = async () => {
     try {
       setLoading(true);
+
+      const qtyCheck = await verifyQuantity(cart);
+      if (!qtyCheck?.success) {
+        const base = qtyCheck?.message || "Insufficient stock.";
+        toast.error(
+          qtyCheck?.itemId
+            ? `${base} (Item: ${qtyCheck.itemId}${
+                Number.isFinite(qtyCheck.available) ? `, available: ${qtyCheck.available}` : ""
+              })`
+            : base
+        );
+        setLoading(false);
+        return;
+      }
+
       const { nonce } = await instance.requestPaymentMethod();
       const { data } = await axios.post("/api/v1/product/braintree/payment", {
         nonce,
         cart,
       });
       setLoading(false);
+      if (!data?.success) {
+        toast.error(data?.message || "Payment failed.");
+        return;
+      }
       localStorage.removeItem("cart");
       setCart([]);
       navigate("/dashboard/user/orders");
-      toast.success("Payment Completed Successfully ");
+      toast.success("Payment Completed Successfully");
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -162,7 +204,7 @@ const CartPage = () => {
                         })
                       }
                     >
-                      Plase Login to checkout
+                      Please Login to checkout
                     </button>
                   )}
                 </div>
