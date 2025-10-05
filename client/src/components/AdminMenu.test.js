@@ -65,7 +65,7 @@ describe("AdminMenu", () => {
 
     const links = screen.getAllByRole("link");
 
-    expect(links).toHaveLength(4);
+    expect(links).toHaveLength(5);
     links.forEach((link) => expect(link).toBeVisible());
   });
 });
