@@ -122,6 +122,20 @@ describe("truncateDescription helpers", () => {
       expect(result).toBe(input);
       expect(result.endsWith("...")).toBe(false);
     });
+
+    it("should handle null input gracefully", () => {
+      const input = null;
+
+      const result = truncateDescription30(input);
+
+      expect(result).toBe("");
+    });
+
+    it("should handle missing input gracefully", () => {
+      const result = truncateDescription30();
+
+      expect(result).toBe("");
+    });
   });
 
   describe("truncateDescription60 (limit = 60)", () => {
@@ -159,6 +173,20 @@ describe("truncateDescription helpers", () => {
 
       expect(result).toBe(input);
       expect(result.endsWith("...")).toBe(false);
+    });
+
+    it("should handle null input gracefully", () => {
+      const input = null;
+
+      const result = truncateDescription60(input);
+
+      expect(result).toBe("");
+    });
+
+    it("should handle missing input gracefully", () => {
+      const result = truncateDescription60();
+
+      expect(result).toBe("");
     });
   });
 });
