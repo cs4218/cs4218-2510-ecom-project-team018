@@ -171,7 +171,9 @@ export const updateProfileController = async (req, res) => {
     const user = await userModel.findById(req.user._id);
 
     if (password && password.length < 6) {
-      return res.status(400).send({ message: "Password is required and 6 character long" });
+      return res
+        .status(400)
+        .send({ message: "Password is required and 6 character long" });
     }
 
     if (user === null) {
@@ -179,9 +181,13 @@ export const updateProfileController = async (req, res) => {
     }
 
     if (!name && !password && !address && !phone) {
-      return res.status(400).send({ message: "Change Name, Password, Address or Phone to Update profile" });
+      return res
+        .status(400)
+        .send({
+          message: "Change Name, Password, Address or Phone to Update profile",
+        });
     }
-    
+
     const hashedPassword = password ? await hashPassword(password) : undefined;
     const updatedUser = await userModel.findByIdAndUpdate(
       req.user._id,
@@ -193,14 +199,14 @@ export const updateProfileController = async (req, res) => {
       },
       { new: true }
     );
-    
+
     res.status(200).send({
       success: true,
       message: "Profile Updated Successfully",
       updatedUser: {
         name: updatedUser.name,
         phone: updatedUser.phone,
-        address: updatedUser.address
+        address: updatedUser.address,
       },
     });
   } catch (error) {
@@ -261,6 +267,26 @@ export const orderStatusController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error While Updating Order Status",
+      error,
+    });
+  }
+};
+
+export const getAllUsersController = async (req, res) => {
+  try {
+    const users = await userModel
+      .find({}, "-password -answer")
+      .sort({ createdAt: -1 });
+
+    res.status(200).send({
+      success: true,
+      message: "Users fetched successfully",
+      users,
+    });
+  } catch (error) {
+    res.status(500).send({
+      success: false,
+      message: "Error While Fetching Users",
       error,
     });
   }
