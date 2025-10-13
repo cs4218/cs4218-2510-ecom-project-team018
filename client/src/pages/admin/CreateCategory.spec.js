@@ -35,4 +35,43 @@ test.describe("Create Category Page", () => {
       });
     });
   });
+
+  test("renders all components", async ({ page }) => {
+    // heading
+    await expect(page.locator("h1")).toHaveText("Manage Category");
+
+    // new category inputs
+    await expect(page.getByPlaceholder("Enter new category")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Submit" })).toBeVisible();
+
+    // table headers
+    await expect(
+      page.getByRole("columnheader", { name: "Name" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Actions" })
+    ).toBeVisible();
+
+    // rows
+    const rows = page.locator("table tbody tr");
+    await expect(rows).toHaveCount(2);
+
+    // ✅ Row 1: Electronics
+    const firstRow = rows.nth(0);
+    await expect(firstRow).toContainText("Electronics");
+    await expect(firstRow.getByRole("button", { name: /edit/i })).toBeVisible();
+    await expect(
+      firstRow.getByRole("button", { name: /delete/i })
+    ).toBeVisible();
+
+    // ✅ Row 2: Books
+    const secondRow = rows.nth(1);
+    await expect(secondRow).toContainText("Books");
+    await expect(
+      secondRow.getByRole("button", { name: /edit/i })
+    ).toBeVisible();
+    await expect(
+      secondRow.getByRole("button", { name: /delete/i })
+    ).toBeVisible();
+  });
 });
