@@ -19,12 +19,11 @@ module.exports = {
   // ignore all node_modules except styleMock (needed for css imports)
   transformIgnorePatterns: ["/node_modules/(?!(styleMock\\.js)$)"],
 
-  // only run these tests
-  testMatch: ["<rootDir>/client/src/!(_*)/**/*.test.js"],
+  // only run these tests (exclude integration tests *.it.test.js)
+  testMatch: ["<rootDir>/client/src/!(_*)/**/!(*.it).test.js"],
 
   // jest code coverage
   collectCoverage: true,
-
 
   collectCoverageFrom: ["client/src/!(_*)/**", "!client/src/**/*.test.js"],
   // coverageThreshold: {
