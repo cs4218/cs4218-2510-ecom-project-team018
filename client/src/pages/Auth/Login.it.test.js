@@ -116,4 +116,31 @@ describe("Login Integration", () => {
       expect(localStorage.getItem("auth")).toBeFalsy();
     });
   });
+
+  it("rejects missing fields", async () => {
+    renderWithProviders(<Login />);
+
+    // Do not fill fields; directly submit
+    fireEvent.click(screen.getByText("LOGIN"));
+
+    await waitFor(() => {
+      expect(localStorage.getItem("auth")).toBeFalsy();
+    });
+  });
+
+  it("rejects non-existent user", async () => {
+    renderWithProviders(<Login />);
+
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: "unknown.user@example.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "somePassword!" },
+    });
+    fireEvent.click(screen.getByText("LOGIN"));
+
+    await waitFor(() => {
+      expect(localStorage.getItem("auth")).toBeFalsy();
+    });
+  });
 });
