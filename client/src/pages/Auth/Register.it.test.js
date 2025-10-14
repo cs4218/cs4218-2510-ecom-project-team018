@@ -154,4 +154,74 @@ describe("Register Integration", () => {
       })
     ).rejects.toBeTruthy();
   });
+
+  it("handles duplicate registrations (same email)", async () => {
+    const user = {
+      name: "Dup User",
+      email: "dup@example.com",
+      password: "DupPass!234",
+      phone: "1111111111",
+      address: "2 Integration Way",
+      DOB: "1999-12-31",
+      answer: "basketball",
+    };
+
+    // First registration succeeds
+    const axiosPostSpy = jest.spyOn(axios, "post");
+    renderRegister();
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: user.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: user.email },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: user.password },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: user.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: user.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your DOB"), {
+      target: { value: user.DOB },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText("What is Your Favorite sports"),
+      { target: { value: user.answer } }
+    );
+    fireEvent.click(screen.getByText("REGISTER"));
+
+    // Wait for first register call
+    await waitFor(() => {
+      expect(axiosPostSpy).toHaveBeenCalledWith(
+        "/api/v1/auth/register",
+        expect.objectContaining({ email: user.email })
+      );
+    });
+
+    // Register again with same email
+    fireEvent.click(screen.getByText("REGISTER"));
+
+    // Wait until the second call is observed
+    await waitFor(() => {
+      expect(
+        axiosPostSpy.mock.calls.filter((c) => c[0] === "/api/v1/auth/register")
+      ).toHaveLength(2);
+    });
+
+    // Wait 1 second for Mongo to catch up
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Backend should already have user; logging in still works once
+    const res = await axios.post("/api/v1/auth/login", {
+      email: user.email,
+      password: user.password,
+    });
+    expect(res.status).toBe(200);
+    expect(res.data.success).toBe(true);
+    expect(res.data.user.email).toBe(user.email);
+    expect(res.data.token).toBeTruthy();
+  });
 });
