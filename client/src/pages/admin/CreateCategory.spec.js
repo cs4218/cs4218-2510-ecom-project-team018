@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-// import type { Page } from "@playwright/test";
 
 // sample category data
 const SAMPLE_CATEOGRIES = [
@@ -194,6 +193,40 @@ test.describe("Create Category Page", () => {
     // assert success toast
     await expect(page.getByRole("main")).toContainText(
       SAMPLE_NEW_CATEGORY.name + " is updated"
+    );
+  });
+
+  test("successfully delete a category", async ({ page }) => {
+    await page.route("**/api/v1/category/delete-category/*", async (route) => {
+      const catIDtoBeDeleted = new URL(route.request().url()).pathname
+        .split("/")
+        .pop();
+      // remove cat from currentCategories
+      currentCategories = currentCategories.filter(
+        (cat) => cat._id !== catIDtoBeDeleted
+      );
+      await route.fulfill({
+        status: SUCCESS_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
+    });
+
+    const originalCatLength = currentCategories.length;
+
+    // click 'delete' button
+    await page.getByRole("button", { name: "Delete" }).first().click();
+
+    // assert success toast
+    await expect(page.getByRole("main")).toContainText("category is deleted");
+
+    // table has 1 less row
+    const rows = page.locator("table tbody tr");
+    await expect(rows).toHaveCount(originalCatLength - 1);
+
+    // assert deleted category doesnt exist
+    await expect(page.getByRole("main")).not.toContainText(
+      SAMPLE_CATEOGRIES[0].name
     );
   });
 });
