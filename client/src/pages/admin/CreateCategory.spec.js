@@ -11,6 +11,7 @@ const SAMPLE_NEW_CATEGORY = { _id: "3", name: "Clothing" };
 
 // status codes
 const SUCCESS_STATUS = 200;
+const BAD_REQUEST_STATUS = 400;
 
 test.describe("Create Category Page", () => {
   test.beforeEach(async ({ page }) => {
@@ -25,9 +26,23 @@ test.describe("Create Category Page", () => {
       });
     });
 
-    // mock create-category API
+    /*** mock create-category API ***/
+    // response for API failure
     await page.route("**/api/v1/category/create-category", async (route) => {
       const body = await route.request().postDataJSON();
+      if (!body.name || body.name.trim() === "") {
+        await route.fulfill({
+          status: BAD_REQUEST_STATUS,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            message: "something went wrong in input form",
+          }),
+        });
+        return;
+      }
+
+      // response for success case
       // push the new category into the shared array so get-category returns it next
       const newCategory = {
         _id: `${currentCategories.length + 1}`,
@@ -121,5 +136,19 @@ test.describe("Create Category Page", () => {
     await expect(
       thirdRow.getByRole("button", { name: /delete/i })
     ).toBeVisible();
+  });
+
+  test("unable to create a new category when form is empty", async ({
+    page,
+  }) => {
+    // fill in nth
+    await page.getByRole("textbox", { name: "Enter new category" }).click();
+    await page.getByRole("textbox", { name: "Enter new category" }).fill("");
+    // submit
+    await page.getByRole("button", { name: "Submit" }).click();
+    // assert error
+    await expect(page.getByRole("main")).toContainText(
+      "something went wrong in input form"
+    );
   });
 });
