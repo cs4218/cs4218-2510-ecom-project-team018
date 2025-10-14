@@ -224,4 +224,48 @@ describe("Register Integration", () => {
     expect(res.data.user.email).toBe(user.email);
     expect(res.data.token).toBeTruthy();
   });
+
+  it("rejects invalid email format", async () => {
+    const user = {
+      name: "Bad Email User",
+      email: "notanemail",
+      password: "ValidPass!234",
+      phone: "4444444444",
+      address: "5 Integration Way",
+      DOB: "1992-03-03",
+      answer: "tennis",
+    };
+
+    renderRegister();
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: user.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: user.email },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: user.password },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: user.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: user.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your DOB"), {
+      target: { value: user.DOB },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText("What is Your Favorite sports"),
+      { target: { value: user.answer } }
+    );
+    fireEvent.click(screen.getByText("REGISTER"));
+
+    await expect(
+      axios.post("/api/v1/auth/login", {
+        email: user.email,
+        password: user.password,
+      })
+    ).rejects.toBeTruthy();
+  });
 });
