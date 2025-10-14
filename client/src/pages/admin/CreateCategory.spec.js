@@ -155,4 +155,45 @@ test.describe("Create Category Page", () => {
       "something went wrong in input form"
     );
   });
+
+  test("successfully update a category name", async ({ page }) => {
+    // this test updates "electronics" to "clothing"
+    // mock update-category API for success response
+    await page.route("**/api/v1/category/update-category/*", async (route) => {
+      const body = await route.request().postDataJSON();
+      expect(body.name).toBe(SAMPLE_NEW_CATEGORY.name);
+      await route.fulfill({
+        status: SUCCESS_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true }),
+      });
+    });
+
+    // click 'edit' button for first "electronics" row
+    await page.getByRole("button", { name: "Edit" }).first().click();
+
+    // key in "clothing"
+    await page
+      .getByRole("dialog")
+      .getByRole("textbox", { name: "Enter new category" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByRole("textbox", { name: "Enter new category" })
+      .press("ControlOrMeta+a");
+    await page
+      .getByRole("dialog")
+      .getByRole("textbox", { name: "Enter new category" })
+      .fill(SAMPLE_NEW_CATEGORY.name);
+    // submit
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Submit" })
+      .click();
+
+    // assert success toast
+    await expect(page.getByRole("main")).toContainText(
+      SAMPLE_NEW_CATEGORY.name + " is updated"
+    );
+  });
 });
