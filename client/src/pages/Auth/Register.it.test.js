@@ -136,25 +136,6 @@ describe("Register Integration", () => {
     expect(res.data.token).toBeTruthy();
   });
 
-  it("rejects missing fields", async () => {
-    renderRegister();
-
-    // Only supply email to trigger backend validation failure
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
-      target: { value: "incomplete@example.com" },
-    });
-
-    fireEvent.click(screen.getByText("REGISTER"));
-
-    // Attempting to login should fail because user wasn't created
-    await expect(
-      axios.post("/api/v1/auth/login", {
-        email: "incomplete@example.com",
-        password: "whatever",
-      })
-    ).rejects.toBeTruthy();
-  });
-
   it("handles duplicate registrations (same email)", async () => {
     const user = {
       name: "Dup User",
@@ -223,6 +204,25 @@ describe("Register Integration", () => {
     expect(res.data.success).toBe(true);
     expect(res.data.user.email).toBe(user.email);
     expect(res.data.token).toBeTruthy();
+  });
+
+  it("rejects missing fields", async () => {
+    renderRegister();
+
+    // Only supply email to trigger backend validation failure
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: "incomplete@example.com" },
+    });
+
+    fireEvent.click(screen.getByText("REGISTER"));
+
+    // Attempting to login should fail because user wasn't created
+    await expect(
+      axios.post("/api/v1/auth/login", {
+        email: "incomplete@example.com",
+        password: "whatever",
+      })
+    ).rejects.toBeTruthy();
   });
 
   it("rejects invalid email format", async () => {
