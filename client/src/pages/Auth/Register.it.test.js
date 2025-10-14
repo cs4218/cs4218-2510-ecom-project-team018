@@ -268,4 +268,49 @@ describe("Register Integration", () => {
       })
     ).rejects.toBeTruthy();
   });
+
+  it("rejects 73-character password", async () => {
+    const user = {
+      name: "Long Pass User",
+      email: `longpass_${Date.now()}@example.com`,
+      password: "a".repeat(73),
+      phone: "2222222222",
+      address: "3 Integration Way",
+      DOB: "1990-01-01",
+      answer: "soccer",
+    };
+
+    renderRegister();
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: user.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+      target: { value: user.email },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: user.password },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: user.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: user.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your DOB"), {
+      target: { value: user.DOB },
+    });
+    fireEvent.change(
+      screen.getByPlaceholderText("What is Your Favorite sports"),
+      { target: { value: user.answer } }
+    );
+    fireEvent.click(screen.getByText("REGISTER"));
+
+    // Attempt to login should fail if registration was rejected
+    await expect(
+      axios.post("/api/v1/auth/login", {
+        email: user.email,
+        password: user.password,
+      })
+    ).rejects.toBeTruthy();
+  });
 });
