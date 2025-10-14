@@ -13,9 +13,11 @@ const SAMPLE_NEW_CATEGORY = { _id: "3", name: "Clothing" };
 const SUCCESS_STATUS = 200;
 const BAD_REQUEST_STATUS = 400;
 
+let currentCategories;
+
 test.describe("Create Category Page", () => {
   test.beforeEach(async ({ page }) => {
-    const currentCategories = [...SAMPLE_CATEOGRIES];
+    currentCategories = [...SAMPLE_CATEOGRIES];
 
     // mock get-category API
     await page.route("**/api/v1/category/get-category", async (route) => {
@@ -23,36 +25,6 @@ test.describe("Create Category Page", () => {
         status: SUCCESS_STATUS,
         contentType: "application/json",
         body: JSON.stringify({ success: true, category: currentCategories }),
-      });
-    });
-
-    /*** mock create-category API ***/
-    // response for API failure
-    await page.route("**/api/v1/category/create-category", async (route) => {
-      const body = await route.request().postDataJSON();
-      if (!body.name || body.name.trim() === "") {
-        await route.fulfill({
-          status: BAD_REQUEST_STATUS,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: false,
-            message: "something went wrong in input form",
-          }),
-        });
-        return;
-      }
-
-      // response for success case
-      // push the new category into the shared array so get-category returns it next
-      const newCategory = {
-        _id: `${currentCategories.length + 1}`,
-        name: body.name,
-      };
-      currentCategories.push(newCategory);
-      await route.fulfill({
-        status: SUCCESS_STATUS,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, category: newCategory }),
       });
     });
 
@@ -116,6 +88,22 @@ test.describe("Create Category Page", () => {
   });
 
   test("successfully create a new category", async ({ page }) => {
+    // mock create-category API for success response
+    await page.route("**/api/v1/category/create-category", async (route) => {
+      const body = await route.request().postDataJSON();
+      // push the new category into the shared array so get-category returns it next
+      const newCategory = {
+        _id: `${currentCategories.length + 1}`,
+        name: body.name,
+      };
+      currentCategories.push(newCategory);
+      await route.fulfill({
+        status: SUCCESS_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, category: newCategory }),
+      });
+    });
+
     // fill in new category
     await page.getByRole("textbox", { name: "Enter new category" }).click();
     await page
@@ -141,6 +129,22 @@ test.describe("Create Category Page", () => {
   test("unable to create a new category when form is empty", async ({
     page,
   }) => {
+    // mock create-category API for fail response
+    await page.route("**/api/v1/category/create-category", async (route) => {
+      const body = await route.request().postDataJSON();
+      if (!body.name || body.name.trim() === "") {
+        await route.fulfill({
+          status: BAD_REQUEST_STATUS,
+          contentType: "application/json",
+          body: JSON.stringify({
+            success: false,
+            message: "something went wrong in input form",
+          }),
+        });
+        return;
+      }
+    });
+
     // fill in nth
     await page.getByRole("textbox", { name: "Enter new category" }).click();
     await page.getByRole("textbox", { name: "Enter new category" }).fill("");
