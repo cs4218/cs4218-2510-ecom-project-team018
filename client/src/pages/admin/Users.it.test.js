@@ -138,15 +138,14 @@ describe("Users Integration", () => {
     expect(screen.getByText("Loading users...")).toBeInTheDocument();
   });
 
-  it("handles API error gracefully", async () => {
-    // Set invalid token to trigger API error
-    localStorage.setItem(
-      "auth",
-      JSON.stringify({
-        user: { name: "Test Admin", role: 1 },
-        token: "invalid-token",
-      })
-    );
+  it("does not display users when user is not admin", async () => {
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: REGULAR_USER.email,
+      password: REGULAR_USER.password,
+    });
+
+    // Set auth data in localStorage
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
 
     renderUsersWithAuth();
     // Loading should appear then content should settle to empty state
