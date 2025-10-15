@@ -95,6 +95,7 @@ const AdminOrders = () => {
                         <img
                           src={`/api/v1/product/product-photo/${p._id}`}
                           className="card-img-top"
+                          style={{ objectFit: "contain" }}
                           alt={p.name}
                           width="100px"
                           height={"100px"}
