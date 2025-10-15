@@ -142,4 +142,27 @@ describe("Users Integration", () => {
 
     expect(screen.getByText("Loading users...")).toBeInTheDocument();
   });
+
+  it("handles API error gracefully", async () => {
+    // Set invalid token to trigger API error
+    localStorage.setItem(
+      "auth",
+      JSON.stringify({
+        user: { name: "Test Admin", role: 1 },
+        token: "invalid-token",
+      })
+    );
+
+    renderUsersWithAuth();
+    // Should show loading initially, then handle error
+    expect(screen.getByText("Loading users...")).toBeInTheDocument();
+
+    // wait 1 second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // wait for the error to be displayed
+    await waitFor(() => {
+      expect(screen.getByText("No users found.")).toBeInTheDocument();
+    });
+  });
 });
