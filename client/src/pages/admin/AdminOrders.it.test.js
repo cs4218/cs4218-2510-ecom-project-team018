@@ -151,4 +151,28 @@ describe("AdminOrders Integration", () => {
     const select = screen.getByLabelText("status");
     expect(select).toHaveDisplayValue("Not Processed");
   });
+
+  it("updates order status via selector", async () => {
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: ADMIN_USER.email,
+      password: ADMIN_USER.password,
+    });
+
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
+
+    renderWithProviders();
+
+    // Product name from seeded order should appear
+    expect(await screen.findByText("Test Product")).toBeInTheDocument();
+
+    const select = await screen.findByLabelText("status");
+
+    // Change to Processing using native select
+    fireEvent.change(select, { target: { value: "Processing" } });
+
+    // After status change, component re-fetches orders and the new value should reflect
+    await waitFor(() => {
+      expect(screen.getByLabelText("status")).toHaveDisplayValue("Processing");
+    });
+  });
 });
