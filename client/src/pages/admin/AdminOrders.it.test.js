@@ -46,7 +46,7 @@ jest.mock("antd", () => {
 
 let server;
 let app;
-const TEST_PORT = 5006;
+const TEST_PORT = 5001;
 
 const ADMIN_USER = {
   name: "Admin Orders",
@@ -145,8 +145,11 @@ describe("AdminOrders Integration", () => {
     // Header appears when orders are loaded
     expect(await screen.findByText("All Orders")).toBeInTheDocument();
 
-    // Product name from seeded order should appear
-    expect(await screen.findByText("Test Product")).toBeInTheDocument();
+    // wait for orders to load
+    await waitFor(() => {
+      expect(screen.getByText("Test Product")).toBeInTheDocument();
+    });
+
     // Initial status via native select
     const select = screen.getByLabelText("status");
     expect(select).toHaveDisplayValue("Not Processed");
