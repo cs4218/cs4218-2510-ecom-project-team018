@@ -127,4 +127,19 @@ describe("Users Integration", () => {
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("User")).toBeInTheDocument();
   });
+
+  it("shows loading state initially", () => {
+    // Set auth data without waiting for API call
+    localStorage.setItem(
+      "auth",
+      JSON.stringify({
+        user: { name: "Test Admin", role: 1 },
+        token: "mock-token",
+      })
+    );
+
+    renderUsersWithAuth();
+
+    expect(screen.getByText("Loading users...")).toBeInTheDocument();
+  });
 });
