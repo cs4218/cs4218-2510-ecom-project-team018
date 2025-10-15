@@ -81,4 +81,29 @@ describe("Dashboard Integration", () => {
     // Should show fallback
     expect(await screen.findByText("User Data Not Found")).toBeInTheDocument();
   });
+
+  it("renders user details when authenticated", async () => {
+    // Login to get token and user
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+    });
+
+    // Persist auth for provider to consume
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
+
+    renderDashboard();
+
+    // Assert user info appears
+    expect(
+      await screen.findByText(`user: ${TEST_USER.name}`)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(`email: ${TEST_USER.email}`)
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(`address: ${TEST_USER.address}`)
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("user-menu-mock")).toBeInTheDocument();
+  });
 });
