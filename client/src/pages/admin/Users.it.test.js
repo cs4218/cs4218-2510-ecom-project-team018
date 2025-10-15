@@ -23,17 +23,6 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="admin-menu-mock">Admin Menu</div>
 ));
 
-// Mock moment to avoid date formatting issues
-jest.mock("moment", () => {
-  const mockMoment = (date) => ({
-    format: (format) => {
-      if (format === "LLL") return "Jan 1, 2024 12:00 AM";
-      return date;
-    },
-  });
-  return mockMoment;
-});
-
 let server;
 let app;
 const TEST_PORT = 5003;
@@ -106,5 +95,36 @@ describe("Users Integration", () => {
     // Should not show loading and table
     expect(screen.queryByText("Loading users...")).not.toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("loads and displays users list for authenticated admin", async () => {
+    // Login as admin first
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: ADMIN_USER.email,
+      password: ADMIN_USER.password,
+    });
+
+    // Set auth data in localStorage
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
+
+    renderUsersWithAuth();
+
+    // wait 1 second
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Wait for users to load
+    await waitFor(() => {
+      expect(screen.getByText("All Users")).toBeInTheDocument();
+    });
+
+    // Check that users are displayed in table
+    expect(screen.getByText(ADMIN_USER.name)).toBeInTheDocument();
+    expect(screen.getByText(ADMIN_USER.email)).toBeInTheDocument();
+    expect(screen.getByText(REGULAR_USER.name)).toBeInTheDocument();
+    expect(screen.getByText(REGULAR_USER.email)).toBeInTheDocument();
+
+    // Check role display
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByText("User")).toBeInTheDocument();
   });
 });
