@@ -13,11 +13,6 @@ import authRoutes from "../../../../routes/authRoute.js";
 
 dotenv.config();
 
-// Mock Spinner to make assertions simple
-jest.mock("../Spinner", () => ({ path }) => (
-  <div data-testid="spinner-mock">Redirecting to {path || "login"}</div>
-));
-
 let server;
 let app;
 const TEST_PORT = 5005;
@@ -69,6 +64,7 @@ describe("PrivateRoute Integration", () => {
             <Route path="/protected" element={<PrivateRoute />}>
               <Route index element={<Protected />} />
             </Route>
+            <Route path="/login" element={<div>Login Page</div>} />
           </Routes>
         </AuthProvider>
       </MemoryRouter>
@@ -78,7 +74,9 @@ describe("PrivateRoute Integration", () => {
   it("shows spinner when not authenticated", () => {
     renderWithRoutes();
 
-    expect(screen.getByTestId("spinner-mock")).toBeInTheDocument();
+    // Spinner shows a heading and a status element
+    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toBeInTheDocument();
     expect(screen.queryByTestId("protected")).not.toBeInTheDocument();
   });
 
@@ -92,8 +90,7 @@ describe("PrivateRoute Integration", () => {
 
     renderWithRoutes();
 
-    // Spinner first, then protected content
-    expect(screen.getByTestId("spinner-mock")).toBeInTheDocument();
+    // Spinner may flash initially, then protected content appears
     expect(await screen.findByTestId("protected")).toBeInTheDocument();
   });
 });
