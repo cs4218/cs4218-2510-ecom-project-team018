@@ -109,26 +109,21 @@ describe("Users Integration", () => {
 
     renderUsersWithAuth();
 
-    // wait 1 second
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Wait for users to load
-    await waitFor(() => {
-      expect(screen.getByText("All Users")).toBeInTheDocument();
-    });
+    // Wait for users to load (header appears when content is rendered)
+    expect(await screen.findByText("All Users")).toBeInTheDocument();
 
     // Check that users are displayed in table
-    expect(screen.getByText(ADMIN_USER.name)).toBeInTheDocument();
-    expect(screen.getByText(ADMIN_USER.email)).toBeInTheDocument();
-    expect(screen.getByText(REGULAR_USER.name)).toBeInTheDocument();
-    expect(screen.getByText(REGULAR_USER.email)).toBeInTheDocument();
+    expect(await screen.findByText(ADMIN_USER.name)).toBeInTheDocument();
+    expect(await screen.findByText(ADMIN_USER.email)).toBeInTheDocument();
+    expect(await screen.findByText(REGULAR_USER.name)).toBeInTheDocument();
+    expect(await screen.findByText(REGULAR_USER.email)).toBeInTheDocument();
 
     // Check role display
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("User")).toBeInTheDocument();
   });
 
-  it("shows loading state initially", () => {
+  it("shows loading state initially", async () => {
     // Set auth data without waiting for API call
     localStorage.setItem(
       "auth",
@@ -154,15 +149,10 @@ describe("Users Integration", () => {
     );
 
     renderUsersWithAuth();
-    // Should show loading initially, then handle error
+    // Loading should appear then content should settle to empty state
     expect(screen.getByText("Loading users...")).toBeInTheDocument();
 
-    // wait 1 second
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // wait for the error to be displayed
-    await waitFor(() => {
-      expect(screen.getByText("No users found.")).toBeInTheDocument();
-    });
+    // Wait for the empty state after failed fetch
+    expect(await screen.findByText("No users found.")).toBeInTheDocument();
   });
 });
