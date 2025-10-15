@@ -81,4 +81,19 @@ describe("PrivateRoute Integration", () => {
     expect(screen.getByTestId("spinner-mock")).toBeInTheDocument();
     expect(screen.queryByTestId("protected")).not.toBeInTheDocument();
   });
+
+  it("renders protected content when authenticated", async () => {
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: TEST_USER.email,
+      password: TEST_USER.password,
+    });
+
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
+
+    renderWithRoutes();
+
+    // Spinner first, then protected content
+    expect(screen.getByTestId("spinner-mock")).toBeInTheDocument();
+    expect(await screen.findByTestId("protected")).toBeInTheDocument();
+  });
 });
