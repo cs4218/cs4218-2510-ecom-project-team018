@@ -25,6 +25,25 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="admin-menu-mock">Admin Menu</div>
 ));
 
+// Mock antd Select to a native select for reliable onChange
+jest.mock("antd", () => {
+  const React = require("react");
+  const Select = ({ defaultValue, onChange, children }) => (
+    <select
+      aria-label="status"
+      defaultValue={defaultValue}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {children}
+    </select>
+  );
+  const Option = ({ value, children }) => (
+    <option value={value}>{children}</option>
+  );
+  Select.Option = Option;
+  return { Select };
+});
+
 let server;
 let app;
 const TEST_PORT = 5006;
@@ -111,5 +130,25 @@ describe("AdminOrders Integration", () => {
   it("does not render orders when user is not admin", async () => {
     renderWithProviders();
     expect(screen.queryByText("Test Product")).not.toBeInTheDocument();
+  });
+
+  it("renders orders for admin", async () => {
+    const loginRes = await axios.post("/api/v1/auth/login", {
+      email: ADMIN_USER.email,
+      password: ADMIN_USER.password,
+    });
+
+    localStorage.setItem("auth", JSON.stringify(loginRes.data));
+
+    renderWithProviders();
+
+    // Header appears when orders are loaded
+    expect(await screen.findByText("All Orders")).toBeInTheDocument();
+
+    // Product name from seeded order should appear
+    expect(await screen.findByText("Test Product")).toBeInTheDocument();
+    // Initial status via native select
+    const select = screen.getByLabelText("status");
+    expect(select).toHaveDisplayValue("Not Processed");
   });
 });
