@@ -110,4 +110,12 @@ test.describe("Create Category Page", () => {
     // preview is visible
     await expect(page.locator("img[alt='product_photo']")).toBeVisible();
   });
+
+  test("empty form should return an error", async ({ page }) => {
+    // leave form empty and submit
+    await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+    // assert error toast
+    await expect(page.getByRole("main")).toContainText("Something went wrong");
+  });
 });
