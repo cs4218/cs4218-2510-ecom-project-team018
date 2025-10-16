@@ -1,4 +1,5 @@
 import React from "react";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
@@ -41,7 +42,8 @@ const TEST_USER = {
 
 describe("Login Integration", () => {
   beforeAll(async () => {
-    const uri = process.env.MONGO_URL_TEST;
+    const mongo = await MongoMemoryServer.create();
+    const uri = mongo.getUri();
     await mongoose.connect(uri);
     await mongoose.connection.db.dropDatabase();
 
