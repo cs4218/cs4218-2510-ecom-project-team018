@@ -28,8 +28,14 @@ jest.mock("../components/Layout", () => ({
   default: ({ children }) => <div data-testid="layout-mock">{children}</div>,
 }));
 
-// Mock toast
 jest.mock("react-hot-toast");
+
+const mockNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockNavigate,
+}));
+
 
 let server;
 let app;
@@ -312,5 +318,43 @@ describe("HomePage Integration Tests", () => {
 
     const names = screen.getAllByTestId("product-name").map(el => el.textContent);
     expect(names).toContain(products[0].name);
+  });
+
+  it("navigates to product details when 'More Details' is clicked", async () => {
+    renderPage();
+
+    // Wait for products to load
+    const detailsButtons = await screen.findAllByRole("button", { name: /more details/i });
+
+    // Click the first button
+    await userEvent.click(detailsButtons[0]);
+
+    // The first product shown is products[6] (P7 Jacket) because of DESC sorting
+    expect(mockNavigate).toHaveBeenCalledWith(`/product/${products[6].slug}`);
+  });
+
+  it("shows loading state when fetching more products", async () => {
+    renderPage();
+
+    let loadMoreBtn;
+
+    await waitFor(() => {
+      loadMoreBtn = screen.getByText(/load more/i);
+    });
+
+    await userEvent.click(loadMoreBtn);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      const productNamesEls = screen.getAllByTestId("product-name");
+      expect(productNamesEls.length).toBe(7);
+    });
   });
 });
