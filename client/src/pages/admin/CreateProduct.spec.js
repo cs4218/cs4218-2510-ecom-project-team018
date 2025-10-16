@@ -118,4 +118,59 @@ test.describe("Create Category Page", () => {
     // assert error toast
     await expect(page.getByRole("main")).toContainText("Something went wrong");
   });
+
+  test("successfully create a product and navigates to products page", async ({
+    page,
+  }) => {
+    // mock create product API
+    await page.route("**/api/v1/product/create-product", async (route) => {
+      await route.fulfill({
+        status: SUCCESS_STATUS,
+        body: JSON.stringify({ success: true }),
+      });
+    });
+
+    // select "electronics" category
+    const selectCategory = page.locator(".ant-select-dropdown");
+    await page.click(".ant-select");
+    await selectCategory.getByText(SAMPLE_CATEOGRIES[0].name).click();
+
+    // fill in fields
+    await page.getByRole("textbox", { name: "Write a name" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a name" })
+      .fill("Test Product");
+    await page.getByRole("textbox", { name: "Write a description" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a description" })
+      .fill("Test Product Description");
+    await page.getByPlaceholder("Write a Price").click();
+    await page.getByPlaceholder("Write a Price").fill("100");
+    await page.getByPlaceholder("Write a quantity").click();
+    await page.getByPlaceholder("Write a quantity").fill("10");
+
+    // select "no" shipping
+    const selects = page.locator(".ant-select");
+    await selects.nth(1).click();
+    await page.getByText("No").click();
+
+    // upload image
+    const filePath = path.join(
+      __dirname,
+      "../../../public/images/placeholder.png"
+    );
+    await page.getByText("Upload Photo").click();
+    await page.locator('input[type="file"]').setInputFiles(filePath);
+
+    // submit
+    await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+    // assert success toast
+    await expect(page.getByRole("main")).toContainText(
+      "Product Created Successfully"
+    );
+
+    // assert navigation
+    await expect(page).toHaveURL(/\/dashboard\/admin\/products/);
+  });
 });
