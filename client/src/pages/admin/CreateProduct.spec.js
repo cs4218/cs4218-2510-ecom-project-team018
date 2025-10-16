@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import path from "path";
 
 // sample category data
 const SAMPLE_CATEOGRIES = [
@@ -89,5 +90,24 @@ test.describe("Create Category Page", () => {
         hasText: SAMPLE_CATEOGRIES[0].name,
       })
     ).toBeVisible();
+  });
+
+  test("should show image preview after uploading image", async ({ page }) => {
+    // test image
+    const filePath = path.join(
+      __dirname,
+      "../../../public/images/placeholder.png"
+    );
+
+    // click 'upload photo' & input test image
+    await page.getByText("Upload Photo").click();
+    await page.locator('input[type="file"]').setInputFiles(filePath);
+
+    // 'upload photo' button to now show the file's name
+    await expect(page.getByText("placeholder.png")).toBeVisible();
+    await expect(page.locator("label")).toContainText("placeholder.png");
+
+    // preview is visible
+    await expect(page.locator("img[alt='product_photo']")).toBeVisible();
   });
 });
