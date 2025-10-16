@@ -1,0 +1,65 @@
+import { test, expect } from "@playwright/test";
+
+// sample category data
+const SAMPLE_CATEOGRIES = [
+  { _id: "1", name: "Electronics" },
+  { _id: "2", name: "Books" },
+];
+
+// status codes
+const SUCCESS_STATUS = 200;
+const BAD_REQUEST_STATUS = 400;
+
+test.describe("Create Category Page", () => {
+  test.beforeEach(async ({ page }) => {
+    // mock get-category API
+    await page.route("**/api/v1/category/get-category", async (route) => {
+      await route.fulfill({
+        status: SUCCESS_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          category: [...SAMPLE_CATEOGRIES],
+        }),
+      });
+    });
+
+    // go to the create-product page
+    await page.goto("/dashboard/admin/create-product");
+
+    // wait to be redirected
+    await page.waitForURL("/login");
+
+    // login
+    await page
+      .getByRole("textbox", { name: "Enter Your Email" })
+      .fill("kenvynkwek@gmail.com");
+    await page.getByRole("textbox", { name: "Enter Your Email" }).press("Tab");
+    await page
+      .getByRole("textbox", { name: "Enter Your Password" })
+      .fill("password");
+    await page.getByRole("button", { name: "LOGIN" }).click();
+
+    // wait for redirect to create-product page
+    await page.waitForURL("/dashboard/admin/create-product");
+  });
+
+  test("successfully render all UI elements", async ({ page }) => {
+    // heading
+    await expect(page.locator("h1")).toContainText("Create Product");
+
+    // fields
+    await expect(page.getByRole("main")).toContainText("Select a category");
+    await expect(page.getByText("Upload Photo")).toBeVisible();
+    await expect(page.getByPlaceholder("Write a name")).toBeVisible();
+    await expect(page.getByPlaceholder("Write a description")).toBeVisible();
+    await expect(page.getByPlaceholder("Write a Price")).toBeVisible();
+    await expect(page.getByPlaceholder("Write a quantity")).toBeVisible();
+    await expect(page.getByRole("main")).toContainText("Select Shipping");
+
+    // button
+    await expect(
+      page.getByRole("button", { name: "CREATE PRODUCT" })
+    ).toBeVisible();
+  });
+});
