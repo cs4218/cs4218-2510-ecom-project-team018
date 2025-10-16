@@ -497,7 +497,7 @@ describe("Auth Controller", () => {
       expect(orderModel.find).toHaveBeenCalledWith({});
       expect(populateProducts).toHaveBeenCalledWith("products", "-photo");
       expect(populateBuyer).toHaveBeenCalledWith("buyer", "name");
-      expect(sort).toHaveBeenCalledWith({ createdAt: "-1" });
+      expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith(mockOrders);
