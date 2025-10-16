@@ -1,5 +1,4 @@
 import React from "react";
-import { MongoMemoryServer } from "mongodb-memory-server";
 import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
@@ -9,8 +8,12 @@ import { AuthProvider } from "../../context/auth";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import authRoutes from "../../../../routes/authRoute.js";
+import {
+  clearDB,
+  connectTestDB,
+  disconnectTestDB,
+} from "../../../../tests/mongoTestEnv.js";
 
 dotenv.config();
 
@@ -42,10 +45,7 @@ const TEST_USER = {
 
 describe("Login Integration", () => {
   beforeAll(async () => {
-    const mongo = await MongoMemoryServer.create();
-    const uri = mongo.getUri();
-    await mongoose.connect(uri);
-    await mongoose.connection.db.dropDatabase();
+    await connectTestDB();
 
     app = express();
     app.use(cors());
@@ -60,8 +60,8 @@ describe("Login Integration", () => {
 
   afterAll(async () => {
     if (server) server.close();
-    await mongoose.connection.db.dropDatabase();
-    await mongoose.connection.close();
+    await clearDB();
+    await disconnectTestDB();
   });
 
   beforeEach(() => {
