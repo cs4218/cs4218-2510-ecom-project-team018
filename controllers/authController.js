@@ -232,6 +232,7 @@ export const getOrdersController = async (req, res) => {
     });
   }
 };
+
 //orders
 export const getAllOrdersController = async (req, res) => {
   try {
@@ -239,9 +240,10 @@ export const getAllOrdersController = async (req, res) => {
       .find({})
       .populate("products", "-photo")
       .populate("buyer", "name")
-      .sort({ createdAt: "-1" });
+      .sort({ createdAt: -1 });
     res.status(200).send(orders);
   } catch (error) {
+    console.log(error);
     res.status(500).send({
       success: false,
       message: "Error While Getting All Orders",
@@ -255,6 +257,15 @@ export const orderStatusController = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
+    
+    if (!["Not Processed", "Processing", "Shipped", "Delivered", "Cancel"].includes(status)) {
+      throw new Error("Invalid status value");
+    }
+
+    if (!orderId) {
+      throw new Error("No orderId provided");
+    }
+
     const orders = await orderModel.findByIdAndUpdate(
       orderId,
       { status },
@@ -265,7 +276,7 @@ export const orderStatusController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error While Updating Order Status",
-      error,
+      error
     });
   }
 };
