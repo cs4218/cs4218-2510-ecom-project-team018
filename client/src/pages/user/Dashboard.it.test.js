@@ -10,6 +10,11 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import authRoutes from "../../../../routes/authRoute.js";
+import {
+  clearDB,
+  connectTestDB,
+  disconnectTestDB,
+} from "../../../../tests/mongoTestEnv.js";
 
 dotenv.config();
 
@@ -38,9 +43,7 @@ const TEST_USER = {
 
 describe("Dashboard Integration", () => {
   beforeAll(async () => {
-    const uri = process.env.MONGO_URL_TEST;
-    await mongoose.connect(uri);
-    await mongoose.connection.db.dropDatabase();
+    await connectTestDB();
 
     app = express();
     app.use(cors());
@@ -56,8 +59,8 @@ describe("Dashboard Integration", () => {
 
   afterAll(async () => {
     if (server) server.close();
-    await mongoose.connection.db.dropDatabase();
-    await mongoose.connection.close();
+    await clearDB();
+    await disconnectTestDB();
   });
 
   beforeEach(() => {
