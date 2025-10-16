@@ -12,6 +12,11 @@ import mongoose from "mongoose";
 import authRoutes from "../../../../routes/authRoute.js";
 import Order from "../../../../models/orderModel.js";
 import Product from "../../../../models/productModel.js";
+import {
+  clearDB,
+  connectTestDB,
+  disconnectTestDB,
+} from "../../../../tests/mongoTestEnv.js";
 
 dotenv.config();
 
@@ -83,9 +88,7 @@ const seedData = async (db) => {
 
 describe("AdminOrders Integration", () => {
   beforeAll(async () => {
-    const uri = process.env.MONGO_URL_TEST;
-    await mongoose.connect(uri);
-    await mongoose.connection.db.dropDatabase();
+    await connectTestDB();
 
     app = express();
     app.use(cors());
@@ -109,8 +112,8 @@ describe("AdminOrders Integration", () => {
 
   afterAll(async () => {
     if (server) server.close();
-    await mongoose.connection.db.dropDatabase();
-    await mongoose.connection.close();
+    await clearDB();
+    await disconnectTestDB();
   });
 
   beforeEach(() => {
