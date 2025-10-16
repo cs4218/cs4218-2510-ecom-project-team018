@@ -62,4 +62,32 @@ test.describe("Create Category Page", () => {
       page.getByRole("button", { name: "CREATE PRODUCT" })
     ).toBeVisible();
   });
+
+  test("should populate category dropdown and allow selection", async ({
+    page,
+  }) => {
+    const selectCategory = page.locator(".ant-select-dropdown");
+
+    // open dropdown
+    await page.click(".ant-select");
+    await expect(selectCategory).toBeVisible();
+
+    // assert that existing categories are visible in the drop down
+    await expect(
+      selectCategory.getByText(SAMPLE_CATEOGRIES[0].name)
+    ).toBeVisible();
+    await expect(
+      selectCategory.getByText(SAMPLE_CATEOGRIES[1].name)
+    ).toBeVisible();
+
+    // select "electronics" option
+    await selectCategory.getByText(SAMPLE_CATEOGRIES[0].name).click();
+
+    // verify "electronics" has been selected
+    await expect(
+      page.locator(".ant-select-selection-item", {
+        hasText: SAMPLE_CATEOGRIES[0].name,
+      })
+    ).toBeVisible();
+  });
 });
