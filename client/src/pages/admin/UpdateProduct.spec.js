@@ -168,9 +168,32 @@ test.describe("Update Product page", () => {
     await page.waitForURL("/dashboard/admin/products");
     await expect(page).toHaveURL("/dashboard/admin/products");
   });
-  //   test("error when updating a product bc missing fields", async ({
-  //     page,
-  //   }) => {});
+
+  test("error when updating a product because of missing field(s)", async ({
+    page,
+  }) => {
+    // mock update-product API to return error
+    await page.route("**/api/v1/product/update-product/**", (route) =>
+      route.fulfill({
+        status: BAD_REQUEST_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          error: "Name is required",
+        }),
+      })
+    );
+
+    // clear the product name
+    const nameField = page.getByPlaceholder("write a name");
+    await nameField.fill("");
+
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+    // assert error toast
+    await expect(page.getByText("Name is required")).toBeVisible();
+  });
   //   test("error bc API fail", async ({ page }) => {});
   //   test("successfully delete a product", async ({ page }) => {});
 });
