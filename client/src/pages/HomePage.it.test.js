@@ -13,6 +13,7 @@ import categoryRoutes from "../../../routes/categoryRoutes.js";
 import productRoutes from "../../../routes/productRoutes.js";
 import { CartProvider } from "../context/cart";
 import toast from "react-hot-toast";
+import { act } from 'react-dom/test-utils';
 
 import {
   clearDB,
@@ -140,7 +141,7 @@ describe("HomePage Integration Tests", () => {
     const electronicsCheckbox = await screen.findByRole("checkbox", {
       name: categories[0].name,
     });
-    await userEvent.click(electronicsCheckbox);
+    await act(async () => await userEvent.click(electronicsCheckbox));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -163,12 +164,14 @@ describe("HomePage Integration Tests", () => {
     const electronicsCheckbox = await screen.findByRole("checkbox", {
       name: categories[0].name,
     });
-    await userEvent.click(electronicsCheckbox);
+
+    await act(async () => await userEvent.click(electronicsCheckbox));
 
     const booksCheckbox = await screen.findByRole("checkbox", {
       name: categories[1].name,
     });
-    await userEvent.click(booksCheckbox);
+
+    await act(async () => await userEvent.click(booksCheckbox));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -191,7 +194,7 @@ describe("HomePage Integration Tests", () => {
     renderPage();
 
     const priceOption = await screen.findByText("$20 to 39");
-    await userEvent.click(priceOption);
+    await act(async () => await userEvent.click(priceOption));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -213,10 +216,11 @@ describe("HomePage Integration Tests", () => {
     const electronicsCheckbox = await screen.findByRole("checkbox", {
       name: categories[0].name,
     });
-    await userEvent.click(electronicsCheckbox);
+    await act(async () => await userEvent.click(electronicsCheckbox));
 
     const priceOption = await screen.findByText("$40 to 59");
-    await userEvent.click(priceOption);
+
+    await act(async () => await userEvent.click(priceOption));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -233,14 +237,14 @@ describe("HomePage Integration Tests", () => {
     const electronicsCheckbox = await screen.findByRole("checkbox", {
       name: categories[0].name,
     });
-    await userEvent.click(electronicsCheckbox);
+    await act(async () => userEvent.click(electronicsCheckbox));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
       expect(productNamesEls.length).toBe(3);
     });
 
-    await userEvent.click(electronicsCheckbox);
+    await act(async () => userEvent.click(electronicsCheckbox));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -254,13 +258,13 @@ describe("HomePage Integration Tests", () => {
     const electronicsCheckbox = await screen.findByRole("checkbox", {
       name: categories[0].name,
     });
-    await userEvent.click(electronicsCheckbox);
+    await act(async () => userEvent.click(electronicsCheckbox));
 
     const priceOption = await screen.findByText("$20 to 39");
-    await userEvent.click(priceOption);
+    await act(async () => userEvent.click(priceOption));
 
     const resetButton = screen.getByText("RESET FILTERS");
-    await userEvent.click(resetButton);
+    await act(async () => userEvent.click(resetButton));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -275,7 +279,7 @@ describe("HomePage Integration Tests", () => {
     await screen.findAllByTestId("product-name");
 
     const addButtons = screen.getAllByRole("button", { name: /add to cart/i });
-    await userEvent.click(addButtons[0]);
+    await act(async () => userEvent.click(addButtons[0]));
 
     const storedCart = JSON.parse(localStorage.getItem("cart"));
     expect(storedCart.length).toBe(1);
@@ -289,10 +293,10 @@ describe("HomePage Integration Tests", () => {
 
     const addButtons = await screen.findAllByRole("button", { name: /add to cart/i });
 
-    await userEvent.click(addButtons[0]);
+    await act(async () => userEvent.click(addButtons[0]));
     expect(toast.success).toHaveBeenCalledWith("Item added to cart");
 
-    await userEvent.click(addButtons[0]);
+    await act(async () => userEvent.click(addButtons[0]));
 
     const storedCart = JSON.parse(localStorage.getItem("cart"));
     expect(storedCart.length).toBe(1);
@@ -309,7 +313,7 @@ describe("HomePage Integration Tests", () => {
     });
 
     const loadMoreBtn = screen.getByText(/load more/i);
-    await userEvent.click(loadMoreBtn);
+    await act(async () => userEvent.click(loadMoreBtn));
 
     await waitFor(() => {
       const productNamesEls = screen.getAllByTestId("product-name");
@@ -327,7 +331,7 @@ describe("HomePage Integration Tests", () => {
     const detailsButtons = await screen.findAllByRole("button", { name: /more details/i });
 
     // Click the first button
-    await userEvent.click(detailsButtons[0]);
+    await act(async () => userEvent.click(detailsButtons[0]));
 
     // The first product shown is products[6] (P7 Jacket) because of DESC sorting
     expect(mockNavigate).toHaveBeenCalledWith(`/product/${products[6].slug}`);
@@ -342,7 +346,7 @@ describe("HomePage Integration Tests", () => {
       loadMoreBtn = screen.getByText(/load more/i);
     });
 
-    await userEvent.click(loadMoreBtn);
+    await act(async () => userEvent.click(loadMoreBtn));
     
     await waitFor(() => {
       expect(screen.getByText(/loading/i)).toBeInTheDocument();
