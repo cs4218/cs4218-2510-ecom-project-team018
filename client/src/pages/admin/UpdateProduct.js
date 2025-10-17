@@ -83,7 +83,7 @@ const UpdateProduct = () => {
         toast.success("Product updated successfully");
         navigate("/dashboard/admin/products");
       } else {
-        toast.error(data?.error || "Failed to update product");
+        toast.error(data?.message || "Failed to update product");
       }
     } catch (error) {
       console.log(error);

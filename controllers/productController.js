@@ -185,31 +185,31 @@ export const updateProductController = async (req, res) => {
       case !name:
         return res
           .status(400)
-          .send({ success: false, error: "Name is required" });
+          .send({ success: false, message: "Name is required" });
       case !description:
         return res
           .status(400)
-          .send({ success: false, error: "Description is required" });
+          .send({ success: false, message: "Description is required" });
       case !price:
         return res
           .status(400)
-          .send({ success: false, error: "Price is required" });
+          .send({ success: false, message: "Price is required" });
       case !category:
         return res
           .status(400)
-          .send({ success: false, error: "Category is required" });
+          .send({ success: false, message: "Category is required" });
       case !quantity:
         return res
           .status(400)
-          .send({ success: false, error: "Quantity is required" });
+          .send({ success: false, message: "Quantity is required" });
       case shipping === undefined || shipping === "":
         return res
           .status(400)
-          .send({ success: false, error: "Shipping is required" });
+          .send({ success: false, message: "Shipping is required" });
       case photo && photo.size > 1000000:
         return res.status(413).send({
           success: false,
-          error: "Photo is required and should be less then 1MB",
+          message: "Photo is required and should be less then 1MB",
         });
     }
 
