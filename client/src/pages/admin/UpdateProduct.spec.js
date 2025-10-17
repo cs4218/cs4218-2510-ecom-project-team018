@@ -47,6 +47,22 @@ test.describe("Update Product page", () => {
       })
     );
 
+    // mock photo preview retrieval
+    const filePath = path.join(
+      __dirname,
+      "../../../public/images/placeholder.png"
+    );
+    const fs = require("fs");
+    const imageBuffer = fs.readFileSync(filePath);
+
+    await page.route("**/api/v1/product/product-photo/**", async (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: "image/png",
+        body: imageBuffer,
+      });
+    });
+
     // go to the product page with mock slug
     await page.goto("/dashboard/admin/product/test-product");
 
@@ -67,7 +83,42 @@ test.describe("Update Product page", () => {
     await page.waitForURL("/dashboard/admin/product/test-product");
   });
 
-  test("should load product and categories correctly", async ({ page }) => {});
+  test("should load product and categories correctly", async ({ page }) => {
+    // heading
+    await expect(page.locator("h1")).toContainText("Update Product");
+
+    // fields
+    await expect(page.locator(".ant-select").first()).toHaveText(
+      SAMPLE_PRODUCT.product.category.name
+    );
+    await expect(page.getByPlaceholder("write a name")).toHaveValue(
+      SAMPLE_PRODUCT.product.name
+    );
+    await expect(page.getByPlaceholder("write a description")).toHaveValue(
+      SAMPLE_PRODUCT.product.description
+    );
+    await expect(page.getByPlaceholder("write a Price")).toHaveValue(
+      SAMPLE_PRODUCT.product.price
+    );
+    await expect(page.getByPlaceholder("write a quantity")).toHaveValue(
+      SAMPLE_PRODUCT.product.quantity
+    );
+    await expect(page.locator(".ant-select").nth(1)).toHaveText("No");
+
+    // upload photo button
+    await expect(page.getByText("Upload Photo")).toBeVisible();
+    // photo preview
+    const previewImg = page.locator("img[alt='product_photo']");
+    await expect(previewImg).toBeVisible();
+
+    // buttons
+    await expect(
+      page.getByRole("button", { name: "UPDATE PRODUCT" })
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "DELETE PRODUCT" })
+    ).toBeVisible();
+  });
   //   test("successfully updates a product and navigates to products page", async ({
   //     page,
   //   }) => {});
