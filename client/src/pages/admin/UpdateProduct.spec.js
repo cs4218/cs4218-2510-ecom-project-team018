@@ -23,6 +23,7 @@ const SAMPLE_PRODUCT = {
 // status codes
 const SUCCESS_STATUS = 200;
 const BAD_REQUEST_STATUS = 400;
+const INTERNAL_SERVER_ERROR = 500;
 
 test.describe("Update Product page", () => {
   test.beforeEach(async ({ page }) => {
@@ -179,7 +180,7 @@ test.describe("Update Product page", () => {
         contentType: "application/json",
         body: JSON.stringify({
           success: false,
-          error: "Name is required",
+          message: "Name is required",
         }),
       })
     );
@@ -194,6 +195,25 @@ test.describe("Update Product page", () => {
     // assert error toast
     await expect(page.getByText("Name is required")).toBeVisible();
   });
-  //   test("error bc API fail", async ({ page }) => {});
+
+  test("shows error toast when API fails", async ({ page }) => {
+    // mock the update-product API to return an internal server error (500)
+    await page.route("**/api/v1/product/update-product/**", (route) =>
+      route.fulfill({
+        status: INTERNAL_SERVER_ERROR,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: false,
+          message: "Something went wrong",
+        }),
+      })
+    );
+
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+    // assert error toast
+    await expect(page.getByText("Something went wrong")).toBeVisible();
+  });
   //   test("successfully delete a product", async ({ page }) => {});
 });
