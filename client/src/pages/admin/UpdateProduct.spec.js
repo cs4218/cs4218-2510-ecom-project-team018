@@ -215,5 +215,33 @@ test.describe("Update Product page", () => {
     // assert error toast
     await expect(page.getByText("Something went wrong")).toBeVisible();
   });
-  //   test("successfully delete a product", async ({ page }) => {});
+
+  test("successfully delete a product", async ({ page }) => {
+    // mock the delete-product API to succeed
+    await page.route("**/api/v1/product/delete-product/**", (route) =>
+      route.fulfill({
+        status: SUCCESS_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({
+          success: true,
+          message: "Product deleted successfully",
+        }),
+      })
+    );
+
+    // mock window.prompt to return "yes"
+    page.on("dialog", async (dialog) => {
+      expect(dialog.type()).toBe("prompt");
+      await dialog.accept("yes");
+    });
+
+    // click 'delete' button
+    await page.getByRole("button", { name: "DELETE PRODUCT" }).click();
+
+    // assert success toast
+    await expect(page.getByText("Product deleted successfully")).toBeVisible();
+
+    // assert navigation to products page
+    await expect(page).toHaveURL("/dashboard/admin/products");
+  });
 });
