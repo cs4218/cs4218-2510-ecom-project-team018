@@ -208,4 +208,35 @@ test.describe("Create Category Page", () => {
     // assert error toast
     await expect(page.getByRole("main")).toContainText("Something went wrong");
   });
+
+  test("missing required fields should return an error", async ({ page }) => {
+    // mock POST route to fail
+    await page.route("**/api/v1/product/create-product", async (route) => {
+      await route.fulfill({
+        status: INTERNAL_SERVER_ERROR_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({ success: false, message: "Server Error" }),
+      });
+    });
+
+    // partially fill out form (no price & quantity)
+    const selectCategory = page.locator(".ant-select-dropdown");
+    await page.click(".ant-select");
+    await selectCategory.getByText(SAMPLE_CATEOGRIES[0].name).click();
+    await page.click(".ant-select");
+    await page.getByRole("textbox", { name: "Write a name" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a name" })
+      .fill("Half filled form's product");
+    await page.getByRole("textbox", { name: "Write a description" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a description" })
+      .fill("Half filled form's description");
+
+    // submit
+    await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+    // assert error toast
+    await expect(page.getByRole("main")).toContainText("Something went wrong");
+  });
 });
