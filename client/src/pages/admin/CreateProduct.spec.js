@@ -9,7 +9,7 @@ const SAMPLE_CATEOGRIES = [
 
 // status codes
 const SUCCESS_STATUS = 200;
-const BAD_REQUEST_STATUS = 400;
+const INTERNAL_SERVER_ERROR_STATUS = 500;
 
 test.describe("Create Category Page", () => {
   test.beforeEach(async ({ page }) => {
@@ -172,5 +172,40 @@ test.describe("Create Category Page", () => {
 
     // assert navigation
     await expect(page).toHaveURL(/\/dashboard\/admin\/products/);
+  });
+
+  test("should show error toast if API fails", async ({ page }) => {
+    // mock POST route to fail
+    await page.route("**/api/v1/product/create-product", async (route) => {
+      await route.fulfill({
+        status: INTERNAL_SERVER_ERROR_STATUS,
+        contentType: "application/json",
+        body: JSON.stringify({ success: false, message: "Server Error" }),
+      });
+    });
+
+    // fill in only required fields
+    const selectCategory = page.locator(".ant-select-dropdown");
+    await page.click(".ant-select");
+    await selectCategory.getByText(SAMPLE_CATEOGRIES[0].name).click();
+    await page.click(".ant-select");
+    await page.getByRole("textbox", { name: "Write a name" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a name" })
+      .fill("Broken Product");
+    await page.getByRole("textbox", { name: "Write a description" }).click();
+    await page
+      .getByRole("textbox", { name: "Write a description" })
+      .fill("This will fail");
+    await page.getByPlaceholder("Write a Price").click();
+    await page.getByPlaceholder("Write a Price").fill("1");
+    await page.getByPlaceholder("Write a quantity").click();
+    await page.getByPlaceholder("Write a quantity").fill("1");
+
+    // submit
+    await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+    // assert error toast
+    await expect(page.getByRole("main")).toContainText("Something went wrong");
   });
 });
