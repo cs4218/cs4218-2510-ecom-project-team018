@@ -49,7 +49,6 @@ const Profile = () => {
       }
 
       if (!data?.success) {
-        console.error(data?.error);
         toast.error("Updating Profile unsuccessful, please try again later");
       } else {
         setAuth({ ...auth, user: data?.updatedUser });
