@@ -354,6 +354,33 @@ describe("ProductDetails Integration", () => {
     );
   });
 
+  it("does not truncate similar product descriptions of length 59", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const originalLength = 59;
+    const shortDescription = "x".repeat(originalLength);
+    const relatedProduct = await createProduct(category._id, {
+      ...PRODUCT_TEMPLATES.firstRelated,
+      description: shortDescription,
+    });
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    const relCard = await screen.findByTestId(
+      `similar-product-${relatedProduct._id.toString()}`
+    );
+    const text = within(relCard).getByText(/x+/).textContent;
+    expect(text).toBe(shortDescription);
+    expect(text.length).toBe(originalLength);
+  });
+
   it("does not truncate similar product descriptions of length 60", async () => {
     const category = await Category.create(CATEGORY_FIXTURES.primary);
     const mainProduct = await createProduct(
