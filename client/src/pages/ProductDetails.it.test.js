@@ -529,6 +529,4 @@ describe("ProductDetails Integration", () => {
       expect(toast.success).toHaveBeenCalledTimes(2);
     });
   });
-
-  describe("Similar products presentation", () => {});
 });
