@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Products",
           required: true,
-        }
+        },
       ],
       required: true,
       validate: {
@@ -21,9 +21,9 @@ const orderSchema = new mongoose.Schema(
 
     payment: {
       type: {
-        success: { type: Boolean, required: true}
+        success: { type: Boolean, required: true },
       },
-      required: true
+      required: true,
     },
 
     buyer: {
@@ -35,7 +35,13 @@ const orderSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Not Processed",
-      enum: ["Not Processed", "Processing", "Shipped", "Delivered", "Cancel"],
+      enum: [
+        "Not Processed",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+      ],
       required: true,
     },
   },

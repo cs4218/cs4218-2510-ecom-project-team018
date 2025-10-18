@@ -10,16 +10,15 @@ import { truncateDescription30 } from "../../utils/productUtils";
 const { Option } = Select;
 
 const AdminOrders = () => {
-  const [status, setStatus] = useState([
-    "Not Processing",
+  const [status] = useState([
+    "Not Processed",
     "Processing",
     "Shipped",
     "Delivered",
     "Cancelled",
   ]);
-  const [changeStatus, setChangeStatus] = useState("");
   const [orders, setOrders] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/auth/all-orders");
@@ -35,12 +34,12 @@ const AdminOrders = () => {
 
   const handleChange = async (orderId, value) => {
     try {
-      const { data } = await axios.put(`/api/v1/auth/order-status/${orderId}`, {
+      await axios.put(`/api/v1/auth/order-status/${orderId}`, {
         status: value,
       });
       getOrders();
     } catch (error) {
-      console.log(error);
+      toast.error("Error updating order status");
     }
   };
 
@@ -96,6 +95,7 @@ const AdminOrders = () => {
                         <img
                           src={`/api/v1/product/product-photo/${p._id}`}
                           className="card-img-top"
+                          style={{ objectFit: "contain" }}
                           alt={p.name}
                           width="100px"
                           height={"100px"}
