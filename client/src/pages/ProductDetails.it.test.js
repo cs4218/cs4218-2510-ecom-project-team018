@@ -98,3 +98,40 @@ const createProduct = (categoryId, overrides = {}) =>
     category: categoryId,
     ...overrides,
   });
+
+describe("ProductDetails Integration", () => {
+  let app;
+  let server;
+
+  beforeAll(async () => {
+    await connectTestDB();
+
+    app = express();
+    app.use(cors());
+    app.use(express.json());
+    app.use("/api/v1/product", productRoutes);
+
+    await new Promise((resolve) => {
+      server = app.listen(0, () => {
+        const { port } = server.address();
+        axios.defaults.baseURL = `http://127.0.0.1:${port}`;
+        resolve();
+      });
+    });
+  });
+
+  afterAll(async () => {
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
+    await clearDB();
+    await disconnectTestDB();
+  });
+
+  beforeEach(async () => {
+    await clearDB();
+    localStorage.clear();
+    toast.success.mockClear();
+    toast.error.mockClear();
+  });
+});
