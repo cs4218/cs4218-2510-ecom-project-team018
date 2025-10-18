@@ -354,6 +354,54 @@ describe("ProductDetails Integration", () => {
     expect(toast.success).toHaveBeenCalledWith("Item added to cart");
   });
 
+  it("adds both main and similar products to cart", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const relatedProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.firstRelated
+    );
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    // Add main product to cart
+    const mainAddToCartButton = await screen.findByTestId("main-add-to-cart");
+    fireEvent.click(mainAddToCartButton);
+
+    // Add related product to cart
+    const relatedProductCard = await screen.findByTestId(
+      `similar-product-${relatedProduct._id.toString()}`
+    );
+    const relatedAddToCartButton = within(relatedProductCard).getByRole(
+      "button",
+      {
+        name: /add to cart/i,
+      }
+    );
+    fireEvent.click(relatedAddToCartButton);
+
+    await waitFor(() =>
+      expect(JSON.parse(localStorage.getItem("cart") ?? "[]")).toHaveLength(2)
+    );
+    const storedCart = JSON.parse(localStorage.getItem("cart") ?? "[]");
+    const productIds = storedCart.map((item) => item._id);
+    expect(productIds).toEqual(
+      expect.arrayContaining([
+        mainProduct._id.toString(),
+        relatedProduct._id.toString(),
+      ])
+    );
+    expect(toast.success).toHaveBeenCalledTimes(2);
+  });
+
   it("renders not found message when the product is missing", async () => {
     renderWithProviders("/product/non-existent-product");
 
