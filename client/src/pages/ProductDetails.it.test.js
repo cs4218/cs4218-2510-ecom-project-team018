@@ -284,4 +284,39 @@ describe("ProductDetails Integration", () => {
       within(originalCard).getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
     ).toBeInTheDocument();
   });
+
+  it("adds the main product to cart and persists it locally, and prevents duplicates", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    // Add to Cart
+    const addToCartButton = await screen.findByRole("button", {
+      name: /add to cart/i,
+    });
+    fireEvent.click(addToCartButton);
+
+    // Verify localStorage update
+    await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
+    let storedCart = JSON.parse(localStorage.getItem("cart"));
+    expect(storedCart).toHaveLength(1);
+    expect(storedCart[0]._id).toBe(mainProduct._id.toString());
+    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+
+    // Try adding the same product again
+    fireEvent.click(addToCartButton);
+    storedCart = JSON.parse(localStorage.getItem("cart"));
+    expect(storedCart).toHaveLength(1);
+    expect(toast.error).toHaveBeenCalledWith("Item already in cart");
+  });
 });
