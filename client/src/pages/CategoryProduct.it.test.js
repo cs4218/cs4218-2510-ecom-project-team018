@@ -1,6 +1,12 @@
 import React from "react";
 import axios from "axios";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import { MemoryRouter, Routes, Route, useParams } from "react-router-dom";
 import "@testing-library/jest-dom";
 import express from "express";
@@ -16,6 +22,7 @@ import Category from "../../../models/categoryModel.js";
 import Product from "../../../models/productModel.js";
 import productRoutes from "../../../routes/productRoutes.js";
 import { CartProvider } from "../context/cart";
+import { DEFAULT_PAGE_SIZE } from "../../../controllers/productController.js";
 
 dotenv.config();
 
@@ -125,7 +132,7 @@ describe("CategoryProduct Integration", () => {
       const category = await Category.create(CATEGORY_FIXTURES.apparel);
 
       const products = await Promise.all(
-        Array.from({ length: 4 }, (_, index) =>
+        Array.from({ length: DEFAULT_PAGE_SIZE }, (_, index) =>
           createProduct(category._id, {
             name: `Rendered Product ${index + 1}`,
             slug: `rendered-product-${index + 1}`,
@@ -163,6 +170,59 @@ describe("CategoryProduct Integration", () => {
       expect(
         screen.getByText(/No products found in this category/i)
       ).toBeInTheDocument();
+    });
+  });
+
+  describe("Pagination", () => {
+    it("loads additional products when Load more is clicked", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+      const totalProducts = DEFAULT_PAGE_SIZE * 2; // 2 pages
+
+      const orderedNames = [];
+      for (let i = 1; i <= totalProducts; i += 1) {
+        const name = `Paged Product ${i}`;
+        orderedNames.push(name);
+        await createProduct(category._id, {
+          name,
+          slug: `paged-product-${i}`,
+        });
+      }
+
+      // Products rendered in reverse order (newest first)
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+
+      // First page assertions
+      for (
+        let i = totalProducts;
+        i > totalProducts - DEFAULT_PAGE_SIZE;
+        i -= 1
+      ) {
+        expect(screen.getByText(orderedNames[i - 1])).toBeInTheDocument();
+      }
+      for (let i = totalProducts - DEFAULT_PAGE_SIZE; i >= 1; i -= 1) {
+        expect(screen.queryByText(orderedNames[i - 1])).not.toBeInTheDocument();
+      }
+      const loadMoreButton = await screen.findByRole("button", {
+        name: /load more/i,
+      });
+      expect(loadMoreButton).toBeEnabled();
+
+      fireEvent.click(loadMoreButton);
+
+      // Second page assertions
+      await waitForElementToBeRemoved(() => screen.queryByText(/Loading .../i));
+      for (let i = 0; i < totalProducts; i++) {
+        expect(screen.getByText(orderedNames[i])).toBeInTheDocument();
+      }
+      await waitFor(() =>
+        expect(
+          screen.queryByRole("button", { name: /load more/i })
+        ).not.toBeInTheDocument()
+      );
     });
   });
 });
