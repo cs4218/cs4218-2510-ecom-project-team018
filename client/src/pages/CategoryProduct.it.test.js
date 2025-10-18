@@ -119,4 +119,36 @@ describe("CategoryProduct Integration", () => {
     toast.error.mockClear();
     productCounter = 0;
   });
+
+  describe("Category rendering", () => {
+    it("displays category details and first page products", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+
+      const products = await Promise.all(
+        Array.from({ length: 4 }, (_, index) =>
+          createProduct(category._id, {
+            name: `Rendered Product ${index + 1}`,
+            slug: `rendered-product-${index + 1}`,
+          })
+        )
+      );
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      const heading = await screen.findByText(
+        `Category - ${CATEGORY_FIXTURES.apparel.name}`
+      );
+      expect(heading).toBeInTheDocument();
+
+      expect(
+        screen.getByText(new RegExp(`${products.length} results found`, "i"))
+      ).toBeInTheDocument();
+      products.forEach((product) => {
+        expect(screen.getByText(product.name)).toBeInTheDocument();
+      });
+      expect(
+        screen.queryByText(/No products found in this category/i)
+      ).not.toBeInTheDocument();
+    });
+  });
 });
