@@ -75,29 +75,29 @@ const renderPage = () => {
 };
 
 describe("Profile Page Integration Tests", () => {
-    beforeAll(async () => {
-        await connectTestDB();
+  beforeAll(async () => {
+    await connectTestDB();
 
-        app = express();
-        app.use(cors());
-        app.use(express.json());
-        app.use("/api/v1/auth", authRoutes);
-        server = app.listen(TEST_PORT);
-        axios.defaults.baseURL = `http://localhost:${TEST_PORT}`;
-    })
+    app = express();
+    app.use(cors());
+    app.use(express.json());
+    app.use("/api/v1/auth", authRoutes);
+    server = app.listen(TEST_PORT);
+    axios.defaults.baseURL = `http://localhost:${TEST_PORT}`;
+  })
 
-      beforeEach(async () => {
-        await clearDB();
-        localStorage.clear();
-        jest.restoreAllMocks();
-      });
+  beforeEach(async () => {
+    await clearDB();
+    localStorage.clear();
+    jest.restoreAllMocks();
+  });
 
-    afterAll(async () => {
-        if (server) server.close();
-        await disconnectTestDB();
-    })
+  afterAll(async () => {
+    if (server) server.close();
+    await disconnectTestDB();
+  })
 
-    it("loads profile and pre-fills form when authenticated; email is disabled", async () => {
+  it("loads profile and pre-fills form when authenticated; email is disabled", async () => {
     await setUpAuth();
     renderPage();
 
@@ -135,7 +135,7 @@ describe("Profile Page Integration Tests", () => {
 
     // Email must be disabled
     expect(emailInput).toBeDisabled();
-    });
+  });
 
   it("shows toast error if no auth token is present", async () => {
     renderPage();
