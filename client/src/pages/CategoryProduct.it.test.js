@@ -284,4 +284,61 @@ describe("CategoryProduct Integration", () => {
       expect(toast.error).toHaveBeenCalledWith("Item already in cart");
     });
   });
+
+  describe("Description handling", () => {
+    it("renders full description when length is 59", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+      const description = "a".repeat(59);
+      await createProduct(category._id, {
+        name: "Description Fifty Nine",
+        slug: "description-fifty-nine",
+        description,
+      });
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+
+      expect(screen.getByText(description)).toBeInTheDocument();
+    });
+
+    it("renders full description when length is 60", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+      const description = "b".repeat(60);
+      await createProduct(category._id, {
+        name: "Description Sixty",
+        slug: "description-sixty",
+        description,
+      });
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+
+      expect(screen.getByText(description)).toBeInTheDocument();
+    });
+
+    it("truncates description when length is 61 and adds ellipsis", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+      const description = "c".repeat(61);
+      await createProduct(category._id, {
+        name: "Description Sixty One",
+        slug: "description-sixty-one",
+        description,
+      });
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+
+      const expected = `${description.slice(0, 60)}...`;
+      expect(screen.getByText(expected)).toBeInTheDocument();
+    });
+  });
 });
