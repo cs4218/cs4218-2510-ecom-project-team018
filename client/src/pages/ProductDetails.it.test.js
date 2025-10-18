@@ -319,4 +319,30 @@ describe("ProductDetails Integration", () => {
     expect(storedCart).toHaveLength(1);
     expect(toast.error).toHaveBeenCalledWith("Item already in cart");
   });
+
+  it("shows no similar products message when none exist", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+    const onlyProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+
+    renderWithProviders(`/product/${onlyProduct.slug}`);
+
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    const section = await screen.findByTestId("similar-products");
+    expect(
+      within(section).getByText(/No similar products found/i)
+    ).toBeInTheDocument();
+
+    const img = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
+    expect(img).toHaveAttribute(
+      "src",
+      `/api/v1/product/product-photo/${onlyProduct._id}`
+    );
+  });
 });
