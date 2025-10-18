@@ -135,390 +135,400 @@ describe("ProductDetails Integration", () => {
     toast.error.mockClear();
   });
 
-  it("renders product details and similar products from the API", async () => {
-    const primaryCategory = await Category.create(CATEGORY_FIXTURES.primary);
+  describe("Product rendering", () => {
+    it("renders product details and similar products from the API", async () => {
+      const primaryCategory = await Category.create(CATEGORY_FIXTURES.primary);
 
-    const mainProduct = await createProduct(
-      primaryCategory._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const firstRelatedProduct = await createProduct(
-      primaryCategory._id,
-      PRODUCT_TEMPLATES.firstRelated
-    );
-    const secondRelatedProduct = await createProduct(
-      primaryCategory._id,
-      PRODUCT_TEMPLATES.secondRelated
-    );
+      const mainProduct = await createProduct(
+        primaryCategory._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const firstRelatedProduct = await createProduct(
+        primaryCategory._id,
+        PRODUCT_TEMPLATES.firstRelated
+      );
+      const secondRelatedProduct = await createProduct(
+        primaryCategory._id,
+        PRODUCT_TEMPLATES.secondRelated
+      );
 
-    const secondaryCategory = await Category.create(
-      CATEGORY_FIXTURES.secondary
-    );
-    await createProduct(
-      secondaryCategory._id,
-      PRODUCT_TEMPLATES.secondaryCategory
-    );
+      const secondaryCategory = await Category.create(
+        CATEGORY_FIXTURES.secondary
+      );
+      await createProduct(
+        secondaryCategory._id,
+        PRODUCT_TEMPLATES.secondaryCategory
+      );
 
-    renderWithProviders(`/product/${mainProduct.slug}`);
+      renderWithProviders(`/product/${mainProduct.slug}`);
 
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
 
-    // Verify main product details
-    expect(
-      await screen.findByRole("heading", { name: /Product Details/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.description))
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.price))
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(CATEGORY_FIXTURES.primary.name))
-    ).toBeInTheDocument();
-
-    const mainImg = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
-    expect(mainImg).toHaveAttribute(
-      "src",
-      `/api/v1/product/product-photo/${mainProduct._id}`
-    );
-
-    // Verify similar products section
-    const similarSection = await screen.findByTestId("similar-products");
-    expect(similarSection).toBeInTheDocument();
-    await waitFor(() =>
+      // Verify main product details
       expect(
-        screen.queryByText(/No similar products found/i)
-      ).not.toBeInTheDocument()
-    );
+        await screen.findByRole("heading", { name: /Product Details/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.description))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.price))
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(new RegExp(CATEGORY_FIXTURES.primary.name))
+      ).toBeInTheDocument();
 
-    const cards = await screen.findAllByTestId(/^similar-product-/);
-    expect(cards).toHaveLength(2);
+      const mainImg = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
+      expect(mainImg).toHaveAttribute(
+        "src",
+        `/api/v1/product/product-photo/${mainProduct._id}`
+      );
 
-    // Verify first related product card
-    const firstRelatedCard = await screen.findByTestId(
-      `similar-product-${firstRelatedProduct._id.toString()}`
-    );
-    expect(
-      within(firstRelatedCard).getByText(
-        new RegExp(PRODUCT_TEMPLATES.firstRelated.name)
-      )
-    ).toBeInTheDocument();
-    expect(
-      within(firstRelatedCard).getByText(
-        new RegExp(PRODUCT_TEMPLATES.firstRelated.price)
-      )
-    ).toBeInTheDocument();
+      // Verify similar products section
+      const similarSection = await screen.findByTestId("similar-products");
+      expect(similarSection).toBeInTheDocument();
+      await waitFor(() =>
+        expect(
+          screen.queryByText(/No similar products found/i)
+        ).not.toBeInTheDocument()
+      );
 
-    // Verify second related product card
-    const secondRelatedCard = await screen.findByTestId(
-      `similar-product-${secondRelatedProduct._id.toString()}`
-    );
-    expect(
-      within(secondRelatedCard).getByText(
-        new RegExp(PRODUCT_TEMPLATES.secondRelated.name)
-      )
-    ).toBeInTheDocument();
-    expect(
-      within(secondRelatedCard).getByText(
-        new RegExp(PRODUCT_TEMPLATES.secondRelated.price)
-      )
-    ).toBeInTheDocument();
+      const cards = await screen.findAllByTestId(/^similar-product-/);
+      expect(cards).toHaveLength(2);
 
-    // Ensure product from secondary category is not shown
-    expect(
-      screen.queryByText(PRODUCT_TEMPLATES.secondaryCategory.name)
-    ).not.toBeInTheDocument();
-  });
+      // Verify first related product card
+      const firstRelatedCard = await screen.findByTestId(
+        `similar-product-${firstRelatedProduct._id.toString()}`
+      );
+      expect(
+        within(firstRelatedCard).getByText(
+          new RegExp(PRODUCT_TEMPLATES.firstRelated.name)
+        )
+      ).toBeInTheDocument();
+      expect(
+        within(firstRelatedCard).getByText(
+          new RegExp(PRODUCT_TEMPLATES.firstRelated.price)
+        )
+      ).toBeInTheDocument();
 
-  it("navigates to another product when selecting a similar product", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
+      // Verify second related product card
+      const secondRelatedCard = await screen.findByTestId(
+        `similar-product-${secondRelatedProduct._id.toString()}`
+      );
+      expect(
+        within(secondRelatedCard).getByText(
+          new RegExp(PRODUCT_TEMPLATES.secondRelated.name)
+        )
+      ).toBeInTheDocument();
+      expect(
+        within(secondRelatedCard).getByText(
+          new RegExp(PRODUCT_TEMPLATES.secondRelated.price)
+        )
+      ).toBeInTheDocument();
 
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const relatedProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.firstRelated
-    );
-
-    renderWithProviders(`/product/${mainProduct.slug}`);
-
-    // Wait for main product to load
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    // Click on the related product's "More Details" button
-    const relatedProductCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    fireEvent.click(
-      within(relatedProductCard).getByRole("button", { name: /more details/i })
-    );
-
-    // Wait for the new product details to load
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    // Verify that the main product details are now for the related product
-    await screen.findByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.name));
-    expect(
-      screen.getByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.description))
-    ).toBeInTheDocument();
-
-    const originalCard = await screen.findByTestId(
-      `similar-product-${mainProduct._id.toString()}`
-    );
-    expect(
-      within(originalCard).getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
-    ).toBeInTheDocument();
-  });
-
-  it("adds the main product to cart and persists it locally, and prevents duplicates", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-
-    renderWithProviders(`/product/${mainProduct.slug}`);
-
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    // Add to Cart
-    const addToCartButton = await screen.findByRole("button", {
-      name: /add to cart/i,
+      // Ensure product from secondary category is not shown
+      expect(
+        screen.queryByText(PRODUCT_TEMPLATES.secondaryCategory.name)
+      ).not.toBeInTheDocument();
     });
-    fireEvent.click(addToCartButton);
 
-    // Verify localStorage update
-    await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
-    let storedCart = JSON.parse(localStorage.getItem("cart"));
-    expect(storedCart).toHaveLength(1);
-    expect(storedCart[0]._id).toBe(mainProduct._id.toString());
-    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+    it("renders not found message when the product is missing", async () => {
+      renderWithProviders("/product/non-existent-product");
 
-    // Try adding the same product again
-    fireEvent.click(addToCartButton);
-    storedCart = JSON.parse(localStorage.getItem("cart"));
-    expect(storedCart).toHaveLength(1);
-    expect(toast.error).toHaveBeenCalledWith("Item already in cart");
-  });
-
-  it("adds similar product to cart when its button is clicked", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const relatedProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.firstRelated
-    );
-
-    renderWithProviders(`/product/${mainProduct.slug}`);
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    const relatedProductCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    const addToCartButton = within(relatedProductCard).getByRole("button", {
-      name: /add to cart/i,
+      expect(
+        await screen.findByText(/No Such Product Found\./i)
+      ).toBeInTheDocument();
     });
-    fireEvent.click(addToCartButton);
 
-    // Verify localStorage update
-    await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
-    const storedCart = JSON.parse(localStorage.getItem("cart"));
-    expect(storedCart).toHaveLength(1);
-    expect(storedCart[0]._id).toBe(relatedProduct._id.toString());
-    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+    it("shows no similar products message when none exist", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
+      const onlyProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+
+      renderWithProviders(`/product/${onlyProduct.slug}`);
+
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      const section = await screen.findByTestId("similar-products");
+      expect(
+        within(section).getByText(/No similar products found/i)
+      ).toBeInTheDocument();
+
+      const img = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
+      expect(img).toHaveAttribute(
+        "src",
+        `/api/v1/product/product-photo/${onlyProduct._id}`
+      );
+    });
+
+    it("does not truncate similar product description of length 59", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const originalLength = 59;
+      const shortDescription = "x".repeat(originalLength);
+      const relatedProduct = await createProduct(category._id, {
+        ...PRODUCT_TEMPLATES.firstRelated,
+        description: shortDescription,
+      });
+
+      renderWithProviders(`/product/${mainProduct.slug}`);
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      const relCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      const text = within(relCard).getByText(/x+/).textContent;
+      expect(text).toBe(shortDescription);
+      expect(text.length).toBe(originalLength);
+    });
+
+    it("does not truncate similar product description of length 60", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const originalLength = 60;
+      const exactDescription = "x".repeat(originalLength);
+      const relatedProduct = await createProduct(category._id, {
+        ...PRODUCT_TEMPLATES.firstRelated,
+        description: exactDescription,
+      });
+
+      renderWithProviders(`/product/${mainProduct.slug}`);
+
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      const relCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      const text = within(relCard).getByText(/x+/).textContent;
+
+      expect(text).toBe(exactDescription);
+      expect(text.length).toBe(originalLength);
+    });
+
+    it("truncates similar product description of length 61 and adds ellipsis", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const originalLength = 61;
+      const longDescription = "x".repeat(originalLength);
+      const relatedProduct = await createProduct(category._id, {
+        ...PRODUCT_TEMPLATES.firstRelated,
+        description: longDescription,
+      });
+      const expectedTruncatedLength = 63; // 60 chars + "..."
+
+      renderWithProviders(`/product/${mainProduct.slug}`);
+
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      const relCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      const text = within(relCard).getByText(/x+/).textContent;
+
+      expect(text.endsWith("...")).toBe(true);
+      expect(text.length).toBeLessThanOrEqual(expectedTruncatedLength);
+    });
   });
 
-  it("adds both main and similar products to cart", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
+  describe("Navigation", () => {
+    it("navigates to another product when selecting a similar product", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
 
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const relatedProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.firstRelated
-    );
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const relatedProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.firstRelated
+      );
 
-    renderWithProviders(`/product/${mainProduct.slug}`);
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
+      renderWithProviders(`/product/${mainProduct.slug}`);
 
-    // Add main product to cart
-    const mainAddToCartButton = await screen.findByTestId("main-add-to-cart");
-    fireEvent.click(mainAddToCartButton);
+      // Wait for main product to load
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
 
-    // Add related product to cart
-    const relatedProductCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    const relatedAddToCartButton = within(relatedProductCard).getByRole(
-      "button",
-      {
+      // Click on the related product's "More Details" button
+      const relatedProductCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      fireEvent.click(
+        within(relatedProductCard).getByRole("button", {
+          name: /more details/i,
+        })
+      );
+
+      // Wait for the new product details to load
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      // Verify that the main product details are now for the related product
+      await screen.findByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.name));
+      expect(
+        screen.getByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.description))
+      ).toBeInTheDocument();
+
+      const originalCard = await screen.findByTestId(
+        `similar-product-${mainProduct._id.toString()}`
+      );
+      expect(
+        within(originalCard).getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
+      ).toBeInTheDocument();
+    });
+  });
+
+  describe("Cart interactions", () => {
+    it("adds the main product to cart and persists it locally, and prevents duplicates", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
+
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+
+      renderWithProviders(`/product/${mainProduct.slug}`);
+
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      // Add to Cart
+      const addToCartButton = await screen.findByRole("button", {
         name: /add to cart/i,
-      }
-    );
-    fireEvent.click(relatedAddToCartButton);
+      });
+      fireEvent.click(addToCartButton);
 
-    await waitFor(() =>
-      expect(JSON.parse(localStorage.getItem("cart") ?? "[]")).toHaveLength(2)
-    );
-    const storedCart = JSON.parse(localStorage.getItem("cart") ?? "[]");
-    const productIds = storedCart.map((item) => item._id);
-    expect(productIds).toEqual(
-      expect.arrayContaining([
-        mainProduct._id.toString(),
-        relatedProduct._id.toString(),
-      ])
-    );
-    expect(toast.success).toHaveBeenCalledTimes(2);
-  });
+      // Verify localStorage update
+      await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
+      let storedCart = JSON.parse(localStorage.getItem("cart"));
+      expect(storedCart).toHaveLength(1);
+      expect(storedCart[0]._id).toBe(mainProduct._id.toString());
+      expect(toast.success).toHaveBeenCalledWith("Item added to cart");
 
-  it("renders not found message when the product is missing", async () => {
-    renderWithProviders("/product/non-existent-product");
-
-    expect(
-      await screen.findByText(/No Such Product Found\./i)
-    ).toBeInTheDocument();
-  });
-
-  it("shows no similar products message when none exist", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-    const onlyProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-
-    renderWithProviders(`/product/${onlyProduct.slug}`);
-
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    const section = await screen.findByTestId("similar-products");
-    expect(
-      within(section).getByText(/No similar products found/i)
-    ).toBeInTheDocument();
-
-    const img = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
-    expect(img).toHaveAttribute(
-      "src",
-      `/api/v1/product/product-photo/${onlyProduct._id}`
-    );
-  });
-
-  it("does not truncate similar product descriptions of length 59", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const originalLength = 59;
-    const shortDescription = "x".repeat(originalLength);
-    const relatedProduct = await createProduct(category._id, {
-      ...PRODUCT_TEMPLATES.firstRelated,
-      description: shortDescription,
+      // Try adding the same product again
+      fireEvent.click(addToCartButton);
+      storedCart = JSON.parse(localStorage.getItem("cart"));
+      expect(storedCart).toHaveLength(1);
+      expect(toast.error).toHaveBeenCalledWith("Item already in cart");
     });
 
-    renderWithProviders(`/product/${mainProduct.slug}`);
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
+    it("adds similar product to cart when its button is clicked", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
 
-    const relCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    const text = within(relCard).getByText(/x+/).textContent;
-    expect(text).toBe(shortDescription);
-    expect(text.length).toBe(originalLength);
-  });
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const relatedProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.firstRelated
+      );
 
-  it("does not truncate similar product descriptions of length 60", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const originalLength = 60;
-    const exactDescription = "x".repeat(originalLength);
-    const relatedProduct = await createProduct(category._id, {
-      ...PRODUCT_TEMPLATES.firstRelated,
-      description: exactDescription,
+      renderWithProviders(`/product/${mainProduct.slug}`);
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
+
+      const relatedProductCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      const addToCartButton = within(relatedProductCard).getByRole("button", {
+        name: /add to cart/i,
+      });
+      fireEvent.click(addToCartButton);
+
+      // Verify localStorage update
+      await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
+      const storedCart = JSON.parse(localStorage.getItem("cart"));
+      expect(storedCart).toHaveLength(1);
+      expect(storedCart[0]._id).toBe(relatedProduct._id.toString());
+      expect(toast.success).toHaveBeenCalledWith("Item added to cart");
     });
 
-    renderWithProviders(`/product/${mainProduct.slug}`);
+    it("adds both main and similar products to cart", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.primary);
 
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
+      const mainProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.main
+      );
+      const relatedProduct = await createProduct(
+        category._id,
+        PRODUCT_TEMPLATES.firstRelated
+      );
 
-    const relCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    const text = within(relCard).getByText(/x+/).textContent;
+      renderWithProviders(`/product/${mainProduct.slug}`);
+      expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+      await waitForElementToBeRemoved(() =>
+        screen.queryByText(/Loading product details/i)
+      );
 
-    expect(text).toBe(exactDescription);
-    expect(text.length).toBe(originalLength);
-  });
+      // Add main product to cart
+      const mainAddToCartButton = await screen.findByTestId("main-add-to-cart");
+      fireEvent.click(mainAddToCartButton);
 
-  it("truncates similar product descriptions of length 61", async () => {
-    const category = await Category.create(CATEGORY_FIXTURES.primary);
-    const mainProduct = await createProduct(
-      category._id,
-      PRODUCT_TEMPLATES.main
-    );
-    const originalLength = 61;
-    const longDescription = "x".repeat(originalLength);
-    const relatedProduct = await createProduct(category._id, {
-      ...PRODUCT_TEMPLATES.firstRelated,
-      description: longDescription,
+      // Add related product to cart
+      const relatedProductCard = await screen.findByTestId(
+        `similar-product-${relatedProduct._id.toString()}`
+      );
+      const relatedAddToCartButton = within(relatedProductCard).getByRole(
+        "button",
+        {
+          name: /add to cart/i,
+        }
+      );
+      fireEvent.click(relatedAddToCartButton);
+
+      await waitFor(() =>
+        expect(JSON.parse(localStorage.getItem("cart") ?? "[]")).toHaveLength(2)
+      );
+      const storedCart = JSON.parse(localStorage.getItem("cart") ?? "[]");
+      const productIds = storedCart.map((item) => item._id);
+      expect(productIds).toEqual(
+        expect.arrayContaining([
+          mainProduct._id.toString(),
+          relatedProduct._id.toString(),
+        ])
+      );
+      expect(toast.success).toHaveBeenCalledTimes(2);
     });
-    const expectedTruncatedLength = 63; // 60 chars + "..."
-
-    renderWithProviders(`/product/${mainProduct.slug}`);
-
-    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
-    await waitForElementToBeRemoved(() =>
-      screen.queryByText(/Loading product details/i)
-    );
-
-    const relCard = await screen.findByTestId(
-      `similar-product-${relatedProduct._id.toString()}`
-    );
-    const text = within(relCard).getByText(/x+/).textContent;
-
-    expect(text.endsWith("...")).toBe(true);
-    expect(text.length).toBeLessThanOrEqual(expectedTruncatedLength);
   });
+
+  describe("Similar products presentation", () => {});
 });
