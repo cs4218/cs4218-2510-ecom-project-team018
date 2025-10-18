@@ -71,6 +71,7 @@ const Register = () => {
             <input
               type="password"
               value={password}
+              maxLength={72}
               onChange={(e) => setPassword(e.target.value)}
               className="form-control"
               id="exampleInputPassword1"
