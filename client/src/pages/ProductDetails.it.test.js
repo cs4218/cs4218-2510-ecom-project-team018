@@ -54,23 +54,23 @@ const CATEGORY_FIXTURES = Object.freeze({
 
 const PRODUCT_TEMPLATES = Object.freeze({
   main: {
-    name: "Integration Product",
-    description: "Primary integration product",
+    name: "Main Integration Product name",
+    description: "Main integration product description",
     price: 899,
   },
   firstRelated: {
-    name: "Related Integration Product",
-    description: "Secondary integration product",
+    name: "First Related Integration Product name",
+    description: "First related integration product description",
     price: 499,
   },
   secondRelated: {
-    name: "Second Related Integration Product",
-    description: "Tertiary integration product",
+    name: "Second Related Integration Product name",
+    description: "Second related integration product description",
     price: 299,
   },
   secondaryCategory: {
-    name: "Secondary Category Product",
-    description: "Product from another category",
+    name: "Secondary Category Product name",
+    description: "Product from another category description",
     price: 39,
   },
 });
@@ -133,5 +133,107 @@ describe("ProductDetails Integration", () => {
     localStorage.clear();
     toast.success.mockClear();
     toast.error.mockClear();
+  });
+
+  it("renders product details and similar products from the API", async () => {
+    const primaryCategory = await Category.create(CATEGORY_FIXTURES.primary);
+
+    const mainProduct = await createProduct(
+      primaryCategory._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const firstRelatedProduct = await createProduct(
+      primaryCategory._id,
+      PRODUCT_TEMPLATES.firstRelated
+    );
+    const secondRelatedProduct = await createProduct(
+      primaryCategory._id,
+      PRODUCT_TEMPLATES.secondRelated
+    );
+
+    const secondaryCategory = await Category.create(
+      CATEGORY_FIXTURES.secondary
+    );
+    await createProduct(
+      secondaryCategory._id,
+      PRODUCT_TEMPLATES.secondaryCategory
+    );
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    // Verify main product details
+    expect(
+      await screen.findByRole("heading", { name: /Product Details/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.description))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(PRODUCT_TEMPLATES.main.price))
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(CATEGORY_FIXTURES.primary.name))
+    ).toBeInTheDocument();
+
+    const mainImg = screen.getByAltText(PRODUCT_TEMPLATES.main.name);
+    expect(mainImg).toHaveAttribute(
+      "src",
+      `/api/v1/product/product-photo/${mainProduct._id}`
+    );
+
+    // Verify similar products section
+    const similarSection = await screen.findByTestId("similar-products");
+    expect(similarSection).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/No similar products found/i)
+      ).not.toBeInTheDocument()
+    );
+
+    const cards = await screen.findAllByTestId(/^similar-product-/);
+    expect(cards).toHaveLength(2);
+
+    // Verify first related product card
+    const firstRelatedCard = await screen.findByTestId(
+      `similar-product-${firstRelatedProduct._id.toString()}`
+    );
+    expect(
+      within(firstRelatedCard).getByText(
+        new RegExp(PRODUCT_TEMPLATES.firstRelated.name)
+      )
+    ).toBeInTheDocument();
+    expect(
+      within(firstRelatedCard).getByText(
+        new RegExp(PRODUCT_TEMPLATES.firstRelated.price)
+      )
+    ).toBeInTheDocument();
+
+    // Verify second related product card
+    const secondRelatedCard = await screen.findByTestId(
+      `similar-product-${secondRelatedProduct._id.toString()}`
+    );
+    expect(
+      within(secondRelatedCard).getByText(
+        new RegExp(PRODUCT_TEMPLATES.secondRelated.name)
+      )
+    ).toBeInTheDocument();
+    expect(
+      within(secondRelatedCard).getByText(
+        new RegExp(PRODUCT_TEMPLATES.secondRelated.price)
+      )
+    ).toBeInTheDocument();
+
+    // Ensure product from secondary category is not shown
+    expect(
+      screen.queryByText(PRODUCT_TEMPLATES.secondaryCategory.name)
+    ).not.toBeInTheDocument();
   });
 });
