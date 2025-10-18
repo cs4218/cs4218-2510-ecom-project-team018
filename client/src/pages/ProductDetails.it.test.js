@@ -236,4 +236,52 @@ describe("ProductDetails Integration", () => {
       screen.queryByText(PRODUCT_TEMPLATES.secondaryCategory.name)
     ).not.toBeInTheDocument();
   });
+
+  it("navigates to another product when selecting a similar product", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const relatedProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.firstRelated
+    );
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+
+    // Wait for main product to load
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    // Click on the related product's "More Details" button
+    const relatedProductCard = await screen.findByTestId(
+      `similar-product-${relatedProduct._id.toString()}`
+    );
+    fireEvent.click(
+      within(relatedProductCard).getByRole("button", { name: /more details/i })
+    );
+
+    // Wait for the new product details to load
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    // Verify that the main product details are now for the related product
+    await screen.findByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.name));
+    expect(
+      screen.getByText(new RegExp(PRODUCT_TEMPLATES.firstRelated.description))
+    ).toBeInTheDocument();
+
+    const originalCard = await screen.findByTestId(
+      `similar-product-${mainProduct._id.toString()}`
+    );
+    expect(
+      within(originalCard).getByText(new RegExp(PRODUCT_TEMPLATES.main.name))
+    ).toBeInTheDocument();
+  });
 });
