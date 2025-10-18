@@ -353,4 +353,34 @@ describe("ProductDetails Integration", () => {
       `/api/v1/product/product-photo/${onlyProduct._id}`
     );
   });
+
+  it("truncates similar product descriptions of length 61", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const originalLength = 61;
+    const longDescription = "x".repeat(originalLength);
+    const relatedProduct = await createProduct(category._id, {
+      ...PRODUCT_TEMPLATES.firstRelated,
+      description: longDescription,
+    });
+    const expectedTruncatedLength = 63; // 60 chars + "..."
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    const relCard = await screen.findByTestId(
+      `similar-product-${relatedProduct._id.toString()}`
+    );
+    const text = within(relCard).getByText(/x+/).textContent;
+
+    expect(text.endsWith("...")).toBe(true);
+    expect(text.length).toBeLessThanOrEqual(expectedTruncatedLength);
+  });
 });
