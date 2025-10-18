@@ -320,6 +320,40 @@ describe("ProductDetails Integration", () => {
     expect(toast.error).toHaveBeenCalledWith("Item already in cart");
   });
 
+  it("adds similar product to cart when its button is clicked", async () => {
+    const category = await Category.create(CATEGORY_FIXTURES.primary);
+
+    const mainProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.main
+    );
+    const relatedProduct = await createProduct(
+      category._id,
+      PRODUCT_TEMPLATES.firstRelated
+    );
+
+    renderWithProviders(`/product/${mainProduct.slug}`);
+    expect(screen.getByText(/Loading product details/i)).toBeInTheDocument();
+    await waitForElementToBeRemoved(() =>
+      screen.queryByText(/Loading product details/i)
+    );
+
+    const relatedProductCard = await screen.findByTestId(
+      `similar-product-${relatedProduct._id.toString()}`
+    );
+    const addToCartButton = within(relatedProductCard).getByRole("button", {
+      name: /add to cart/i,
+    });
+    fireEvent.click(addToCartButton);
+
+    // Verify localStorage update
+    await waitFor(() => expect(localStorage.getItem("cart")).toBeTruthy());
+    const storedCart = JSON.parse(localStorage.getItem("cart"));
+    expect(storedCart).toHaveLength(1);
+    expect(storedCart[0]._id).toBe(relatedProduct._id.toString());
+    expect(toast.success).toHaveBeenCalledWith("Item added to cart");
+  });
+
   it("renders not found message when the product is missing", async () => {
     renderWithProviders("/product/non-existent-product");
 
