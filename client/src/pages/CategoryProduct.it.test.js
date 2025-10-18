@@ -150,5 +150,19 @@ describe("CategoryProduct Integration", () => {
         screen.queryByText(/No products found in this category/i)
       ).not.toBeInTheDocument();
     });
+
+    it("shows empty state when no products exist", async () => {
+      await Category.create(CATEGORY_FIXTURES.apparel);
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+      expect(screen.getByText(/0 results found/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/No products found in this category/i)
+      ).toBeInTheDocument();
+    });
   });
 });
