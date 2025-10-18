@@ -225,4 +225,29 @@ describe("CategoryProduct Integration", () => {
       );
     });
   });
+
+  describe("Navigation", () => {
+    it("routes to product details when More Details is clicked", async () => {
+      const category = await Category.create(CATEGORY_FIXTURES.apparel);
+      const product = await createProduct(category._id, {
+        name: "Navigable Product",
+        slug: "navigable-product",
+      });
+
+      renderWithProviders(`/category/${CATEGORY_FIXTURES.apparel.slug}`);
+
+      expect(
+        await screen.findByText(`Category - ${CATEGORY_FIXTURES.apparel.name}`)
+      ).toBeInTheDocument();
+
+      const moreDetailsButton = await screen.findByRole("button", {
+        name: /more details/i,
+      });
+      fireEvent.click(moreDetailsButton);
+
+      expect(await screen.findByTestId("navigated-product")).toHaveTextContent(
+        product.slug
+      );
+    });
+  });
 });
