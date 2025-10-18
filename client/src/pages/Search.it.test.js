@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { Routes, Route, Router, MemoryRouter } from 'react-router-dom';
+import { Routes, Route, MemoryRouter } from 'react-router-dom';
 import { SearchProvider } from '../context/search';
 import SearchInput from '../components/Form/SearchInput';
 import Search from './Search';
@@ -71,9 +71,15 @@ describe('Full integration test Search Context, SearchInput and Search page', ()
     // after navigation, Search page should show product names and prices
     await waitFor(() => {
       expect(screen.getByText(API_RESULTS[0].name)).toBeInTheDocument();
-      expect(screen.getByText('$ '+ API_RESULTS[0].price)).toBeInTheDocument();
-      expect(screen.getByText(API_RESULTS[0].description)).toBeInTheDocument();
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('$ '+ API_RESULTS[0].price)).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(API_RESULTS[0].description)).toBeInTheDocument();
+    })
   });
 
   it('renders truncated description with ... when description length >= 30', async () => {
@@ -100,9 +106,14 @@ describe('Full integration test Search Context, SearchInput and Search page', ()
 
     await waitFor(async () => {
         expect(axios.get).toHaveBeenCalledWith('/api/v1/product/search/long');
-        const descNode = await screen.findByText((content) => content.includes(LONG_DESC.substring(0, 30)));
-        expect(descNode.textContent.trim()).toBe(expected);
     });
+
+    let descNode;
+    await waitFor(async () => {
+      descNode = await screen.findByText((content) => content.includes(LONG_DESC.substring(0, 30)));
+    });
+
+    expect(descNode.textContent.trim()).toBe(expected);
   });
 
   it('shows "No Products Found" when API returns empty array', async () => {
@@ -126,7 +137,10 @@ describe('Full integration test Search Context, SearchInput and Search page', ()
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith('/api/v1/product/search/nothing');
-      expect(screen.getByText('No Products Found')).toBeInTheDocument();
     });
+
+    await waitFor(() => {
+      expect(screen.getByText('No Products Found')).toBeInTheDocument();
+    })
   });
 });
