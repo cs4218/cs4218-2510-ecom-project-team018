@@ -320,6 +320,14 @@ describe("ProductDetails Integration", () => {
     expect(toast.error).toHaveBeenCalledWith("Item already in cart");
   });
 
+  it("renders not found message when the product is missing", async () => {
+    renderWithProviders("/product/non-existent-product");
+
+    expect(
+      await screen.findByText(/No Such Product Found\./i)
+    ).toBeInTheDocument();
+  });
+
   it("shows no similar products message when none exist", async () => {
     const category = await Category.create(CATEGORY_FIXTURES.primary);
     const onlyProduct = await createProduct(
