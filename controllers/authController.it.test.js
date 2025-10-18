@@ -1,4 +1,4 @@
-import { connectTestDB, clearDB, disconnectTestDB } from "./tests/mongoTestEnv.js";
+import { connectTestDB, clearDB, disconnectTestDB } from "../tests/mongoTestEnv.js";
 import User from "../models/userModel.js";
 import Order from "../models/orderModel.js";
 import Category from "../models/categoryModel.js";
