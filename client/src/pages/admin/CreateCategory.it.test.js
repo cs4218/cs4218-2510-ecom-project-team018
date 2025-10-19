@@ -172,5 +172,21 @@ describe("Create Category page integration tests", () => {
       screen.queryByText(SAMPLE_CATEGORIES[0].name)
     ).not.toBeInTheDocument();
   });
-  //   test("successfully deletes an existing category", async () => {});
+
+  test("successfully deletes an existing category", async () => {
+    renderWithProviders();
+
+    // click delete button for first cat "electronics"
+    const deleteButtons = await screen.findAllByRole("button", {
+      name: /delete/i,
+    });
+    fireEvent.click(deleteButtons[0]);
+
+    // assert cat is deleted
+    await waitFor(() =>
+      expect(
+        screen.queryByText(SAMPLE_CATEGORIES[0].name)
+      ).not.toBeInTheDocument()
+    );
+  });
 });
