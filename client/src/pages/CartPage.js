@@ -132,7 +132,7 @@ const CartPage = () => {
             <h1 className="text-center bg-light p-2 mb-1">
               {!auth?.user
                 ? "Hello Guest"
-                : `Hello  ${auth?.token && auth?.user?.name}`}
+                : `Hello ${auth?.token && auth?.user?.name}`}
               <p className="text-center">
                 {cart?.length
                   ? `You Have ${cart.length} items in your cart ${
