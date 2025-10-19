@@ -4,7 +4,13 @@ import {
   clearDB,
   disconnectTestDB,
 } from "../../../../tests/mongoTestEnv";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import axios from "axios";
@@ -134,6 +140,37 @@ describe("Create Category page integration tests", () => {
       expect(screen.getByText(newCategory.name)).toBeInTheDocument()
     );
   });
-  //   test("successfully updates an existing category", async () => {});
+
+  test("successfully updates an existing category", async () => {
+    const updateCategoryName = "Gadgets";
+
+    renderWithProviders();
+
+    // click edit button for first cat "electronics"
+    const editButtons = await screen.findAllByRole("button", { name: /edit/i });
+    fireEvent.click(editButtons[0]);
+
+    // modal appear with input prefilled
+    const modalInput = await screen.findByDisplayValue(
+      SAMPLE_CATEGORIES[0].name
+    );
+    // change to updated cat's name "gadgets"
+    fireEvent.change(modalInput, { target: { value: updateCategoryName } });
+
+    // click 'submit' button
+    const modal = screen.getByRole("dialog"); // modal
+    const submitButton = within(modal).getByRole("button", { name: /Submit/i });
+    fireEvent.click(submitButton);
+
+    // assert updated cat name
+    await waitFor(() =>
+      expect(screen.getByText(updateCategoryName)).toBeInTheDocument()
+    );
+
+    // assert prev cat is gone
+    expect(
+      screen.queryByText(SAMPLE_CATEGORIES[0].name)
+    ).not.toBeInTheDocument();
+  });
   //   test("successfully deletes an existing category", async () => {});
 });
