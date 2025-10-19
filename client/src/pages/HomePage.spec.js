@@ -11,7 +11,7 @@ const PRICE_FILTERS = [
   "$100 or more",
 ];
 
-test('Homepage loads correctly with Price, Category Filters and Products', async ({ page }) => {
+test('Homepage loads correctly with price, category filters and products', async ({ page }) => {
   await page.goto('http://localhost:3000/');
 
   // Page title
