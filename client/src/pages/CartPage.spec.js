@@ -26,8 +26,8 @@ test.describe("CartPage UI", () => {
 
     await page.goto("/cart");
 
-    await expect(page.getByRole("heading")).toContainText("Hello Guest");
-    await expect(page.getByRole("heading")).toContainText("Your Cart Is Empty");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hello Guest");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Your Cart Is Empty");
 
     const loginBtn = page.getByRole("button", { name: /Please Login to checkout/i });
     await expect(loginBtn).toBeVisible();
@@ -52,8 +52,8 @@ test.describe("CartPage UI", () => {
 
     await page.goto("/cart");
 
-    await expect(page.getByRole("heading")).toContainText("Hello Guest");
-    await expect(page.getByRole("heading")).toContainText("You Have 2 items in your cart");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hello Guest");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("You Have 2 items in your cart");
 
     await expect(page.getByText("Smartphone")).toBeVisible();
     await expect(page.getByText("Laptop")).toBeVisible();
@@ -64,9 +64,9 @@ test.describe("CartPage UI", () => {
 
     await expect(page.getByText("Smartphone")).toHaveCount(0);
     await expect(page.getByText("Laptop")).toBeVisible();
-    await expect(page.getByRole("heading")).toContainText("You Have 1 items in your cart");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("You Have 1 items in your cart");
 
-    await expect(page.getByText(/Total :/)).toContainText("$1500.00");
+    await expect(page.getByText(/Total :/)).toContainText("$1,500.00");
   });
 
   test("renders user logged in but no address", async ({ page }) => {
@@ -85,9 +85,9 @@ test.describe("CartPage UI", () => {
 
     await page.goto("/cart");
 
-    await expect(page.getByRole("heading")).toContainText("Hello Alice");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Hello Alice");
     await expect(page.getByRole("button", { name: /Update Address/i })).toBeVisible();
-    await expect(page.getByRole("heading")).toContainText("You Have 1 items in your cart");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("You Have 1 items in your cart");
 
     // No Make Payment button because no token
     await expect(page.getByRole("button", { name: /Make Payment/i })).toHaveCount(0);
