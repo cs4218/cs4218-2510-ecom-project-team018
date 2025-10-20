@@ -473,91 +473,93 @@ To begin unit testing with Jest in your project, follow these steps:
 
 ## Milestone 2 Contributions
 
-<table><thead>
-  <tr>
-    <th>Member</th>
-    <th>Integration testing files</th>
-    <th>UI testing files</th>
-  </tr></thead>
-<tbody>
-  <tr>
-    <td>Chu Wei Rong</td>
-    <td>
-      <ul>
-         <li><code>./client/src/components/Routes/Private.it.test.js</code></li>
-         <li><code>./client/src/pages/Auth/Login.it.test.js</code></li>
-         <li><code>./client/src/pages/Auth/Register.it.test.js</code></li>
-         <li><code>./client/src/pages/admin/AdminOrders.it.test.js</code></li>
-         <li><code>./client/src/pages/admin/Users.it.test.js</code></li>
-         <li><code>./client/src/pages/user/Dashboard.it.test.js</code></li>
-      </ul>
-   </td>
-    <td>
-      <ul>
-         <li><code></code></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td>Kenvyn Kwek Shiu Chien</td>
-    <td>
-      <ul>
-         <li><code>./client/src/pages/admin/CreateCategory.it.test.js</code></li>
-         <li><code>./client/src/pages/admin/CreateProduct.it.test.js</code></li>
-         <li><code>./client/src/pages/admin/UpdateProduct.it.test.js</code></li>
-         <li><code>./client/src/pages/admin/Products.it.test.js</code></li>
-      </ul>
-    </td>
-    <td>
-      <ul>
-         <li><code></code></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td>Brendan Soh Ray Yang</td>
-    <td>
-      <ul>
-         <li><code>./controllers/authController.it.test.js</code></li>
-         <li><code>./client/src/components/Form/SearchInput.it.test.js</code></li>
-         <li><code>./client/src/pages/user/Profile.it.test.js</code></li>
-         <li><code>./client/src/pages/user/Orders.it.test.js</code></li>
-         <li><code>./client/src/pages/Search.it.test.js</code></li>
-      </ul>
-    </td>
-    <td>
-      <ul>
-         <li><code></code></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td>Andre Chua Kai Jun</td>
-    <td>
-      <ul>
-         <li><code>./client/src/pages/CategoryProduct.it.test.js</code></li>
-         <li><code>./client/src/pages/ProductDetails.it.test.js</code></li>
-      </ul>
-    </td>
-    <td>
-      <ul>
-         <li><code></code></li>
-      </ul>
-    </td>
-  </tr>
-  <tr>
-    <td>Chen Kuei</td>
-    <td>
-      <ul>
-         <li><code>./client/src/pages/Categories.it.test.js</code></li>
-         <li><code>./client/src/pages/CartPage.it.test.js</code></li>
-      </ul>
-    </td>
-    <td>
-      <ul>
-         <li><code></code></li>
-      </ul>
-    </td>
-  </tr>
-</tbody>
+<table>
+   <thead>
+      <tr>
+         <th>Member</th>
+         <th>Integration testing files</th>
+         <th>UI testing files</th>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Chu Wei Rong</td>
+         <td>
+            <ul>
+               <li><code>./client/src/components/Routes/Private.it.test.js</code></li>
+               <li><code>./client/src/pages/Auth/Login.it.test.js</code></li>
+               <li><code>./client/src/pages/Auth/Register.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/AdminOrders.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/Users.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Dashboard.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code></code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Kenvyn Kwek Shiu Chien</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/admin/CreateCategory.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/CreateProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/UpdateProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/Products.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/admin/UpdateProduct.spec.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Brendan Soh Ray Yang</td>
+         <td>
+            <ul>
+               <li><code>./controllers/authController.it.test.js</code></li>
+               <li><code>./client/src/components/Form/SearchInput.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Profile.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Orders.it.test.js</code></li>
+               <li><code>./client/src/pages/Search.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code></code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Andre Chua Kai Jun</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/CategoryProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/ProductDetails.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code></code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Chen Kuei</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/Categories.it.test.js</code></li>
+               <li><code>./client/src/pages/CartPage.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code></code></li>
+            </ul>
+         </td>
+      </tr>
+   </tbody>
 </table>
