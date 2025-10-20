@@ -160,16 +160,11 @@ test.describe("Category Product page", () => {
         `Electronics Product ${MULTI_PAGE_PRODUCT_COUNT - i}`
       );
     }
-
-    await expect(loadMoreButton).toBeHidden();
   });
 
   test("shows empty state when a category has no products", async ({
     page,
   }) => {
-    const CATEGORY_NAME = "Handmade";
-    const CATEGORY_SLUG = "handmade";
-
     await createCategoryWithProducts({
       name: CATEGORY_NAME,
       slug: CATEGORY_SLUG,
@@ -193,5 +188,27 @@ test.describe("Category Product page", () => {
       has: page.locator(".card-body"),
     });
     await expect(productCards).toHaveCount(0);
+  });
+
+  test("removes Load more button after fetching all pages", async ({
+    page,
+  }) => {
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, MULTI_PAGE_PRODUCT_COUNT),
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    const loadMoreButton = page.getByRole("button", { name: /load more/i });
+
+    await expect(productCards).toHaveCount(DEFAULT_PAGE_SIZE);
+    await loadMoreButton.click();
+    await expect(productCards).toHaveCount(MULTI_PAGE_PRODUCT_COUNT);
+    await expect(loadMoreButton).toBeHidden();
   });
 });
