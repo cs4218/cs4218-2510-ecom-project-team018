@@ -512,6 +512,7 @@ To begin unit testing with Jest in your project, follow these steps:
          </td>
          <td>
             <ul>
+               <li><code>./client/src/pages/admin/CreateProduct.spec.js</code></li>
                <li><code>./client/src/pages/admin/UpdateProduct.spec.js</code></li>
             </ul>
          </td>
@@ -529,7 +530,10 @@ To begin unit testing with Jest in your project, follow these steps:
          </td>
          <td>
             <ul>
-               <li><code></code></li>
+               <li><code>./client/src/pages/Search.spec.js</code></li>
+               <li><code>./client/src/pages/HomePage.spec.js</code></li>
+               <li><code>./client/src/pages/admin/CreateCategory.spec.js</code></li>
+               <li><code>./client/src/pages/user/Profile.spec.js</code></li>
             </ul>
          </td>
       </tr>
@@ -543,7 +547,11 @@ To begin unit testing with Jest in your project, follow these steps:
          </td>
          <td>
             <ul>
-               <li><code></code></li>
+               <li><code>./client/src/pages/CategoryProduct.spec.js</code></li>
+               <li><code>./client/src/pages/admin/Users.spec.js</code></li>
+               <li><code>./client/src/pages/Contact.spec.js</code></li>
+               <li><code>./client/src/pages/Policy.spec.js</code></li>
+               <li><code>./client/src/pages/ProductDetails.spec.js</code></li>
             </ul>
          </td>
       </tr>
@@ -557,7 +565,9 @@ To begin unit testing with Jest in your project, follow these steps:
          </td>
          <td>
             <ul>
-               <li><code></code></li>
+               <li><code>./client/src/pages/admin/Products.spec.js</code></li>
+               <li><code>./client/src/pages/Categories.spec.js</code></li>
+               <li><code>./client/src/pages/CartPage.spec.js</code></li>
             </ul>
          </td>
       </tr>
