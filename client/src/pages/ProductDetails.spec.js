@@ -110,4 +110,49 @@ test.describe("Product Details page", () => {
       /\/images\/placeholder\.png$/
     );
   });
+
+  test("shows related products and supports navigation", async ({ page }) => {
+    const category = await createCategory("Playwright Accessories");
+    const mainProduct = await createProduct({
+      name: "Accessory Bundle",
+      slug: "playwright-accessory-bundle",
+      description: "Accessory bundle description",
+      price: 149.5,
+      categoryId: category._id,
+    });
+    const relatedOne = await createProduct({
+      name: "Accessory One",
+      slug: "playwright-accessory-one",
+      description: "Accessory one description",
+      price: 59.99,
+      categoryId: category._id,
+    });
+    await createProduct({
+      name: "Accessory Two",
+      slug: "playwright-accessory-two",
+      description: "Accessory two description",
+      price: 89.95,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${mainProduct.slug}`);
+
+    const similarSection = page.getByTestId("similar-products");
+    await expect(
+      similarSection.getByRole("heading", { name: /accessory one/i })
+    ).toBeVisible();
+    await expect(
+      similarSection.getByRole("heading", { name: /accessory two/i })
+    ).toBeVisible();
+
+    await Promise.all([
+      page.waitForURL(`**/product/${relatedOne.slug}`),
+      similarSection
+        .getByTestId(`similar-product-${relatedOne._id}`)
+        .getByRole("button", { name: /more details/i })
+        .click(),
+    ]);
+
+    await expect(page).toHaveURL(new RegExp(`/product/${relatedOne.slug}$`));
+  });
 });
