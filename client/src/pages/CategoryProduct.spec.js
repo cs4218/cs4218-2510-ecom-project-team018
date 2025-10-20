@@ -265,4 +265,24 @@ test.describe("Category Product page", () => {
     await addToCartButton.click();
     await expect(page.getByText("Item already in cart")).toBeVisible();
   });
+
+  test("falls back to placeholder image when product photo is missing", async ({
+    page,
+  }) => {
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, 1),
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".category .card img");
+      return img && img.getAttribute("src") === "/images/placeholder.png";
+    });
+
+    const cardImage = page.locator(".category .card img").first();
+    await expect(cardImage).toHaveAttribute("src", "/images/placeholder.png");
+  });
 });
