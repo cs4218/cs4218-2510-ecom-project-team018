@@ -1479,7 +1479,7 @@ describe("Product Controller - creating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Name is required" })
+      expect.objectContaining({ message: "Name is required" })
     );
   });
 
@@ -1490,7 +1490,7 @@ describe("Product Controller - creating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Description is required" })
+      expect.objectContaining({ message: "Description is required" })
     );
   });
 
@@ -1501,7 +1501,7 @@ describe("Product Controller - creating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Price is required" })
+      expect.objectContaining({ message: "Price is required" })
     );
   });
 
@@ -1512,7 +1512,7 @@ describe("Product Controller - creating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Category is required" })
+      expect.objectContaining({ message: "Category is required" })
     );
   });
 
@@ -1523,7 +1523,20 @@ describe("Product Controller - creating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ error: "Quantity is required" })
+      expect.objectContaining({ message: "Quantity is required" })
+    );
+  });
+
+  test("return error when missing shipping field", async () => {
+    req.fields.shipping = "";
+
+    await createProductController(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Shipping is required",
+      })
     );
   });
 
@@ -1535,7 +1548,7 @@ describe("Product Controller - creating a product", () => {
     expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: "Photo is required and should be less then 1MB",
+        message: "Photo is required and should be less than 1MB",
       })
     );
   });

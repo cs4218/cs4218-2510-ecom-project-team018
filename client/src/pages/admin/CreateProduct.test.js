@@ -202,7 +202,11 @@ describe("Actions - handleCreate() function", () => {
     // select shipping
     const selectShipping = screen.getAllByRole("combobox")[1];
     fireEvent.mouseDown(selectShipping);
-    fireEvent.click(screen.getByText(SAMPLE_INPUTS[0].shipping));
+
+    const newShippingOption = await screen.findByText(
+      SAMPLE_INPUTS[0].shipping
+    );
+    fireEvent.click(newShippingOption);
 
     // click 'create product' button
     fireEvent.click(screen.getByRole("button", { name: /create product/i }));
