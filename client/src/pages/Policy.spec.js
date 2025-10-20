@@ -29,7 +29,7 @@ test.describe("Policy page", () => {
     ).toBeVisible();
   });
 
-  test("displays hero image and introductory copy", async ({ page }) => {
+  test("displays hero image and introduction", async ({ page }) => {
     const image = page.getByRole("img", { name: HERO_IMG_ALT });
     await expect(image).toBeVisible();
     await expect(image).toHaveAttribute("src", HERO_IMG_SRC);
@@ -104,7 +104,7 @@ test.describe("Policy page", () => {
     await expect(page).toHaveURL(/\/about$/);
   });
 
-  test("privacy policy footer link keeps user on policy page", async ({
+  test("footer privacy policy link keeps user on policy page", async ({
     page,
   }) => {
     const footer = page.locator(".footer");
