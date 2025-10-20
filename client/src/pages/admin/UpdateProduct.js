@@ -71,15 +71,19 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
+      productData.append("shipping", shipping);
+
+      const { data } = await axios.put(
         `/api/v1/product/update-product/${id}`,
-        productData
+        productData,
+        { validateStatus: () => true }
       );
+
       if (data?.success) {
-        toast.error(data?.message);
-      } else {
         toast.success("Product updated successfully");
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data?.message || "Failed to update product");
       }
     } catch (error) {
       console.log(error);
