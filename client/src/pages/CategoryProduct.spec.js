@@ -69,3 +69,13 @@ const resetCategoryProducts = async () => {
   await productModel.deleteMany({});
   await categoryModel.deleteMany({});
 };
+
+test.describe("Category Product page", () => {
+  test.beforeEach(async () => {
+    await resetCategoryProducts();
+  });
+
+  test.afterAll(async () => {
+    await resetCategoryProducts();
+  });
+});
