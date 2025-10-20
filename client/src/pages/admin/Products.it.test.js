@@ -4,7 +4,7 @@ import {
   clearDB,
   disconnectTestDB,
 } from "../../../../tests/mongoTestEnv";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import "@testing-library/jest-dom";
 import axios from "axios";
@@ -20,7 +20,6 @@ import productRoutes from "../../../../routes/productRoutes.js";
 import Category from "../../../../models/categoryModel.js";
 import Product from "../../../../models/productModel.js";
 import slugify from "slugify";
-import userEvent from "@testing-library/user-event";
 
 dotenv.config();
 
@@ -204,28 +203,40 @@ describe("Admin Products page integration tests", () => {
     }
   });
 
-  //   test("navigates to update page when clicking a product link", async () => {
-  //     const user = userEvent.setup();
+  test("navigates to update page upon clicking that product", async () => {
+    // minimal mock update page
+    const MockUpdatePage = ({ product }) => (
+      <div>
+        <h1>Update Product Page</h1>
+        <p>{product.name}</p>
+        <p>{product.description}</p>
+      </div>
+    );
 
-  //     render(
-  //       <MemoryRouter initialEntries={["/dashboard/admin/products"]}>
-  //         <AuthProvider>
-  //           <Routes>
-  //             <Route path="/dashboard/admin/products" element={<Products />} />
-  //             <Route
-  //               path="/dashboard/admin/product/:slug"
-  //               element={<div>Update Product Page</div>}
-  //             />
-  //           </Routes>
-  //         </AuthProvider>
-  //       </MemoryRouter>
-  //     );
+    render(
+      <MemoryRouter initialEntries={["/dashboard/admin/products"]}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/dashboard/admin/products" element={<Products />} />
+            <Route
+              path="/dashboard/admin/product/:slug"
+              element={<MockUpdatePage product={seededProducts[0]} />}
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
 
-  //     const firstLink = await screen.findByText(SAMPLE_PRODUCTS[0].name);
-  //     await user.click(firstLink);
+    // click first product link
+    const firstLink = await screen.findByText(SAMPLE_PRODUCTS[0].name);
+    // simulate navigation upon click
+    fireEvent.click(firstLink);
 
-  //     await waitFor(() =>
-  //       expect(screen.getByText("Update Product Page")).toBeInTheDocument()
-  //     );
-  //   });
+    // assert update page header & product info
+    await waitFor(() =>
+      expect(screen.getByText("Update Product Page")).toBeInTheDocument()
+    );
+    expect(screen.getByText(seededProducts[0].name)).toBeInTheDocument();
+    expect(screen.getByText(seededProducts[0].description)).toBeInTheDocument();
+  });
 });
