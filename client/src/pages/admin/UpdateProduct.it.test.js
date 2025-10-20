@@ -207,6 +207,7 @@ describe("Update Product page integration tests", () => {
 
     renderWithProviders(seededProduct.slug);
 
+    // wait for data fetch
     await waitFor(() =>
       expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
         seededProduct.name
@@ -274,18 +275,31 @@ describe("Update Product page integration tests", () => {
     });
   });
 
-  //   test("successfully deletes a product", async () => {
-  //     renderWithProviders(seededProduct.slug);
+  test("successfully deletes a product", async () => {
+    // mock window.prompt so affirm deletion
+    window.prompt = jest.fn(() => "yes");
 
-  //     // Mock window.prompt so it “confirms”
-  //     window.prompt = jest.fn(() => "yes");
+    renderWithProviders(seededProduct.slug);
 
-  //     const deleteButton = screen.getByRole("button", { name: /delete product/i });
-  //     fireEvent.click(deleteButton);
+    // wait for data fetch
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
+        seededProduct.name
+      )
+    );
 
-  //     await waitFor(async () => {
-  //       const deleted = await Product.findById(seededProduct._id);
-  //       expect(deleted).toBeNull();
-  //     });
-  //   });
+    const deleteButton = screen.getByRole("button", {
+      name: /delete product/i,
+    });
+    fireEvent.click(deleteButton);
+
+    // assert product doesnt exist in db
+    await waitFor(async () => {
+      const deleted = await Product.findById(seededProduct._id);
+      expect(deleted).toBeNull();
+    });
+
+    // restore window.prompt
+    window.prompt.mockRestore();
+  });
 });
