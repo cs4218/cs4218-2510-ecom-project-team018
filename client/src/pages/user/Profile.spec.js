@@ -19,15 +19,6 @@ const login = async (page, email, password) => {
   await page.getByRole('button', { name: 'LOGIN' }).click();
 };
 
-const goToProfile = async (page, name) => {
-  const userButton = page.getByRole('button', { name: new RegExp(name, 'i') });
-  await expect(userButton).toBeVisible({ timeout: 15000 });
-
-  await userButton.click();
-
-};
-
-
 test('renders profile page for logged in user', async ({ page }) => {
   await login(page, EMAIL, OLD_PASSWORD);
   await page.getByRole('button', { name: ORIGINAL_NAME }).click();
