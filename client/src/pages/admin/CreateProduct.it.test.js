@@ -19,6 +19,7 @@ import categoryRoutes from "../../../../routes/categoryRoutes.js";
 import productRoutes from "../../../../routes/productRoutes.js"; // make sure you have this
 import Category from "../../../../models/categoryModel.js";
 import Product from "../../../../models/productModel.js";
+import slugify from "slugify";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ global.URL.createObjectURL = jest.fn(() => "mocked-url");
 
 let server;
 let app;
+let seededCategory;
 const TEST_PORT = 5051; // bc its for testing, any uncommon port no. will do (eg. not 5173)
 
 const TEST_ADMIN = {
@@ -57,6 +59,8 @@ const seedCategories = async (db) => {
     { name: SAMPLE_CATEGORIES[0].name, createdBy: user._id },
     { name: SAMPLE_CATEGORIES[1].name, createdBy: user._id },
   ]);
+
+  return categories;
 };
 
 describe("Create Product page integration tests", () => {
@@ -93,7 +97,8 @@ describe("Create Product page integration tests", () => {
     // clear & seed again
     await mongoose.connection.db.collection("categories").deleteMany({});
     await mongoose.connection.db.collection("products").deleteMany({});
-    await seedCategories(mongoose.connection.db);
+    const cats = await seedCategories(mongoose.connection.db);
+    seededCategory = cats[0];
   });
 
   afterAll(async () => {
@@ -127,6 +132,16 @@ describe("Create Product page integration tests", () => {
   });
 
   test("successfully creates a new product", async () => {
+    const newProductData = {
+      name: "super toaster oven 3000",
+      description: "yum yum in my tum tum",
+      price: "999",
+      quantity: "5",
+      shipping: true,
+      category: seededCategory,
+      photo: new File(["dummy"], "test.jpg", { type: "image/jpeg" }),
+    };
+
     renderWithProviders();
 
     // wait for category fetch to complete (so main form renders)
@@ -137,32 +152,36 @@ describe("Create Product page integration tests", () => {
     // select cat
     const categoryTrigger = await screen.findByText(/select a category/i);
     fireEvent.mouseDown(categoryTrigger);
-    const categoryOption = await screen.findByText(SAMPLE_CATEGORIES[0].name);
+    const categoryOption = await screen.findByText(
+      newProductData.category.name
+    );
     fireEvent.click(categoryOption);
 
     // upload photo
-    const file = new File(["dummy"], "test.jpg", { type: "image/jpeg" });
     const fileInput = screen.getByLabelText(/upload photo/i);
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.change(fileInput, { target: { files: [newProductData.photo] } });
 
     // input fields
     fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
-      target: { value: "super toaster oven 3000" },
+      target: { value: newProductData.name },
     });
     fireEvent.change(screen.getByPlaceholderText(/write a description/i), {
-      target: { value: "yum yum in my tum tum" },
+      target: { value: newProductData.description },
     });
     fireEvent.change(screen.getByPlaceholderText(/write a price/i), {
-      target: { value: "999" },
+      target: { value: newProductData.price },
     });
     fireEvent.change(screen.getByPlaceholderText(/write a quantity/i), {
-      target: { value: "5" },
+      target: { value: newProductData.quantity },
     });
 
-    // shipping
-    const shippingTrigger = await screen.findByText(/select shipping/i);
-    fireEvent.mouseDown(shippingTrigger);
-    fireEvent.click(screen.getByText("Yes"));
+    // select shipping
+    const selectShipping = screen.getAllByRole("combobox")[1];
+    fireEvent.mouseDown(selectShipping);
+    const newShippingOption = await screen.findByText(
+      newProductData.shipping ? "Yes" : "No"
+    );
+    fireEvent.click(newShippingOption);
 
     // click create button
     const createButton = screen.getByRole("button", {
@@ -173,11 +192,24 @@ describe("Create Product page integration tests", () => {
     // assert in db
     await waitFor(async () => {
       const product = await Product.findOne({
-        name: "super toaster oven 3000",
+        name: newProductData.name,
       });
+
       expect(product).not.toBeNull();
-      expect(product.description).toBe("yum yum in my tum tum");
-      expect(product.price).toBe(999);
+
+      // assert all fields
+      expect(product.name).toBe(newProductData.name);
+      expect(product.description).toBe(newProductData.description);
+      expect(product.price).toBe(Number(newProductData.price));
+      expect(product.quantity).toBe(Number(newProductData.quantity));
+      expect(product.shipping).toBe(newProductData.shipping);
+      expect(product.category.toString()).toBe(
+        newProductData.category._id.toString()
+      );
+      expect(product.slug).toBe(slugify(newProductData.name, { lower: true }));
+      expect(product.photo).toBeDefined();
+      expect(product.photo.data).toBeDefined();
+      expect(product.photo.contentType).toBe("image/jpeg");
     });
   });
 });
