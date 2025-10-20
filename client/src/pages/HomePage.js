@@ -43,7 +43,9 @@ const HomePage = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setProducts(data.products);
+      if (checked.length === 0 && radio.length === 0) {
+        setProducts(data.products);
+      }
       setLoading(false);
     } catch (err) {
       console.error(err);
