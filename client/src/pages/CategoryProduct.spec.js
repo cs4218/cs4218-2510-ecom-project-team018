@@ -295,4 +295,32 @@ test.describe("Category Product page", () => {
     const errorToast = page.getByText(/Failed to load/i).first();
     await expect(errorToast).toBeVisible();
   });
+
+  test("clears previous products when navigating to an empty category", async ({
+    page,
+  }) => {
+    const populated = await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, 4),
+    });
+    const empty = await createCategoryWithProducts({
+      name: "Empty Category",
+      slug: "empty-category",
+      products: [],
+    });
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+
+    await page.goto(`/category/${populated.category.slug}`);
+    await expect(productCards).toHaveCount(4);
+
+    await page.goto(`/category/${empty.category.slug}`);
+    await expect(productCards).toHaveCount(0);
+    await expect(
+      page.getByText("No products found in this category.")
+    ).toBeVisible();
+  });
 });
