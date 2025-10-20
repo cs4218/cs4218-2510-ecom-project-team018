@@ -181,4 +181,24 @@ test.describe("Product Details page", () => {
       ])
     );
   });
+
+  test("prevents duplicate addition of main product", async ({ page }) => {
+    const category = await createCategory("Duplicate Guard");
+    const product = await createProduct({
+      name: "Duplicate Guard Product",
+      slug: "playwright-duplicate-guard",
+      description: "Duplicate guard description",
+      price: 79.99,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${product.slug}`);
+    await page.evaluate(() => localStorage.clear());
+
+    await page.getByTestId("main-add-to-cart").click();
+    await expect(page.getByText(/Item added to cart/i)).toBeVisible();
+
+    await page.getByTestId("main-add-to-cart").click();
+    await expect(page.getByText(/Item already in cart/i)).toBeVisible();
+  });
 });
