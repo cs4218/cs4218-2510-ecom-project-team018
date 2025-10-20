@@ -72,4 +72,42 @@ test.describe("Product Details page", () => {
     await productModel.deleteMany({});
     await categoryModel.deleteMany({});
   });
+
+  test("displays main product information and image", async ({ page }) => {
+    const category = await createCategory("Playwright Electronics");
+    const product = await createProduct({
+      name: "Playwright Primary Product",
+      slug: "playwright-primary-product",
+      description: "Playwright Primary Product description",
+      price: 199.99,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${product.slug}`);
+
+    await expect(
+      page.getByRole("heading", { level: 1, name: /product details/i })
+    ).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(`Name : ${product.name}`, "i"))
+    ).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(`Description : ${product.description}`, "i"))
+    ).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(`Price : \\$${product.price}`, "i"))
+    ).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(`Category : ${category.name}`, "i"))
+    ).toBeVisible();
+
+    const heroImage = page.getByRole("img", {
+      name: new RegExp(product.name, "i"),
+    });
+    await expect(heroImage).toBeVisible();
+    await expect(heroImage).toHaveAttribute(
+      "src",
+      /\/images\/placeholder\.png$/
+    );
+  });
 });
