@@ -23,27 +23,44 @@ var gateway = new braintree.BraintreeGateway({
 
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity, shipping } =
-      req.fields;
+    let { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
 
     // validation
     switch (true) {
       case !name:
-        return res.status(400).send({ error: "Name is required" });
-      case !description:
-        return res.status(400).send({ error: "Description is required" });
-      case !price:
-        return res.status(400).send({ error: "Price is required" });
-      case !category:
-        return res.status(400).send({ error: "Category is required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is required" });
-      case photo && photo.size > 1000000:
         return res
-          .status(413)
-          .send({ error: "Photo is required and should be less then 1MB" });
+          .status(400)
+          .send({ success: false, message: "Name is required" });
+      case !description:
+        return res
+          .status(400)
+          .send({ success: false, message: "Description is required" });
+      case !price:
+        return res
+          .status(400)
+          .send({ success: false, message: "Price is required" });
+      case !category:
+        return res
+          .status(400)
+          .send({ success: false, message: "Category is required" });
+      case !quantity:
+        return res
+          .status(400)
+          .send({ success: false, message: "Quantity is required" });
+      case shipping === undefined || shipping === "":
+        return res
+          .status(400)
+          .send({ success: false, message: "Shipping is required" });
+      case photo && photo.size > 1000000:
+        return res.status(413).send({
+          success: false,
+          message: "Photo is required and should be less than 1MB",
+        });
     }
+
+    // normalize shipping value ("1" => true, "0" => false)
+    shipping = shipping === 1;
 
     const products = new productModel({ ...req.fields, slug: slugify(name) });
     if (photo) {
@@ -183,19 +200,34 @@ export const updateProductController = async (req, res) => {
     // validation
     switch (true) {
       case !name:
-        return res.status(400).send({ error: "Name is required" });
-      case !description:
-        return res.status(400).send({ error: "Description is required" });
-      case !price:
-        return res.status(400).send({ error: "Price is required" });
-      case !category:
-        return res.status(400).send({ error: "Category is required" });
-      case !quantity:
-        return res.status(400).send({ error: "Quantity is required" });
-      case photo && photo.size > 1000000:
         return res
-          .status(413)
-          .send({ error: "Photo is required and should be less then 1MB" });
+          .status(400)
+          .send({ success: false, message: "Name is required" });
+      case !description:
+        return res
+          .status(400)
+          .send({ success: false, message: "Description is required" });
+      case !price:
+        return res
+          .status(400)
+          .send({ success: false, message: "Price is required" });
+      case !category:
+        return res
+          .status(400)
+          .send({ success: false, message: "Category is required" });
+      case !quantity:
+        return res
+          .status(400)
+          .send({ success: false, message: "Quantity is required" });
+      case shipping === undefined || shipping === "":
+        return res
+          .status(400)
+          .send({ success: false, message: "Shipping is required" });
+      case photo && photo.size > 1000000:
+        return res.status(413).send({
+          success: false,
+          message: "Photo is required and should be less then 1MB",
+        });
     }
 
     const products = await productModel.findByIdAndUpdate(
@@ -597,7 +629,9 @@ export const checkInventoryController = async (req, res) => {
     for (const item of cart) {
       const qty = Number(item.quantity ?? 1);
       if (!item._id || !Number.isFinite(qty) || qty <= 0) {
-        return res.status(400).send({ success: false, message: "Bad cart item" });
+        return res
+          .status(400)
+          .send({ success: false, message: "Bad cart item" });
       }
       const doc = await productModel.findById(item._id).select("quantity");
       if (!doc || doc.quantity < qty) {
@@ -611,7 +645,8 @@ export const checkInventoryController = async (req, res) => {
     }
     return res.status(200).send({ success: true });
   } catch (e) {
-    return res.status(500).send({ success: false, message: "Inventory check failed" });
+    return res
+      .status(500)
+      .send({ success: false, message: "Inventory check failed" });
   }
 };
-
