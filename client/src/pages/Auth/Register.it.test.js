@@ -7,7 +7,6 @@ import Register from "./Register";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import authRoutes from "../../../../routes/authRoute.js";
 import {
   clearDB,
@@ -64,7 +63,9 @@ describe("Register Integration", () => {
   });
 
   afterAll(async () => {
-    if (server) server.close();
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
     await clearDB();
     await disconnectTestDB();
   });

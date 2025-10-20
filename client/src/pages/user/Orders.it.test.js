@@ -107,7 +107,9 @@ describe("Orders Page Integration Tests", () => {
     })
 
     afterAll(async () => {
-        if (server) server.close();
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
         await disconnectTestDB();
     })
 

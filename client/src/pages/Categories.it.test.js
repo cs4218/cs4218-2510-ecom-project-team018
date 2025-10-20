@@ -79,7 +79,9 @@ describe("Categories Integration", () => {
   });
 
   afterAll(async () => {
-    if (server) server.close();
+    if (server) {
+      await new Promise((resolve) => server.close(resolve));
+    }
     await clearDB();
     await disconnectTestDB();
   });
