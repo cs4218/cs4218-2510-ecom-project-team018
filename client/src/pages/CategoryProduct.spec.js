@@ -285,4 +285,14 @@ test.describe("Category Product page", () => {
     const cardImage = page.locator(".category .card img").first();
     await expect(cardImage).toHaveAttribute("src", "/images/placeholder.png");
   });
+
+  test("shows error toasts when visiting non-existent category", async ({
+    page,
+  }) => {
+    const missingSlug = "non-existent-category";
+    await page.goto(`/category/${missingSlug}`);
+
+    const errorToast = page.getByText(/Failed to load/i).first();
+    await expect(errorToast).toBeVisible();
+  });
 });
