@@ -130,4 +130,35 @@ test.describe("Category Product page", () => {
 
     await expect(loadMoreButton).toBeHidden();
   });
+
+  test("shows empty state when a category has no products", async ({
+    page,
+  }) => {
+    const CATEGORY_NAME = "Handmade";
+    const CATEGORY_SLUG = "handmade";
+
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: [],
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    const heading = page.getByRole("heading", {
+      level: 4,
+      name: new RegExp(`Category - ${CATEGORY_NAME}`),
+    });
+    await expect(heading).toBeVisible();
+
+    const emptyStateMessage = page.getByText(
+      "No products found in this category."
+    );
+    await expect(emptyStateMessage).toBeVisible();
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    await expect(productCards).toHaveCount(0);
+  });
 });
