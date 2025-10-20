@@ -1345,9 +1345,11 @@ describe("Product controllers", () => {
 
     test("returns 409 when product not found", async () => {
       // first item fails (no doc)
-      productModel.findById.mockReturnValueOnce({
-        select: jest.fn().mockResolvedValue(null),
-      });
+      productModel.findById.mockReturnValueOnce(
+        {
+          select: jest.fn().mockResolvedValue(null),
+        }
+      );
 
       const req = { body: { cart: [{ _id: "missing-id", quantity: 1 }] } };
 
@@ -1669,7 +1671,7 @@ describe("Product Controller - updating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Name is required" })
+      expect.objectContaining({ error: "Name is required" })
     );
   });
 
@@ -1680,7 +1682,7 @@ describe("Product Controller - updating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Description is required" })
+      expect.objectContaining({ error: "Description is required" })
     );
   });
 
@@ -1691,7 +1693,7 @@ describe("Product Controller - updating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Price is required" })
+      expect.objectContaining({ error: "Price is required" })
     );
   });
 
@@ -1702,7 +1704,7 @@ describe("Product Controller - updating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Category is required" })
+      expect.objectContaining({ error: "Category is required" })
     );
   });
 
@@ -1713,7 +1715,7 @@ describe("Product Controller - updating a product", () => {
 
     expect(res.status).toHaveBeenCalledWith(BAD_REQUEST_STATUS);
     expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Quantity is required" })
+      expect.objectContaining({ error: "Quantity is required" })
     );
   });
 
@@ -1725,7 +1727,7 @@ describe("Product Controller - updating a product", () => {
     expect(res.status).toHaveBeenCalledWith(PAYLOAD_TOO_LARGE_STATUS);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: "Photo is required and should be less then 1MB",
+        error: "Photo is required and should be less then 1MB",
       })
     );
   });
