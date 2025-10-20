@@ -239,4 +239,30 @@ test.describe("Category Product page", () => {
       page.getByText(new RegExp(`Name : ${targetProduct.name}`, "i"))
     ).toBeVisible();
   });
+
+  test("adds products to cart and prevents duplicates", async ({ page }) => {
+    const { products } = await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, 1),
+    });
+    const targetProduct = products[0];
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+    await page.evaluate(() => localStorage.clear());
+
+    const addToCartButton = page.getByRole("button", { name: "ADD TO CART" });
+    await addToCartButton.click();
+
+    await expect(page.getByText("Item added to cart")).toBeVisible();
+
+    const storedCart = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("cart") || "[]")
+    );
+    expect(storedCart).toHaveLength(1);
+    expect(storedCart[0]._id).toBe(String(targetProduct._id));
+
+    await addToCartButton.click();
+    await expect(page.getByText("Item already in cart")).toBeVisible();
+  });
 });
