@@ -211,4 +211,32 @@ test.describe("Category Product page", () => {
     await expect(productCards).toHaveCount(MULTI_PAGE_PRODUCT_COUNT);
     await expect(loadMoreButton).toBeHidden();
   });
+
+  test("navigates to the product detail page from More Details button", async ({
+    page,
+  }) => {
+    const { products } = await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, 3),
+    });
+    const targetProductIndex = 1;
+    const targetProduct = products[targetProductIndex];
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+    await page
+      .getByRole("button", { name: "More Details" })
+      .nth(targetProductIndex)
+      .click();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/product/${targetProduct.slug}`, "i")
+    );
+    await expect(
+      page.getByRole("heading", { level: 1, name: /Product Details/i })
+    ).toBeVisible();
+    await expect(
+      page.getByText(new RegExp(`Name : ${targetProduct.name}`, "i"))
+    ).toBeVisible();
+  });
 });
