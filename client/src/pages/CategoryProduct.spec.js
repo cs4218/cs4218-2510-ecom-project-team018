@@ -78,4 +78,56 @@ test.describe("Category Product page", () => {
   test.afterAll(async () => {
     await resetCategoryProducts();
   });
+
+  test("displays paginated products for the selected category", async ({
+    page,
+  }) => {
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, MULTI_PAGE_PRODUCT_COUNT),
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    const heading = page.getByRole("heading", {
+      level: 4,
+      name: new RegExp(`Category - ${CATEGORY_NAME}`),
+    });
+    await expect(heading).toBeVisible();
+
+    const resultCountHeading = page.getByRole("heading", {
+      level: 6,
+      name: /results found/i,
+    });
+    await expect(resultCountHeading).toHaveText(
+      new RegExp(`${MULTI_PAGE_PRODUCT_COUNT} result`)
+    );
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    await expect(productCards).toHaveCount(DEFAULT_PAGE_SIZE);
+
+    const loadMoreButton = page.getByRole("button", { name: /load more/i });
+    await expect(loadMoreButton).toBeEnabled();
+
+    await loadMoreButton.click();
+
+    await expect(productCards).toHaveCount(MULTI_PAGE_PRODUCT_COUNT);
+    const productNameHeadings = productCards.locator(
+      "h5.card-title:not(.card-price)"
+    );
+    await expect(productNameHeadings).toHaveCount(MULTI_PAGE_PRODUCT_COUNT);
+    await expect(productNameHeadings.first()).toHaveText(
+      `Electronics Product ${MULTI_PAGE_PRODUCT_COUNT}`
+    );
+    for (let i = 0; i < MULTI_PAGE_PRODUCT_COUNT; i++) {
+      await expect(productNameHeadings.nth(i)).toHaveText(
+        `Electronics Product ${MULTI_PAGE_PRODUCT_COUNT - i}`
+      );
+    }
+
+    await expect(loadMoreButton).toBeHidden();
+  });
 });
