@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./src/pages",
   testMatch: ["**/*.spec.js"],
+  timeout: 50000,
   use: {
     baseURL: "http://localhost:3000",
     headless: false,
