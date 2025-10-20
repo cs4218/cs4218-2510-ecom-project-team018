@@ -147,4 +147,86 @@ describe("Update Product page integration tests", () => {
       expect(option).toBeInTheDocument();
     }
   });
+
+  test("successfully loads existing product data", async () => {
+    renderWithProviders(seededProduct.slug);
+
+    // wait for data fetch
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
+        seededProduct.name
+      )
+    );
+
+    // cat
+    const categorySelect = screen.getByText(seededCategory.name);
+    expect(categorySelect).toBeInTheDocument();
+
+    // photo
+    const photoImg = screen.getByAltText("product_photo");
+    expect(photoImg).toHaveAttribute(
+      "src",
+      `/api/v1/product/product-photo/${seededProduct._id}`
+    );
+
+    // input fields
+    expect(screen.getByPlaceholderText(/write a description/i)).toHaveValue(
+      seededProduct.description
+    );
+    expect(screen.getByPlaceholderText(/write a price/i)).toHaveValue(
+      seededProduct.price
+    );
+    expect(screen.getByPlaceholderText(/write a quantity/i)).toHaveValue(
+      seededProduct.quantity
+    );
+
+    // shipping
+    expect(screen.getByText("Yes")).toBeInTheDocument();
+  });
+
+  //   test("successfully updates product info", async () => {
+  //     renderWithProviders(seededProduct.slug);
+
+  //     await waitFor(() =>
+  //       expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
+  //         seededProduct.name
+  //       )
+  //     );
+
+  //     // Change name and price
+  //     fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
+  //       target: { value: "Updated toaster 2000" },
+  //     });
+  //     fireEvent.change(screen.getByPlaceholderText(/write a price/i), {
+  //       target: { value: "123" },
+  //     });
+
+  //     // Click update button
+  //     const updateButton = screen.getByRole("button", {
+  //       name: /update product/i,
+  //     });
+  //     fireEvent.click(updateButton);
+
+  //     // Wait for DB update
+  //     await waitFor(async () => {
+  //       const updated = await Product.findOne({ _id: seededProduct._id });
+  //       expect(updated.name).toBe("Updated toaster 2000");
+  //       expect(updated.price).toBe(123);
+  //     });
+  //   });
+
+  //   test("successfully deletes a product", async () => {
+  //     renderWithProviders(seededProduct.slug);
+
+  //     // Mock window.prompt so it “confirms”
+  //     window.prompt = jest.fn(() => "yes");
+
+  //     const deleteButton = screen.getByRole("button", { name: /delete product/i });
+  //     fireEvent.click(deleteButton);
+
+  //     await waitFor(async () => {
+  //       const deleted = await Product.findById(seededProduct._id);
+  //       expect(deleted).toBeNull();
+  //     });
+  //   });
 });
