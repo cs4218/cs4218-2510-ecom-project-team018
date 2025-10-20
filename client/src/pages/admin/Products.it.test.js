@@ -183,17 +183,26 @@ describe("Admin Products page integration tests", () => {
     });
   });
 
-  //   test("each product links to its update page", async () => {
-  //     renderWithProviders();
+  test("each product has its link to its update page", async () => {
+    renderWithProviders();
 
-  //     // wait for the products to appear
-  //     const firstProd = await screen.findByText(SAMPLE_PRODUCTS[0].name);
-  //     const productLink = firstProd.closest("a");
-  //     expect(productLink).toHaveAttribute(
-  //       "href",
-  //       `/dashboard/admin/product/${seededProducts[0].slug}`
-  //     );
-  //   });
+    for (let i = 0; i < SAMPLE_PRODUCTS.length; i++) {
+      const prod = SAMPLE_PRODUCTS[i];
+      const seededProd = seededProducts[i];
+
+      // get product name
+      const prodName = await screen.findByText(prod.name);
+
+      // get link
+      const prodLink = prodName.closest("a");
+
+      // assert href matches the expected update URL
+      expect(prodLink).toHaveAttribute(
+        "href",
+        `/dashboard/admin/product/${seededProd.slug}`
+      );
+    }
+  });
 
   //   test("navigates to update page when clicking a product link", async () => {
   //     const user = userEvent.setup();
