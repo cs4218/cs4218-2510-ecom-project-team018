@@ -323,4 +323,32 @@ test.describe("Category Product page", () => {
       page.getByText("No products found in this category.")
     ).toBeVisible();
   });
+
+  test("resets pagination after reloading the page", async ({ page }) => {
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, MULTI_PAGE_PRODUCT_COUNT),
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    const loadMoreButton = page.getByRole("button", { name: /load more/i });
+
+    await loadMoreButton.click();
+    await expect(productCards).toHaveCount(MULTI_PAGE_PRODUCT_COUNT);
+
+    await page.reload();
+
+    const reloadedProductCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    await expect(reloadedProductCards).toHaveCount(DEFAULT_PAGE_SIZE);
+    await expect(
+      page.getByRole("button", { name: /load more/i })
+    ).toBeVisible();
+  });
 });
