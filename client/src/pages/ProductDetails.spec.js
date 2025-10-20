@@ -240,4 +240,35 @@ test.describe("Product Details page", () => {
       ])
     );
   });
+
+  test("prevents duplicate addition of related product", async ({ page }) => {
+    const category = await createCategory("Related Duplicate");
+    const mainProduct = await createProduct({
+      name: "Main Related Duplicate",
+      slug: "playwright-main-related-duplicate",
+      description: "Main related duplicate description",
+      price: 129.99,
+      categoryId: category._id,
+    });
+    const relatedProduct = await createProduct({
+      name: "Related Duplicate Product",
+      slug: "playwright-related-duplicate",
+      description: "Related duplicate description",
+      price: 29.99,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${mainProduct.slug}`);
+    await page.evaluate(() => localStorage.clear());
+
+    const relatedCard = page
+      .getByTestId("similar-products")
+      .getByTestId(`similar-product-${relatedProduct._id}`);
+
+    await relatedCard.getByRole("button", { name: /add to cart/i }).click();
+    await expect(page.getByText(/Item added to cart/i)).toBeVisible();
+
+    await relatedCard.getByRole("button", { name: /add to cart/i }).click();
+    await expect(page.getByText(/Item already in cart/i)).toBeVisible();
+  });
 });
