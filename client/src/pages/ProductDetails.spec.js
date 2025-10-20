@@ -155,4 +155,30 @@ test.describe("Product Details page", () => {
 
     await expect(page).toHaveURL(new RegExp(`/product/${relatedOne.slug}$`));
   });
+
+  test("allows adding main product to cart", async ({ page }) => {
+    const category = await createCategory("Cart Electronics");
+    const product = await createProduct({
+      name: "Cart Product",
+      slug: "playwright-cart-product",
+      description: "Cart product description",
+      price: 49.99,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${product.slug}`);
+    await page.evaluate(() => localStorage.clear());
+
+    await page.getByTestId("main-add-to-cart").click();
+
+    await expect(page.getByText(/Item added to cart/i)).toBeVisible();
+    const cart = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem("cart") || "[]")
+    );
+    expect(cart).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ _id: product._id.toString() }),
+      ])
+    );
+  });
 });
