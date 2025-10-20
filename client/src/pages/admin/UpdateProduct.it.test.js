@@ -49,6 +49,7 @@ const TEST_ADMIN = {
 
 const SAMPLE_CATEGORIES = [{ name: "Electronics" }, { name: "Books" }];
 let seededCategory;
+let seededCategory2;
 let seededProduct;
 
 // seed helpers
@@ -73,6 +74,10 @@ const seedProduct = async (category) => {
     quantity: 2,
     shipping: true,
     category: category._id,
+    photo: {
+      data: Buffer.from("fake photo jpg"),
+      contentType: "image/jpeg",
+    },
   });
 
   return product;
@@ -113,6 +118,7 @@ describe("Update Product page integration tests", () => {
     await mongoose.connection.db.collection("products").deleteMany({});
     const cats = await seedCategories(mongoose.connection.db);
     seededCategory = cats[0];
+    seededCategory2 = cats[1];
     seededProduct = await seedProduct(seededCategory);
   });
 
@@ -181,39 +187,92 @@ describe("Update Product page integration tests", () => {
     );
 
     // shipping
-    expect(screen.getByText("Yes")).toBeInTheDocument();
+    expect(
+      screen.getByText(seededProduct.shipping ? "Yes" : "No")
+    ).toBeInTheDocument();
   });
 
-  //   test("successfully updates product info", async () => {
-  //     renderWithProviders(seededProduct.slug);
+  test("successfully updates a product", async () => {
+    const updatedProductData = {
+      name: "super toaster oven pro max 5000",
+      description: "yum yum in my tum tum 2.0",
+      price: 123,
+      quantity: 10,
+      category: seededCategory2,
+      shipping: false,
+      photo: new File(["fake png content"], "updated.png", {
+        type: "image/png",
+      }),
+    };
 
-  //     await waitFor(() =>
-  //       expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
-  //         seededProduct.name
-  //       )
-  //     );
+    renderWithProviders(seededProduct.slug);
 
-  //     // Change name and price
-  //     fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
-  //       target: { value: "Updated toaster 2000" },
-  //     });
-  //     fireEvent.change(screen.getByPlaceholderText(/write a price/i), {
-  //       target: { value: "123" },
-  //     });
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText(/write a name/i)).toHaveValue(
+        seededProduct.name
+      )
+    );
 
-  //     // Click update button
-  //     const updateButton = screen.getByRole("button", {
-  //       name: /update product/i,
-  //     });
-  //     fireEvent.click(updateButton);
+    /*** change product info ***/
+    // change cat
+    const categorySelect = screen.getAllByRole("combobox")[0];
+    fireEvent.mouseDown(categorySelect);
+    const categoryOption = await screen.findByText(
+      updatedProductData.category.name
+    );
+    fireEvent.click(categoryOption);
 
-  //     // Wait for DB update
-  //     await waitFor(async () => {
-  //       const updated = await Product.findOne({ _id: seededProduct._id });
-  //       expect(updated.name).toBe("Updated toaster 2000");
-  //       expect(updated.price).toBe(123);
-  //     });
-  //   });
+    // change photo
+    const fileInput = screen.getByLabelText(/upload photo/i);
+    fireEvent.change(fileInput, {
+      target: { files: [updatedProductData.photo] },
+    });
+
+    // input fields
+    fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
+      target: { value: updatedProductData.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a description/i), {
+      target: { value: updatedProductData.description },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a price/i), {
+      target: { value: updatedProductData.price },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a quantity/i), {
+      target: { value: updatedProductData.quantity },
+    });
+
+    // change shipping
+    const shippingSelect = screen.getAllByRole("combobox")[1];
+    fireEvent.mouseDown(shippingSelect);
+    const newShippingOption = await screen.findByText(
+      updatedProductData.shipping ? "Yes" : "No"
+    );
+    fireEvent.click(newShippingOption);
+
+    // click update button
+    const updateButton = screen.getByRole("button", {
+      name: /update product/i,
+    });
+    fireEvent.click(updateButton);
+
+    // assert in db
+    await waitFor(async () => {
+      const updated = await Product.findById(seededProduct._id);
+
+      expect(updated.category.toString()).toBe(
+        updatedProductData.category._id.toString()
+      );
+      expect(updated.photo).toBeDefined();
+      expect(updated.photo.data).toBeDefined();
+      expect(updated.photo.contentType).toBe("image/png");
+      expect(updated.name).toBe(updatedProductData.name);
+      expect(updated.description).toBe(updatedProductData.description);
+      expect(updated.price).toBe(updatedProductData.price);
+      expect(updated.quantity).toBe(updatedProductData.quantity);
+      expect(updated.shipping).toBe(updatedProductData.shipping);
+    });
+  });
 
   //   test("successfully deletes a product", async () => {
   //     renderWithProviders(seededProduct.slug);
