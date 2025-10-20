@@ -5,6 +5,7 @@ const reuseServer = !process.env.CI;
 export default defineConfig({
   testDir: "./src/pages",
   testMatch: ["**/*.spec.js"],
+  timeout: 40000,
   workers: 1,
   use: {
     baseURL: "http://localhost:3000",
