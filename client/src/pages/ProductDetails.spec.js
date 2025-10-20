@@ -61,3 +61,15 @@ const resetDbAndSeedAdmin = async (page) => {
 
   await loginAsAdmin(page);
 };
+
+test.describe("Product Details page", () => {
+  test.beforeEach(async ({ page }) => {
+    await resetDbAndSeedAdmin(page);
+  });
+
+  test.afterAll(async () => {
+    await userModel.deleteMany({});
+    await productModel.deleteMany({});
+    await categoryModel.deleteMany({});
+  });
+});
