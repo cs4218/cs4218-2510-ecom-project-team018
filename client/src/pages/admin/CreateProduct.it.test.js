@@ -32,6 +32,8 @@ jest.mock("../../components/AdminMenu", () => () => (
   <div data-testid="admin-menu-mock">Admin Menu</div>
 ));
 
+global.URL.createObjectURL = jest.fn(() => "mocked-url");
+
 let server;
 let app;
 const TEST_PORT = 5051; // bc its for testing, any uncommon port no. will do (eg. not 5173)
@@ -122,5 +124,60 @@ describe("Create Product page integration tests", () => {
         expect(screen.getByText(cat.name)).toBeInTheDocument()
       );
     }
+  });
+
+  test("successfully creates a new product", async () => {
+    renderWithProviders();
+
+    // wait for category fetch to complete (so main form renders)
+    await waitFor(() => {
+      expect(screen.getByText(/select a category/i)).toBeInTheDocument();
+    });
+
+    // select cat
+    const categoryTrigger = await screen.findByText(/select a category/i);
+    fireEvent.mouseDown(categoryTrigger);
+    const categoryOption = await screen.findByText(SAMPLE_CATEGORIES[0].name);
+    fireEvent.click(categoryOption);
+
+    // upload photo
+    const file = new File(["dummy"], "test.jpg", { type: "image/jpeg" });
+    const fileInput = screen.getByLabelText(/upload photo/i);
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // input fields
+    fireEvent.change(screen.getByPlaceholderText(/write a name/i), {
+      target: { value: "super toaster oven 3000" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a description/i), {
+      target: { value: "yum yum in my tum tum" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a price/i), {
+      target: { value: "999" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/write a quantity/i), {
+      target: { value: "5" },
+    });
+
+    // shipping
+    const shippingTrigger = await screen.findByText(/select shipping/i);
+    fireEvent.mouseDown(shippingTrigger);
+    fireEvent.click(screen.getByText("Yes"));
+
+    // click create button
+    const createButton = screen.getByRole("button", {
+      name: /create product/i,
+    });
+    fireEvent.click(createButton);
+
+    // assert in db
+    await waitFor(async () => {
+      const product = await Product.findOne({
+        name: "super toaster oven 3000",
+      });
+      expect(product).not.toBeNull();
+      expect(product.description).toBe("yum yum in my tum tum");
+      expect(product.price).toBe(999);
+    });
   });
 });
