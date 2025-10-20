@@ -79,7 +79,40 @@ test.describe("Category Product page", () => {
     await resetCategoryProducts();
   });
 
-  test("displays paginated products for the selected category", async ({
+  test("displays products for the selected category (1 page only)", async ({
+    page,
+  }) => {
+    await createCategoryWithProducts({
+      name: CATEGORY_NAME,
+      slug: CATEGORY_SLUG,
+      products: generateProductInputs(CATEGORY_NAME, DEFAULT_PAGE_SIZE - 1),
+    });
+
+    await page.goto(`/category/${CATEGORY_SLUG}`);
+
+    const heading = page.getByRole("heading", {
+      level: 4,
+      name: new RegExp(`Category - ${CATEGORY_NAME}`),
+    });
+    await expect(heading).toBeVisible();
+
+    const resultCountHeading = page.getByRole("heading", {
+      level: 6,
+      name: /results found/i,
+    });
+    await expect(resultCountHeading).toHaveText(
+      new RegExp(`${DEFAULT_PAGE_SIZE - 1} result`)
+    );
+
+    const productCards = page.locator(".category .card").filter({
+      has: page.locator(".card-body"),
+    });
+    await expect(productCards).toHaveCount(DEFAULT_PAGE_SIZE - 1);
+
+    await expect(page.getByRole("button", { name: /load more/i })).toBeHidden();
+  });
+
+  test("displays paginated products for the selected category (>1 page)", async ({
     page,
   }) => {
     await createCategoryWithProducts({
