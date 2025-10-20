@@ -1,50 +1,97 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../../tests/playwrightTest.js";
+import userModel from "../../../../models/userModel.js";
+import categoryModel from "../../../../models/categoryModel.js";
+import { hashPassword } from "../../../../helpers/authHelper.js";
+import slugify from "slugify";
 
-// sample category data
-const SAMPLE_CATEOGRIES = [
-  { _id: "1", name: "Electronics" },
-  { _id: "2", name: "Books" },
-];
+// admin test user credentials
+const ADMIN_CREDENTIALS = {
+  name: "Playwright Admin",
+  email: "kenvynkwek@gmail.com",
+  password: "password",
+  phone: "12345678",
+  address: "Playwright HQ",
+  answer: "test",
+  role: 1,
+};
 
-const SAMPLE_NEW_CATEGORY = { _id: "3", name: "Clothing" };
+// initial categories that should appear in the table
+const INITIAL_CATEGORY_NAMES = ["Electronics", "Books"];
 
-// status codes
-const SUCCESS_STATUS = 200;
-const BAD_REQUEST_STATUS = 400;
+// names used across create/update flows
+const CREATED_CATEGORY_NAME = "Clothing";
+const UPDATED_CATEGORY_NAME = "Gadgets";
 
-let currentCategories;
+// seed an admin user that can log in through the UI
+const seedAdminUser = async () => {
+  const hashedPassword = await hashPassword(ADMIN_CREDENTIALS.password);
+  await userModel.create({
+    ...ADMIN_CREDENTIALS,
+    password: hashedPassword,
+  });
+};
+
+// seed baseline categories shown on first load
+const seedCategories = async () => {
+  const docs = INITIAL_CATEGORY_NAMES.map((name) => ({
+    name,
+    slug: slugify(name, { lower: true }),
+  }));
+  await categoryModel.insertMany(docs);
+};
+
+// logs into the app via the login page and waits for categories to load
+const loginAsAdmin = async (page) => {
+  // navigate to the target page; app should redirect to /login
+  await page.goto("/dashboard/admin/create-category");
+
+  // wait to be redirected
+  await page.waitForURL("/login");
+
+  // fill login form
+  await page
+    .getByRole("textbox", { name: "Enter Your Email" })
+    .fill(ADMIN_CREDENTIALS.email);
+  await page
+    .getByRole("textbox", { name: "Enter Your Password" })
+    .fill(ADMIN_CREDENTIALS.password);
+
+  // submit
+  await page.getByRole("button", { name: "LOGIN" }).click();
+
+  // wait for redirect to create-category page
+  await page.waitForURL("/dashboard/admin/create-category");
+
+  // ensure category list request completes before assertions
+  await page.waitForResponse((response) => {
+    return (
+      response.url().includes("/api/v1/category/get-category") && response.ok()
+    );
+  });
+};
+
+// convenience accessor for table rows
+const getTableRows = (page) => page.locator("table tbody tr");
 
 test.describe("Create Category Page", () => {
   test.beforeEach(async ({ page }) => {
-    currentCategories = [...SAMPLE_CATEOGRIES];
+    await userModel.deleteMany({});
+    await categoryModel.deleteMany({});
 
-    // mock get-category API
-    await page.route("**/api/v1/category/get-category", async (route) => {
-      await route.fulfill({
-        status: SUCCESS_STATUS,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, category: currentCategories }),
-      });
-    });
+    // seed an admin user and initial categories
+    await seedAdminUser();
+    await seedCategories();
 
-    // go to the create-category page
-    await page.goto("/dashboard/admin/create-category");
+    // log in and land on the page with data loaded
+    await loginAsAdmin(page);
 
-    // wait to be redirected
-    await page.waitForURL("/login");
+    // sanity check: table shows the seeded categories
+    await expect(getTableRows(page)).toHaveCount(INITIAL_CATEGORY_NAMES.length);
+  });
 
-    // login
-    await page
-      .getByRole("textbox", { name: "Enter Your Email" })
-      .fill("kenvynkwek@gmail.com");
-    await page.getByRole("textbox", { name: "Enter Your Email" }).press("Tab");
-    await page
-      .getByRole("textbox", { name: "Enter Your Password" })
-      .fill("password");
-    await page.getByRole("button", { name: "LOGIN" }).click();
-
-    // wait for redirect to create-category page
-    await page.waitForURL("/dashboard/admin/create-category");
+  test.afterAll(async () => {
+    await userModel.deleteMany({});
+    await categoryModel.deleteMany({});
   });
 
   test("renders all components", async ({ page }) => {
@@ -64,61 +111,41 @@ test.describe("Create Category Page", () => {
     ).toBeVisible();
 
     // rows
-    const rows = page.locator("table tbody tr");
-    await expect(rows).toHaveCount(2);
+    const rows = getTableRows(page);
+    await expect(rows).toHaveCount(INITIAL_CATEGORY_NAMES.length);
 
-    // row 1: Electronics
-    const firstRow = rows.nth(0);
-    await expect(firstRow).toContainText(SAMPLE_CATEOGRIES[0].name);
-    await expect(firstRow.getByRole("button", { name: /edit/i })).toBeVisible();
-    await expect(
-      firstRow.getByRole("button", { name: /delete/i })
-    ).toBeVisible();
-
-    // row 2: Books
-    const secondRow = rows.nth(1);
-    await expect(secondRow).toContainText(SAMPLE_CATEOGRIES[1].name);
-    await expect(
-      secondRow.getByRole("button", { name: /edit/i })
-    ).toBeVisible();
-    await expect(
-      secondRow.getByRole("button", { name: /delete/i })
-    ).toBeVisible();
+    for (let i = 0; i < INITIAL_CATEGORY_NAMES.length; i++) {
+      const currRow = rows.nth(i);
+      await expect(currRow).toContainText(INITIAL_CATEGORY_NAMES[i]);
+      await expect(
+        currRow.getByRole("button", { name: /edit/i })
+      ).toBeVisible();
+      await expect(
+        currRow.getByRole("button", { name: /delete/i })
+      ).toBeVisible();
+    }
   });
 
   test("successfully create a new category", async ({ page }) => {
-    // mock create-category API for success response
-    await page.route("**/api/v1/category/create-category", async (route) => {
-      const body = await route.request().postDataJSON();
-      // push the new category into the shared array so get-category returns it next
-      const newCategory = {
-        _id: `${currentCategories.length + 1}`,
-        name: body.name,
-      };
-      currentCategories.push(newCategory);
-      await route.fulfill({
-        status: SUCCESS_STATUS,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true, category: newCategory }),
-      });
-    });
-
     // fill in new category
     await page.getByRole("textbox", { name: "Enter new category" }).click();
     await page
       .getByRole("textbox", { name: "Enter new category" })
-      .fill(SAMPLE_NEW_CATEGORY.name);
+      .fill(CREATED_CATEGORY_NAME);
     // submit
     await page.getByRole("button", { name: "Submit" }).click();
 
     // assert toast appears
     await expect(
-      page.getByText(`${SAMPLE_NEW_CATEGORY.name} is created`)
+      page.getByText(`${CREATED_CATEGORY_NAME} is created`)
     ).toBeVisible();
 
     // new category shows in table - row 3: Clothing
+    await expect(getTableRows(page)).toHaveCount(
+      INITIAL_CATEGORY_NAMES.length + 1
+    );
     const thirdRow = page.locator("table tbody tr").nth(2);
-    await expect(thirdRow).toContainText(SAMPLE_NEW_CATEGORY.name);
+    await expect(thirdRow).toContainText(CREATED_CATEGORY_NAME);
     await expect(thirdRow.getByRole("button", { name: /edit/i })).toBeVisible();
     await expect(
       thirdRow.getByRole("button", { name: /delete/i })
@@ -128,62 +155,28 @@ test.describe("Create Category Page", () => {
   test("unable to create a new category when form is empty", async ({
     page,
   }) => {
-    // mock create-category API for fail response
-    await page.route("**/api/v1/category/create-category", async (route) => {
-      const body = await route.request().postDataJSON();
-      if (!body.name || body.name.trim() === "") {
-        await route.fulfill({
-          status: BAD_REQUEST_STATUS,
-          contentType: "application/json",
-          body: JSON.stringify({
-            success: false,
-            message: "something went wrong in input form",
-          }),
-        });
-        return;
-      }
-    });
-
-    // fill in nth
-    await page.getByRole("textbox", { name: "Enter new category" }).click();
-    await page.getByRole("textbox", { name: "Enter new category" }).fill("");
-    // submit
+    // submit empty form
     await page.getByRole("button", { name: "Submit" }).click();
     // assert error
     await expect(page.getByRole("main")).toContainText(
       "something went wrong in input form"
     );
+
+    // table remains unchanged
+    await expect(getTableRows(page)).toHaveCount(INITIAL_CATEGORY_NAMES.length);
   });
 
   test("successfully update a category name", async ({ page }) => {
-    // this test updates "electronics" to "clothing"
-    // mock update-category API for success response
-    await page.route("**/api/v1/category/update-category/*", async (route) => {
-      const body = await route.request().postDataJSON();
-      expect(body.name).toBe(SAMPLE_NEW_CATEGORY.name);
-      await route.fulfill({
-        status: SUCCESS_STATUS,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true }),
-      });
-    });
-
-    // click 'edit' button for first "electronics" row
+    // open edit modal for the first row
     await page.getByRole("button", { name: "Edit" }).first().click();
 
-    // key in "clothing"
-    await page
+    // replace input value with the updated name
+    const modalInput = page
       .getByRole("dialog")
-      .getByRole("textbox", { name: "Enter new category" })
-      .click();
-    await page
-      .getByRole("dialog")
-      .getByRole("textbox", { name: "Enter new category" })
-      .press("ControlOrMeta+a");
-    await page
-      .getByRole("dialog")
-      .getByRole("textbox", { name: "Enter new category" })
-      .fill(SAMPLE_NEW_CATEGORY.name);
+      .getByRole("textbox", { name: "Enter new category" });
+    await modalInput.press("ControlOrMeta+a");
+    await modalInput.fill(UPDATED_CATEGORY_NAME);
+
     // submit
     await page
       .getByRole("dialog")
@@ -192,41 +185,31 @@ test.describe("Create Category Page", () => {
 
     // assert success toast
     await expect(page.getByRole("main")).toContainText(
-      SAMPLE_NEW_CATEGORY.name + " is updated"
+      UPDATED_CATEGORY_NAME + " is updated"
     );
+
+    // table shows updated name
+    await expect(
+      page.getByRole("row", { name: new RegExp(UPDATED_CATEGORY_NAME, "i") })
+    ).toBeVisible();
   });
 
   test("successfully delete a category", async ({ page }) => {
-    await page.route("**/api/v1/category/delete-category/*", async (route) => {
-      const catIDtoBeDeleted = new URL(route.request().url()).pathname
-        .split("/")
-        .pop();
-      // remove cat from currentCategories
-      currentCategories = currentCategories.filter(
-        (cat) => cat._id !== catIDtoBeDeleted
-      );
-      await route.fulfill({
-        status: SUCCESS_STATUS,
-        contentType: "application/json",
-        body: JSON.stringify({ success: true }),
-      });
-    });
+    // capture initial row count
+    const initialRowCount = await getTableRows(page).count();
 
-    const originalCatLength = currentCategories.length;
-
-    // click 'delete' button
+    // delete first row cat
     await page.getByRole("button", { name: "Delete" }).first().click();
 
     // assert success toast
     await expect(page.getByRole("main")).toContainText("category is deleted");
 
     // table has 1 less row
-    const rows = page.locator("table tbody tr");
-    await expect(rows).toHaveCount(originalCatLength - 1);
+    await expect(getTableRows(page)).toHaveCount(initialRowCount - 1);
 
     // assert deleted category doesnt exist
     await expect(page.getByRole("main")).not.toContainText(
-      SAMPLE_CATEOGRIES[0].name
+      INITIAL_CATEGORY_NAMES[0]
     );
   });
 });
