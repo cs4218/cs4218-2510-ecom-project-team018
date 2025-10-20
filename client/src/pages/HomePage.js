@@ -185,7 +185,7 @@ const HomePage = () => {
                       })}
                     </h5>
                   </div>
-                  <p className="card-text ">
+                  <p className="card-text card-description">
                     {truncateDescription60(p.description)}
                   </p>
                   <div className="card-name-price">
@@ -207,7 +207,7 @@ const HomePage = () => {
             ))}
           </div>
           <div className="m-2 p-3">
-            {products && products.length < total && (
+            {products && products.length < total && checked.length === 0 && radio.length === 0 && (
               <button
                 className="btn loadmore"
                 onClick={(e) => {
