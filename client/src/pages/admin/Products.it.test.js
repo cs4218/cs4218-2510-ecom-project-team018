@@ -174,14 +174,14 @@ describe("Admin Products page integration tests", () => {
     }
   });
 
-  //   test("displays correct number of product cards", async () => {
-  //     renderWithProviders();
+  test("displays correct number of product cards", async () => {
+    renderWithProviders();
 
-  //     await waitFor(() => {
-  //       const cards = screen.getAllByRole("img");
-  //       expect(cards.length).toBe(SAMPLE_PRODUCTS.length);
-  //     });
-  //   });
+    await waitFor(() => {
+      const cards = screen.getAllByRole("img");
+      expect(cards.length).toBe(SAMPLE_PRODUCTS.length);
+    });
+  });
 
   //   test("each product links to its update page", async () => {
   //     renderWithProviders();
