@@ -158,9 +158,9 @@ const CartPage = () => {
                     />
                   </div>
                   <div className="col-md-4">
-                    <p>{p.name}</p>
+                    <p data-testid="cart-product-name">{p.name}</p>
                     <p>{truncateDescription30(p.description)}</p>
-                    <p>Price : {p.price}</p>
+                    <p data-testid="card-price">Price : {p.price}</p>
                   </div>
                   <div className="col-md-4 cart-remove-btn">
                     <button

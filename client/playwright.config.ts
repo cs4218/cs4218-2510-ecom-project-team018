@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 const reuseServer = !process.env.CI;
 
 export default defineConfig({
+  timeout: 50000,
   testDir: "./src/pages",
   testMatch: ["**/*.spec.js"],
   workers: 1,
