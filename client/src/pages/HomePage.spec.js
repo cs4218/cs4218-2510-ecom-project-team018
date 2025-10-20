@@ -1,4 +1,6 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../../tests/playwrightTest.js';
+import Category from "../../../models/categoryModel.js";
+import Product from "../../../models/productModel.js";
 
 const CATEGORIES = ["Electronics", "Books", "Clothing"];
 
@@ -10,6 +12,92 @@ const PRICE_FILTERS = [
   "$80 to 99",
   "$100 or more",
 ];
+
+const seedHomePageData = async () => {
+  // Clear existing data
+  await Category.deleteMany({});
+  await Product.deleteMany({});
+
+ // Insert categories
+  const categories = await Category.insertMany([
+    { name: "Electronics", slug: "electronics" },
+    { name: "Books", slug: "books" },
+    { name: "Clothing", slug: "clothing" },
+  ]);
+
+  const [electronics, books, clothing] = categories;
+
+  // Insert 7 products
+  await Product.insertMany([
+    // Electronics (2 products, high price)
+    {
+      name: "Smartphone",
+      slug: "smartphone",
+      description: "A high-end smartphone",
+      price: 999, // in '$100 or more' range
+      category: electronics._id,
+      quantity: 10,
+    },
+    {
+      name: "Laptop",
+      slug: "laptop",
+      description: "Powerful laptop",
+      price: 1299, // in '$100 or more' range
+      category: electronics._id,
+      quantity: 10,
+    },
+
+    // Clothing (1 mid-range product)
+    {
+      name: "NUS T-shirt",
+      slug: "nus-tshirt",
+      description: "Plain NUS T-shirt for sale",
+      price: 25, // in '$20 to 39' range
+      category: clothing._id,
+      quantity: 10,
+    },
+
+    // Books (2 products, different price buckets)
+    {
+      name: "The Law of Contract in Singapore",
+      slug: "contract-book",
+      description: "Law book",
+      price: 50, // in '$40 to 59' range
+      category: books._id,
+      quantity: 10,
+    },
+    {
+      name: "Novel",
+      slug: "novel",
+      description: "A simple novel",
+      price: 10, // ✅ in '$0 to 19' range (as requested)
+      category: books._id,
+      quantity: 10,
+    },
+
+    // Extra products to reach exactly 6 on homepage + 1 for load more
+    {
+      name: "Tablet",
+      slug: "tablet",
+      description: "A useful tablet",
+      price: 300,
+      category: electronics._id,
+      quantity: 10,
+    },
+    {
+      name: "Jeans",
+      slug: "jeans",
+      description: "Comfortable jeans",
+      price: 45,
+      category: clothing._id,
+      quantity: 10,
+    },
+  ]);
+};
+
+test.beforeEach(async () => {
+  await seedHomePageData();
+});
 
 test('Homepage loads correctly with price, category filters and products', async ({ page }) => {
   await page.goto('http://localhost:3000/');
@@ -40,6 +128,8 @@ test('filtering by category shows only selected category products', async ({ pag
 
   // Wait until removed
   await expect(page.getByText('Smartphone')).toHaveCount(0);
+  await expect(page.getByText('Laptop')).toHaveCount(0);
+  await expect(page.getByText('Novel')).toHaveCount(0);
 
   const productNames = await page.locator('[data-testid="product-name"]').allTextContents();
   //  Ensure expected clothing product is present
@@ -57,6 +147,9 @@ test('filtering by price behaviour', async ({ page }) => {
 
   // Wait until removed
   await expect(page.getByText('Smartphone')).toHaveCount(0);
+  await expect(page.getByText('Laptop')).toHaveCount(0);
+  await expect(page.getByText('Novel')).toHaveCount(0);
+  await expect(page.getByText('NUS T-shirt')).toHaveCount(0);
 
   const productNames = await page.locator('[data-testid="product-name"]').allTextContents();
 
@@ -120,7 +213,8 @@ test('clicking more details shows the correct product data', async ({ page }) =>
 
   await expect(page.getByText(/category/i)).toBeVisible();
 
-  await expect(page.getByRole('button', { name: /add to cart/i })).toBeVisible();
+  // target only the main add-to-cart button
+  await expect(page.getByTestId('main-add-to-cart')).toBeVisible();
 });
 
 
