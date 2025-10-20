@@ -271,4 +271,23 @@ test.describe("Product Details page", () => {
     await relatedCard.getByRole("button", { name: /add to cart/i }).click();
     await expect(page.getByText(/Item already in cart/i)).toBeVisible();
   });
+
+  test("shows message when no similar products exist", async ({ page }) => {
+    const category = await createCategory("Solo Category");
+    const product = await createProduct({
+      name: "Lone Product",
+      slug: "playwright-lone-product",
+      description: "Lone product description",
+      price: 99.99,
+      categoryId: category._id,
+    });
+
+    await page.goto(`/product/${product.slug}`);
+
+    await expect(
+      page
+        .getByTestId("similar-products")
+        .getByText(/no similar products found/i)
+    ).toBeVisible();
+  });
 });
