@@ -1,4 +1,8 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../tests/playwrightTest.js";
+
+// Sample product id to be 24-char hex
+const SAMPLE_PRODUCT_ID1 = "000000000000000000000001";
+const SAMPLE_PRODUCT_ID2 = "000000000000000000000002";
 
 async function seedLocalStorage(page, { auth = null, cart = [] } = {}) {
   await page.addInitScript((payload) => {
@@ -37,8 +41,8 @@ test.describe("CartPage UI", () => {
   });
 
   test("renders guest view with cart items", async ({ page }) => {
-    const prod1 = { _id: "p1", name: "Smartphone", description: "desc1", price: 1000 };
-    const prod2 = { _id: "p2", name: "Laptop", description: "desc2", price: 1500 };
+    const prod1 = { _id: SAMPLE_PRODUCT_ID1, name: "Smartphone", description: "desc1", price: 1000 };
+    const prod2 = { _id: SAMPLE_PRODUCT_ID2, name: "Laptop", description: "desc2", price: 1500 };
 
     await seedLocalStorage(page, { auth: null, cart: [prod1, prod2] });
 
@@ -71,7 +75,7 @@ test.describe("CartPage UI", () => {
 
   test("renders user logged in but no address", async ({ page }) => {
     const auth = { token: "t", user: { name: "Alice", address: "" } };
-    const prod = { _id: "p1", name: "Smartphone", description: "d", price: 1000 };
+    const prod = { _id: SAMPLE_PRODUCT_ID1, name: "Smartphone", description: "d", price: 1000 };
 
     await seedLocalStorage(page, { auth, cart: [prod] });
 
@@ -95,7 +99,7 @@ test.describe("CartPage UI", () => {
 
   test("Update Address navigates to profile", async ({ page }) => {
     const auth = { token: "t", user: { name: "Bob", address: "123 Road" } };
-    const prod = { _id: "p1", name: "Book", description: "d", price: 25 };
+    const prod = { _id: SAMPLE_PRODUCT_ID1, name: "Book", description: "d", price: 25 };
 
     await seedLocalStorage(page, { auth, cart: [prod] });
 
@@ -118,7 +122,7 @@ test.describe("CartPage UI", () => {
 
   test("disables Make Payment button when user lacks address", async ({ page }) => {
     const auth = { token: "t", user: { name: "Alice", address: "" } };
-    const prod = { _id: "p1", name: "Book", description: "d", price: 10 };
+    const prod = { _id: SAMPLE_PRODUCT_ID1, name: "Book", description: "d", price: 10 };
 
     await seedLocalStorage(page, { auth, cart: [prod] });
 
