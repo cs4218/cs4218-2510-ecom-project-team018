@@ -4,10 +4,11 @@ import userModel from "../../../../models/userModel.js";
 import { hashPassword } from "../../../../helpers/authHelper.js";
 
 const DASHBOARD_URL = "/dashboard/user";
+const LOGIN_URL = "/login";
 
 const TEST_USER = {
   name: "Test User",
-  email: `testuser${Date.now()}@example.com`,
+  email: `testuser@example.com`,
   password: "testpassword123",
   phone: "1234567890",
   address: "123 Test Street",
@@ -17,7 +18,7 @@ const TEST_USER = {
 
 // Helper function to login a user
 const loginUser = async (page, email, password) => {
-  await page.goto("/login");
+  await page.goto(LOGIN_URL);
   await page.getByRole("textbox", { name: /enter your email/i }).fill(email);
   await page
     .getByRole("textbox", { name: /enter your password/i })
@@ -50,5 +51,26 @@ test.describe("Dashboard Page", () => {
     await page.goto(DASHBOARD_URL);
 
     await expect(page).toHaveURL("/");
+  });
+
+  test("maintains authentication state across page refreshes", async ({
+    page,
+  }) => {
+    // Login first
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+    await expect(page).toHaveURL("/");
+
+    // Navigate to dashboard
+    await page.goto(DASHBOARD_URL);
+
+    // Verify user is logged in
+    await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
+
+    // Refresh the page
+    await page.reload();
+
+    // Should still be logged in and show user data
+    await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
+    await expect(page.getByText(`email: ${TEST_USER.email}`)).toBeVisible();
   });
 });
