@@ -39,6 +39,12 @@ const SAMPLE_PRODUCTS = [
     price: 30,
     quantity: 1,
   },
+  {
+    name: "Test Product 3",
+    description: "A sample description 3",
+    price: 20,
+    quantity: 1,
+  },
 ];
 
 // seed an admin user
@@ -62,6 +68,7 @@ const seedCategories = async () => {
 
 // seed products with category and slug
 const seedProducts = async () => {
+  await categoryModel.deleteMany({});
   const categories = await seedCategories(); // ensure categories exist
   const category = categories[0]; // assign all products to first category
 
@@ -85,6 +92,7 @@ const seedProducts = async () => {
 const seedOrders = async (products, buyer) => {
   const now = new Date();
 
+  // order1 has product1
   const order1 = await orderModel.create({
     products: [products[0]._id], // just the ObjectId
     buyer: buyer._id,
@@ -93,8 +101,9 @@ const seedOrders = async (products, buyer) => {
     createdAt: new Date(now.getTime() - 1000 * 60 * 60), // 1 hour ago
   });
 
+  // order2 has product2 and product3
   const order2 = await orderModel.create({
-    products: [products[1]._id],
+    products: [products[1]._id, products[2]._id],
     buyer: buyer._id,
     payment: { success: true },
     status: "Not Processed",
@@ -173,7 +182,8 @@ test.describe("Admin Orders Page", () => {
       expectedStatus,
       expectedBuyer,
       expectedPayment,
-      expectedQuantity
+      expectedQuantity,
+      expectedDateText
     ) => {
       await expect(row.locator("td").nth(0)).toHaveText((index + 1).toString());
       await expect(row.locator(".ant-select")).toHaveText(expectedStatus);
@@ -182,10 +192,7 @@ test.describe("Admin Orders Page", () => {
       await expect(row.locator("td").nth(5)).toHaveText(
         expectedQuantity.toString()
       );
-
-      // check relative date contains "ago" (moment.js)
-      const dateText = await row.locator("td").nth(3).innerText();
-      expect(dateText).toMatch(/ago|few seconds|minute|hour|day/);
+      await expect(row.locator("td").nth(3)).toHaveText(expectedDateText);
     };
 
     // check first order
@@ -195,7 +202,8 @@ test.describe("Admin Orders Page", () => {
       "Not Processed",
       adminUser.name,
       "Success",
-      1
+      2,
+      "30 minutes ago"
     );
 
     // check second order
@@ -205,29 +213,46 @@ test.describe("Admin Orders Page", () => {
       "Not Processed",
       adminUser.name,
       "Success",
-      SAMPLE_PRODUCTS[1].quantity
+      1,
+      "an hour ago"
     );
 
     // check product cards
     const orders = page.locator(".border.shadow"); // each order container
     await expect(orders).toHaveCount(2);
 
-    for (let i = 0; i < orders.count(); i++) {
-      const order = orders.nth(i);
-      const cards = order.locator(".row.mb-2.p-3.card.flex-row");
-      await expect(cards).toHaveCount(1);
+    // order1 has product1
+    let cards = orders.nth(1).locator(".row.mb-2.p-3.card.flex-row");
+    await expect(cards).toHaveCount(1);
+    let product = SAMPLE_PRODUCTS[0];
+    let card = cards.nth(0);
+    await expect(card.locator("img")).toBeVisible();
+    let paragraphs = card.locator("p");
+    await expect(paragraphs.nth(0)).toHaveText(product.name);
+    await expect(paragraphs.nth(1)).toHaveText(product.description);
+    await expect(paragraphs.nth(2)).toHaveText(`Price : ${product.price}`);
 
-      const product = SAMPLE_PRODUCTS[i];
+    // order2 has product2 and product3
+    cards = orders.nth(0).locator(".row.mb-2.p-3.card.flex-row");
+    await expect(cards).toHaveCount(2);
 
-      const card = cards.nth(0);
-      const img = card.locator("img");
-      await expect(img).toBeVisible();
+    // Product 2
+    product = SAMPLE_PRODUCTS[1];
+    card = cards.nth(0);
+    await expect(card.locator("img")).toBeVisible();
+    paragraphs = card.locator("p");
+    await expect(paragraphs.nth(0)).toHaveText(product.name);
+    await expect(paragraphs.nth(1)).toHaveText(product.description);
+    await expect(paragraphs.nth(2)).toHaveText(`Price : ${product.price}`);
 
-      const paragraphs = card.locator("p");
-      await expect(paragraphs.nth(0)).toHaveText(product.name);
-      await expect(paragraphs.nth(1)).toHaveText(product.description);
-      await expect(paragraphs.nth(2)).toHaveText(`Price : ${product.price}`);
-    }
+    // Product 3
+    product = SAMPLE_PRODUCTS[2];
+    card = cards.nth(1);
+    await expect(card.locator("img")).toBeVisible();
+    paragraphs = card.locator("p");
+    await expect(paragraphs.nth(0)).toHaveText(product.name);
+    await expect(paragraphs.nth(1)).toHaveText(product.description);
+    await expect(paragraphs.nth(2)).toHaveText(`Price : ${product.price}`);
   });
 
   test("should update order status successfully", async ({ page }) => {
