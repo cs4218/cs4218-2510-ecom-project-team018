@@ -108,8 +108,8 @@ const ProductDetails = () => {
         <div className="col-md-6 product-details-info">
           <h1 className="text-center">Product Details</h1>
           <hr />
-          <h6>Name : {product.name || "No Name Available"}</h6>
-          <h6>
+          <h6 data-testid="product_detail_name">Name : {product.name || "No Name Available"}</h6>
+          <h6 data-testid="product_detail_description">
             Description : {product.description || "No Description Available"}
           </h6>
           <h6>

@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "unit test",
-        "UI test"
+        "UI test",
+        "integration test"
     ]
 }

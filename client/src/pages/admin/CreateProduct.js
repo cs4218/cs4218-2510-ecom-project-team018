@@ -46,14 +46,19 @@ const CreateProduct = () => {
       productData.append("quantity", quantity);
       productData.append("photo", photo);
       productData.append("category", category);
+      productData.append("shipping", shipping);
+
       const { data } = await axios.post(
         "/api/v1/product/create-product",
-        productData
+        productData,
+        { validateStatus: () => true }
       );
 
-      if (data.success) {
+      if (data?.success) {
         toast.success("Product Created Successfully");
         navigate("/dashboard/admin/products");
+      } else {
+        toast.error(data?.message || "Failed to create product");
       }
     } catch (error) {
       console.log(error);
@@ -155,9 +160,8 @@ const CreateProduct = () => {
                   size="large"
                   showSearch
                   className="form-select mb-3"
-                  onChange={(value) => {
-                    setShipping(value);
-                  }}
+                  onChange={(value) => setShipping(value)}
+                  value={shipping || undefined}
                 >
                   <Option value="0">No</Option>
                   <Option value="1">Yes</Option>
