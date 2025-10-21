@@ -78,4 +78,30 @@ test.describe("Login page", () => {
     // Form should not submit due to HTML5 validation
     await expect(page).toHaveURL(/\/login$/);
   });
+
+  test("successfully logs in with valid credentials", async ({ page }) => {
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+
+    // Should redirect to home page after successful login
+    await expect(page).toHaveURL(/\/$/);
+
+    // Check that user is logged in by looking for user-specific elements
+    await expect(page.getByRole("link", { name: /login/i })).not.toBeVisible();
+  });
+
+  test("shows error for invalid email", async ({ page }) => {
+    await loginUser(page, "nonexistent@example.com", TEST_USER.password);
+
+    // Should stay on login page and show error
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByText(/something went wrong/i)).toBeVisible();
+  });
+
+  test("shows error for invalid password", async ({ page }) => {
+    await loginUser(page, TEST_USER.email, "wrongpassword");
+
+    // Should stay on login page and show error
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByText(/something went wrong/i)).toBeVisible();
+  });
 });
