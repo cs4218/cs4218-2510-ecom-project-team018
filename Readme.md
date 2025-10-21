@@ -519,7 +519,9 @@ npm run test:all
          </td>
          <td>
             <ul>
-               <li><code></code></li>
+               <li><code>./client/src/pages/Auth/Login.spec.js</code></li>
+               <li><code>./client/src/pages/Auth/Register.spec.js</code></li>
+               <li><code>./client/src/pages/user/Dashboard.spec.js</code></li>
             </ul>
          </td>
       </tr>
