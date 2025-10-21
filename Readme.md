@@ -568,6 +568,7 @@ npm run test:all
             <ul>
                <li><code>./client/src/pages/CategoryProduct.it.test.js</code></li>
                <li><code>./client/src/pages/ProductDetails.it.test.js</code></li>
+               <li><code>./controllers/productController.it.test.js</code></li>
             </ul>
          </td>
          <td>
