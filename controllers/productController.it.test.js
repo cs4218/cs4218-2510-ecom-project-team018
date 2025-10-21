@@ -218,4 +218,20 @@ describe("productController integration", () => {
       expect(updated?.description).toBe("Updated description");
     });
   });
+
+  describe("deleteProductController", () => {
+    it("removes an existing product", async () => {
+      const product = await createProduct({ name: "Disposable Product" });
+      const req = createMockReq({
+        params: { pid: product._id.toString() },
+      });
+      const res = createMockRes();
+
+      await deleteProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const remaining = await productModel.findById(product._id);
+      expect(remaining).toBeNull();
+    });
+  });
 });
