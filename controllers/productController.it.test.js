@@ -267,4 +267,20 @@ describe("productController integration", () => {
       expect(payload.products[0]._id.toString()).toBe(matched._id.toString());
     });
   });
+
+  describe("productCountController", () => {
+    it("returns total product count", async () => {
+      await createProduct({ name: "Item 1" });
+      await createProduct({ name: "Item 2" });
+      await createProduct({ name: "Item 3" });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await productCountController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.total).toBe(3);
+    });
+  });
 });
