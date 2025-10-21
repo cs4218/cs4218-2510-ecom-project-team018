@@ -79,6 +79,21 @@ test.describe("Login page", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
+  test("form inputs are accessible", async ({ page }) => {
+    await page.goto(LOGIN_URL);
+
+    // Check that inputs have proper labels/placeholders
+    const emailInput = page.getByRole("textbox", { name: /enter your email/i });
+    const passwordInput = page.getByRole("textbox", {
+      name: /enter your password/i,
+    });
+
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await expect(emailInput).toHaveAttribute("type", "email");
+    await expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
   test("successfully logs in with valid credentials", async ({ page }) => {
     await loginUser(page, TEST_USER.email, TEST_USER.password);
 
