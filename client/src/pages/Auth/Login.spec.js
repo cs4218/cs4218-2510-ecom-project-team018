@@ -68,4 +68,14 @@ test.describe("Login page", () => {
       page.getByRole("button", { name: /forgot password/i })
     ).toBeVisible();
   });
+
+  test("validates required fields", async ({ page }) => {
+    await page.goto(LOGIN_URL);
+
+    // Try to submit empty form
+    await page.getByRole("button", { name: /login/i }).click();
+
+    // Form should not submit due to HTML5 validation
+    await expect(page).toHaveURL(/\/login$/);
+  });
 });
