@@ -148,10 +148,33 @@ To begin unit testing with Jest in your project, follow these steps:
      npm run test:backend
      ```
 
-   - **All the tests**
+   - **Both frontend and backend tests**
+
      ```bash
      npm run test
      ```
+
+   - **Integration tests**
+     ```bash
+     npm run test:integration
+     ```
+
+## 6. UI testing with Playwright
+
+To begin UI testing with Playwright in your project, follow these steps:
+
+1. **Run playwright tests**
+   ```bash
+   npm run test:playwright
+   ```
+
+## 7. Running all tests
+
+To run frontend, backend, integration and playwright tests, use the command:
+
+```bash
+npm run test:all
+```
 
 ## Milestone 1 Contributions
 
@@ -465,6 +488,115 @@ To begin unit testing with Jest in your project, follow these steps:
                      <li><code>brainTreePaymentController</code></li>
                   </ol>
                </li>
+            </ul>
+         </td>
+      </tr>
+   </tbody>
+</table>
+
+## Milestone 2 Contributions
+
+<table>
+   <thead>
+      <tr>
+         <th>Member</th>
+         <th>Integration testing files</th>
+         <th>UI testing files</th>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+         <td>Chu Wei Rong</td>
+         <td>
+            <ul>
+               <li><code>./client/src/components/Routes/Private.it.test.js</code></li>
+               <li><code>./client/src/pages/Auth/Login.it.test.js</code></li>
+               <li><code>./client/src/pages/Auth/Register.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/AdminOrders.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/Users.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Dashboard.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/Auth/Login.spec.js</code></li>
+               <li><code>./client/src/pages/Auth/Register.spec.js</code></li>
+               <li><code>./client/src/pages/user/Dashboard.spec.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Kenvyn Kwek Shiu Chien</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/admin/CreateCategory.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/CreateProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/UpdateProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/admin/Products.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/admin/CreateCategory.spec.js</code></li>
+               <li><code>./client/src/pages/admin/CreateProduct.spec.js</code></li>
+               <li><code>./client/src/pages/admin/UpdateProduct.spec.js</code></li>
+               <li><code>./client/src/pages/admin/AdminOrders.spec.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Brendan Soh Ray Yang</td>
+         <td>
+            <ul>
+               <li><code>./controllers/authController.it.test.js</code></li>
+               <li><code>./client/src/components/Form/SearchInput.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Profile.it.test.js</code></li>
+               <li><code>./client/src/pages/user/Orders.it.test.js</code></li>
+               <li><code>./client/src/pages/Search.it.test.js</code></li>
+               <li><code>./client/src/pages/HomePage.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/Search.spec.js</code></li>
+               <li><code>./client/src/pages/HomePage.spec.js</code></li>
+               <li><code>./client/src/pages/user/Order.spec.js</code></li>
+               <li><code>./client/src/pages/user/Profile.spec.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Andre Chua Kai Jun</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/CategoryProduct.it.test.js</code></li>
+               <li><code>./client/src/pages/ProductDetails.it.test.js</code></li>
+               <li><code>./controllers/productController.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/CategoryProduct.spec.js</code></li>
+               <li><code>./client/src/pages/admin/Users.spec.js</code></li>
+               <li><code>./client/src/pages/Contact.spec.js</code></li>
+               <li><code>./client/src/pages/Policy.spec.js</code></li>
+               <li><code>./client/src/pages/ProductDetails.spec.js</code></li>
+            </ul>
+         </td>
+      </tr>
+      <tr>
+         <td>Chen Kuei</td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/Categories.it.test.js</code></li>
+               <li><code>./client/src/pages/CartPage.it.test.js</code></li>
+            </ul>
+         </td>
+         <td>
+            <ul>
+               <li><code>./client/src/pages/admin/Products.spec.js</code></li>
+               <li><code>./client/src/pages/Categories.spec.js</code></li>
+               <li><code>./client/src/pages/CartPage.spec.js</code></li>
             </ul>
          </td>
       </tr>
