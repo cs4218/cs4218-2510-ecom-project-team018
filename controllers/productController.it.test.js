@@ -358,4 +358,25 @@ describe("productController integration", () => {
       expect(payload.products[0]._id.toString()).toBe(related._id.toString());
     });
   });
+
+  describe("productCategoryController", () => {
+    it("returns paginated products for a category", async () => {
+      const category = await createCategory("Accessories");
+      await createProduct({ name: "Case 1", category: category._id });
+      await createProduct({ name: "Case 2", category: category._id });
+
+      const req = createMockReq({
+        params: { slug: category.slug },
+        query: { page: "1", limit: "1" },
+      });
+      const res = createMockRes();
+      await productCategoryController(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.category._id.toString()).toBe(category._id.toString());
+      expect(payload.products).toHaveLength(1);
+      expect(payload.page).toBe(1);
+      expect(payload.limit).toBe(1);
+    });
+  });
 });
