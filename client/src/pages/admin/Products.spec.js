@@ -1,9 +1,36 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../../tests/playwrightTest.js";
+import productModel from "../../../../models/productModel.js";
+import categoryModel from "../../../../models/categoryModel.js";
+import slugify from "slugify";
 
-const SAMPLE_PRODUCTS = [
-  { _id: "p1", name: "Smartphone", slug: "smartphone", description: "A smartphone." },
-  { _id: "p2", name: "Laptop", slug: "laptop", description: "A laptop." },
-];
+async function ensureTestCategory() {
+  let cat = await categoryModel.findOne({ slug: "test-cat" });
+  if (!cat) {
+    cat = await categoryModel.create({ name: "Test Cat", slug: "test-cat" });
+  }
+  return cat;
+}
+
+async function clearProductsAndCategories() {
+  await productModel.deleteMany({});
+  await categoryModel.deleteMany({});
+}
+
+async function seedProducts(items) {
+  const cat = await ensureTestCategory();
+
+  const docs = await productModel.insertMany(
+    items.map(({ name, description }) => ({
+      name,
+      slug: slugify(name, { lower: true }),
+      description,
+      price: 1,
+      quantity: 10,
+      category: cat._id,
+    }))
+  );
+  return docs.map((d) => d.toObject());
+}
 
 async function seedAdminAuth(page) {
   await page.addInitScript(() => {
@@ -15,38 +42,33 @@ async function seedAdminAuth(page) {
   });
 }
 
-
-// Mock products API
-async function mockGetProducts(page, { products = SAMPLE_PRODUCTS, status = 200, success = true } = {}) {
-  await page.route("**/api/v1/product/get-product", async (route) => {
-    if (status >= 400) {
-      return route.fulfill({
-        status,
-        contentType: "application/json",
-        body: JSON.stringify({ success: false, message: "Server error" }),
-      });
-    }
-    return route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ success, products }),
-    });
-  });
-}
-
 test.describe("Admin Products UI", () => {
   test.beforeEach(async ({ page }) => {
+    await clearProductsAndCategories();
+
     await page.route("**/api/v1/auth/user-auth", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, success: true }) })
     );
     await page.route("**/api/v1/auth/admin-auth", (route) =>
       route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, success: true }) })
     );
+    // Silence product-photo fetches so tests don’t fail if no image/binary is stored
+    await page.route("**/api/v1/product/product-photo/**", (route) =>
+      route.fulfill({ status: 204 })
+    );
+  });
+
+  test.afterEach(async () => {
+    await clearProductsAndCategories();
   });
 
   test("renders heading and product cards", async ({ page }) => {
     await seedAdminAuth(page);
-    await mockGetProducts(page);
+
+    const seeded = await seedProducts([
+      { name: "Smartphone", description: "A smartphone." },
+      { name: "Laptop", description: "A laptop." },
+    ]);
 
     await page.goto("/dashboard/admin/products", { waitUntil: "domcontentloaded" });
 
@@ -63,9 +85,9 @@ test.describe("Admin Products UI", () => {
 
     // Validate cards when products exist
     const cards = page.locator(".product-link");
-    await expect(cards).toHaveCount(SAMPLE_PRODUCTS.length);
+    await expect(cards).toHaveCount(seeded.length);
 
-    for (const p of SAMPLE_PRODUCTS) {
+    for (const p of seeded) {
       const link = page.getByRole("link", { name: p.name, exact: false });
       await expect(link).toHaveAttribute("href", `/dashboard/admin/product/${p.slug}`);
 
@@ -81,18 +103,22 @@ test.describe("Admin Products UI", () => {
 
   test("navigates to product detail when a product card is clicked", async ({ page }) => {
     await seedAdminAuth(page);
-    await mockGetProducts(page);
+
+    const [first] = await seedProducts([
+      { name: "Tablet", description: "A tablet." },
+      { name: "Headphones", description: "Audio device." },
+    ]);
 
     await page.goto("/dashboard/admin/products");
 
-    await page.getByRole("link", { name: SAMPLE_PRODUCTS[0].name }).click();
-    await page.waitForURL(`/dashboard/admin/product/${SAMPLE_PRODUCTS[0].slug}`);
-    await expect(page).toHaveURL(`/dashboard/admin/product/${SAMPLE_PRODUCTS[0].slug}`);
+    await page.getByRole("link", { name: first.name }).click();
+    await page.waitForURL(`/dashboard/admin/product/${first.slug}`);
+    await expect(page).toHaveURL(`/dashboard/admin/product/${first.slug}`);
   });
 
   test("renders empty state (no product cards) when API returns empty list", async ({ page }) => {
     await seedAdminAuth(page);
-    await mockGetProducts(page, { products: [] });
+    await clearProductsAndCategories();
 
     await page.goto("/dashboard/admin/products");
 
@@ -102,7 +128,15 @@ test.describe("Admin Products UI", () => {
 
   test("handles server failure", async ({ page }) => {
     await seedAdminAuth(page);
-    await mockGetProducts(page, { status: 500 });
+
+    // Force it to return 500 for this test
+    await page.route("**/api/v1/product/get-product", (route) =>
+      route.fulfill({
+        status: 500,
+        contentType: "application/json",
+        body: JSON.stringify({ success: false, message: "Server error" }),
+      })
+    );
 
     await page.goto("/dashboard/admin/products");
 
