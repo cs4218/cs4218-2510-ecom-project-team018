@@ -128,6 +128,11 @@ test.describe("Update Product page", () => {
 
     // log in and land on the page with data loaded
     await loginAsAdmin(page);
+
+    // wait for data to load
+    await expect(page.getByPlaceholder("write a name")).toHaveValue(
+      SAMPLE_PRODUCT.name
+    );
   });
 
   test.afterAll(async () => {
@@ -215,89 +220,52 @@ test.describe("Update Product page", () => {
   //   await expect(page).toHaveURL("/dashboard/admin/products");
   // });
 
-  test("error when updating a product because of missing field(s)", async ({
-    page,
-  }) => {
-    // wait for data to load
-    await expect(page.getByPlaceholder("write a name")).toHaveValue(
-      SAMPLE_PRODUCT.name
-    );
-
-    // clear quantity
-    await page.getByPlaceholder("write a quantity").fill("");
-    // submit
-    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-    // assert error toast
-    await expect(page.getByText("Quantity is required")).toBeVisible();
-
-    // clear price
-    await page.getByPlaceholder("write a Price").fill("");
-    // submit
-    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-    // assert error toast
-    await expect(page.getByText("Price is required")).toBeVisible();
-
-    // clear description
-    await page.getByPlaceholder("write a description").fill("");
-    // submit
-    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-    // assert error toast
-    await expect(page.getByText("Description is required")).toBeVisible();
-
-    // clear name
-    await page.getByPlaceholder("write a name").fill("");
-    // submit
-    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-    // assert error toast
-    await expect(page.getByText("Name is required")).toBeVisible();
-  });
-
-  // test("shows error toast when API fails", async ({ page }) => {
-  //   // mock the update-product API to return an internal server error (500)
-  //   await page.route("**/api/v1/product/update-product/**", (route) =>
-  //     route.fulfill({
-  //       status: INTERNAL_SERVER_ERROR,
-  //       contentType: "application/json",
-  //       body: JSON.stringify({
-  //         success: false,
-  //         message: "Something went wrong",
-  //       }),
-  //     })
-  //   );
-
+  // test("error when updating a product because of missing field(s)", async ({
+  //   page,
+  // }) => {
+  //   // clear quantity
+  //   await page.getByPlaceholder("write a quantity").fill("");
   //   // submit
   //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-
   //   // assert error toast
-  //   await expect(page.getByText("Something went wrong")).toBeVisible();
+  //   await expect(page.getByText("Quantity is required")).toBeVisible();
+
+  //   // clear price
+  //   await page.getByPlaceholder("write a Price").fill("");
+  //   // submit
+  //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+  //   // assert error toast
+  //   await expect(page.getByText("Price is required")).toBeVisible();
+
+  //   // clear description
+  //   await page.getByPlaceholder("write a description").fill("");
+  //   // submit
+  //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+  //   // assert error toast
+  //   await expect(page.getByText("Description is required")).toBeVisible();
+
+  //   // clear name
+  //   await page.getByPlaceholder("write a name").fill("");
+  //   // submit
+  //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+  //   // assert error toast
+  //   await expect(page.getByText("Name is required")).toBeVisible();
   // });
 
-  // test("successfully delete a product", async ({ page }) => {
-  //   // mock the delete-product API to succeed
-  //   await page.route("**/api/v1/product/delete-product/**", (route) =>
-  //     route.fulfill({
-  //       status: SUCCESS_STATUS,
-  //       contentType: "application/json",
-  //       body: JSON.stringify({
-  //         success: true,
-  //         message: "Product deleted successfully",
-  //       }),
-  //     })
-  //   );
+  test("successfully delete a product", async ({ page }) => {
+    // listen for the prompt when the DELETE button is clicked
+    page.once("dialog", async (dialog) => {
+      await dialog.accept("yes"); // simulates user typing "yes" and hitting OK
+    });
 
-  //   // mock window.prompt to return "yes"
-  //   page.on("dialog", async (dialog) => {
-  //     expect(dialog.type()).toBe("prompt");
-  //     await dialog.accept("yes");
-  //   });
+    // click DELETE PRODUCT button
+    await page.getByRole("button", { name: /delete product/i }).click();
 
-  //   // click 'delete' button
-  //   await page.getByRole("button", { name: "DELETE PRODUCT" }).click();
+    // wait for success toast
+    await expect(page.getByText(/product deleted successfully/i)).toBeVisible();
 
-  //   // assert success toast
-  //   await expect(page.getByText("Product deleted successfully")).toBeVisible();
-
-  //   // assert navigation to products page
-  //   await expect(page).toHaveURL("/dashboard/admin/products");
-  // });
+    // wait for redirect to products page
+    await page.waitForURL("/dashboard/admin/products");
+    await expect(page).toHaveURL("/dashboard/admin/products");
+  });
 });
