@@ -142,4 +142,78 @@ test.describe("Register Page", () => {
     await expect(dobInput).toHaveAttribute("type", "date");
     await expect(answerInput).toBeVisible();
   });
+
+  test("validates password length", async ({ page }) => {
+    await page.goto(REGISTER_URL);
+
+    // Fill form with long password (73 characters)
+    const longPassword = "a".repeat(73);
+    const truncatedPassword = "a".repeat(72);
+
+    await page
+      .getByRole("textbox", { name: /enter your password/i })
+      .fill(longPassword);
+
+    const passwordValue = await page
+      .getByRole("textbox", { name: /enter your password/i })
+      .inputValue();
+    expect(passwordValue).not.toBe(longPassword);
+    expect(passwordValue).toBe(truncatedPassword);
+  });
+
+  test("validates email format", async ({ page }) => {
+    await page.goto(REGISTER_URL);
+
+    // Fill form with invalid email
+    await page
+      .getByRole("textbox", { name: /enter your name/i })
+      .fill(TEST_USER.name);
+    await page
+      .getByRole("textbox", { name: /enter your email/i })
+      .fill("invalid-email"); // invalid email format
+    await page
+      .getByRole("textbox", { name: /enter your password/i })
+      .fill(TEST_USER.password);
+    await page
+      .getByRole("textbox", { name: /enter your phone/i })
+      .fill(TEST_USER.phone);
+    await page
+      .getByRole("textbox", { name: /enter your address/i })
+      .fill(TEST_USER.address);
+    await page.locator('input[type="date"]').fill(TEST_USER.DOB);
+    await page
+      .getByRole("textbox", { name: /what is your favorite sports/i })
+      .fill(TEST_USER.answer);
+
+    await page.getByRole("button", { name: /register/i }).click();
+
+    await expect(page).toHaveURL(REGISTER_URL);
+  });
+
+  test("validates required security answer", async ({ page }) => {
+    await page.goto(REGISTER_URL);
+
+    // Fill form without security answer
+    await page
+      .getByRole("textbox", { name: /enter your name/i })
+      .fill(TEST_USER.name);
+    await page
+      .getByRole("textbox", { name: /enter your email/i })
+      .fill(TEST_USER.email);
+    await page
+      .getByRole("textbox", { name: /enter your password/i })
+      .fill(TEST_USER.password);
+    await page
+      .getByRole("textbox", { name: /enter your phone/i })
+      .fill(TEST_USER.phone);
+    await page
+      .getByRole("textbox", { name: /enter your address/i })
+      .fill(TEST_USER.address);
+    await page.locator('input[type="date"]').fill(TEST_USER.DOB);
+    // empty security answer
+
+    await page.getByRole("button", { name: /register/i }).click();
+
+    await expect(page).toHaveURL(REGISTER_URL);
+  });
 });
