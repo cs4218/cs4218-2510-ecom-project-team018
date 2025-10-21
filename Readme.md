@@ -545,13 +545,14 @@ npm run test:all
                <li><code>./client/src/pages/user/Profile.it.test.js</code></li>
                <li><code>./client/src/pages/user/Orders.it.test.js</code></li>
                <li><code>./client/src/pages/Search.it.test.js</code></li>
+               <li><code>./client/src/pages/HomePage.it.test.js</code></li>
             </ul>
          </td>
          <td>
             <ul>
                <li><code>./client/src/pages/Search.spec.js</code></li>
                <li><code>./client/src/pages/HomePage.spec.js</code></li>
-               <li><code>./client/src/pages/admin/CreateCategory.spec.js</code></li>
+               <li><code>./client/src/pages/user/Order.spec.js</code></li>
                <li><code>./client/src/pages/user/Profile.spec.js</code></li>
             </ul>
          </td>
