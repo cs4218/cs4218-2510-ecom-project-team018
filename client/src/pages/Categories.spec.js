@@ -1,27 +1,35 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../../../tests/playwrightTest.js";
+import categoryModel from "../../../models/categoryModel.js";
+import slugify from "slugify";
 
 const SAMPLE_CATEGORIES = [
-  { _id: "1", name: "Electronics", slug: "electronics" },
-  { _id: "2", name: "Books", slug: "books" },
+  { name: "Electronics", slug: "electronics" },
+  { name: "Books", slug: "books" },
 ];
 
-// Intercepts the Categories API and returns a fake response
-async function mockGetCategories(page, { categories = SAMPLE_CATEGORIES, success = true } = {}) {
-  await page.route("**/api/v1/category/get-category", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        success,
-        category: categories,
-      }),
-    });
-  });
-}
+async function seedCategories(docs = SAMPLE_CATEGORIES) {
+  const toInsert = docs.map((c) => ({
+    name: c.name,
+    slug: c.slug ?? slugify(c.name, { lower: true }),
+  }));
+  await categoryModel.insertMany(toInsert);
+};
+
+async function clearCategories() {
+  await categoryModel.deleteMany({});
+};
 
 test.describe("Categories page", () => {
+  test.beforeEach(async () => {
+    await clearCategories();
+  });
+
+  test.afterEach(async () => {
+    await clearCategories();
+  });
+
   test("renders page title and all category buttons", async ({ page }) => {
-    await mockGetCategories(page);
+    await seedCategories();
 
     await page.goto("/categories");
 
@@ -35,7 +43,7 @@ test.describe("Categories page", () => {
   });
 
   test("clicking a category navigates to its slug route", async ({ page }) => {
-    await mockGetCategories(page);
+    await seedCategories();
 
     await page.goto("/categories");
 
@@ -47,8 +55,6 @@ test.describe("Categories page", () => {
   });
 
   test("handles empty category list", async ({ page }) => {
-    await mockGetCategories(page, { categories: [] });
-
     await page.goto("/categories");
 
     await expect(page).toHaveTitle("All Categories");
