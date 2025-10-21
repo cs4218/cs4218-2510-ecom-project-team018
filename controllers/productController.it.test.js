@@ -283,4 +283,29 @@ describe("productController integration", () => {
       expect(payload.total).toBe(3);
     });
   });
+
+  describe("productListController", () => {
+    it("paginates products by the default page size", async () => {
+      const category = await createCategory("Gadgets");
+      const totalToCreate = DEFAULT_PAGE_SIZE + 1;
+      for (let i = 0; i < totalToCreate; i += 1) {
+        await createProduct({ name: `Gadget ${i}`, category });
+      }
+      const reqFirstPage = createMockReq({
+        params: { page: "1" },
+      });
+      const resFirstPage = createMockRes();
+      await productListController(reqFirstPage, resFirstPage);
+      const firstPayload = resFirstPage.send.mock.calls[0][0];
+      expect(firstPayload.products).toHaveLength(DEFAULT_PAGE_SIZE);
+
+      const reqSecondPage = createMockReq({
+        params: { page: "2" },
+      });
+      const resSecondPage = createMockRes();
+      await productListController(reqSecondPage, resSecondPage);
+      const secondPayload = resSecondPage.send.mock.calls[0][0];
+      expect(secondPayload.products).toHaveLength(1);
+    });
+  });
 });
