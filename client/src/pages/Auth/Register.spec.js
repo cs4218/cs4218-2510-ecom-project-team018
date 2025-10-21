@@ -216,4 +216,67 @@ test.describe("Register Page", () => {
 
     await expect(page).toHaveURL(REGISTER_URL);
   });
+
+  test("successfully registers a new user", async ({ page }) => {
+    await registerUser(page, TEST_USER);
+
+    // Should show success message and redirect to login
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Check for success toast message
+    await expect(page.getByText(/register successfully/i)).toBeVisible();
+  });
+
+  test("prevents duplicate email registration", async ({ page }) => {
+    // First, register a user
+    await registerUser(page, EXISTING_USER);
+
+    // Try to register with the same email
+    await page.goto(REGISTER_URL);
+    await page
+      .getByRole("textbox", { name: /enter your name/i })
+      .fill("Different Name");
+    await page
+      .getByRole("textbox", { name: /enter your email/i })
+      .fill(EXISTING_USER.email);
+    await page
+      .getByRole("textbox", { name: /enter your password/i })
+      .fill("differentpassword");
+    await page
+      .getByRole("textbox", { name: /enter your phone/i })
+      .fill("1111111111");
+    await page
+      .getByRole("textbox", { name: /enter your address/i })
+      .fill("Different Address");
+    await page.locator('input[type="date"]').fill("1995-01-01");
+    await page
+      .getByRole("textbox", { name: /what is your favorite sports/i })
+      .fill("Tennis");
+
+    await page.getByRole("button", { name: /register/i }).click();
+
+    await expect(page.getByText(/something went wrong/i)).toBeVisible();
+  });
+
+  test("handles network errors gracefully", async ({ page }) => {
+    // Mock network failure
+    await page.route("**/api/v1/auth/register", (route) => {
+      route.abort("failed");
+    });
+
+    await registerUser(page, TEST_USER);
+
+    // Should show error message
+    await expect(page.getByText(/something went wrong/i)).toBeVisible();
+  });
+
+  test("redirects to login after successful registration", async ({ page }) => {
+    await registerUser(page, TEST_USER);
+
+    // Should redirect to login page
+    await expect(page).toHaveURL(/\/login$/);
+
+    // Should show success message
+    await expect(page.getByText(/register successfully/i)).toBeVisible();
+  });
 });
