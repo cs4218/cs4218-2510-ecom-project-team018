@@ -308,4 +308,21 @@ describe("productController integration", () => {
       expect(secondPayload.products).toHaveLength(1);
     });
   });
+
+    describe("searchProductController", () => {
+    it("finds products by keyword", async () => {
+      const match = await createProduct({ name: "Amazing Lamp" });
+      await createProduct({ name: "Ordinary Chair" });
+      const req = createMockReq({
+        params: { keyword: "lamp" },
+      });
+      const res = createMockRes();
+
+      await searchProductController(req, res);
+
+      const results = res.json.mock.calls[0][0];
+      expect(results).toHaveLength(1);
+      expect(results[0]._id.toString()).toBe(match._id.toString());
+    });
+  });
 });
