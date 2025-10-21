@@ -142,4 +142,22 @@ describe("productController integration", () => {
       expect(count).toBe(0);
     });
   });
+
+  describe("getProductController", () => {
+    it("returns the most recent products", async () => {
+      const category = await createCategory("Books");
+      await createProduct({ name: "Book A", category });
+      await createProduct({ name: "Book B", category });
+      const req = createMockReq();
+      const res = createMockRes();
+
+      await getProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.success).toBe(true);
+      expect(payload.products.length).toBe(2);
+      expect(payload.countTotal).toBe(2);
+    });
+  });
 });
