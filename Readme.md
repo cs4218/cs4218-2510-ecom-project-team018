@@ -148,10 +148,29 @@ To begin unit testing with Jest in your project, follow these steps:
      npm run test:backend
      ```
 
-   - **All the tests**
+   - **Both frontend and backend tests**
      ```bash
      npm run test
      ```
+
+   - **Integration tests**
+      ```bash
+      npm run test:integration
+      ```
+
+## 6. UI testing with Playwright
+To begin UI testing with Playwright in your project, follow these steps:
+
+1. **Run playwright tests**
+   ```bash
+   npm run test:playwright
+   ```
+
+## 7. Running all tests
+To run frontend, backend, integration and playwright tests, use the command:
+```bash
+npm run test:all
+```
 
 ## Milestone 1 Contributions
 
