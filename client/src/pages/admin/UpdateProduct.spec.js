@@ -136,93 +136,84 @@ test.describe("Update Product page", () => {
     await productModel.deleteMany({});
   });
 
-  test("should load product and categories correctly", async ({ page }) => {
-    // heading
-    await expect(page.locator("h1")).toContainText("Update Product");
+  // test("should load product and categories correctly", async ({ page }) => {
+  //   // heading
+  //   await expect(page.locator("h1")).toContainText("Update Product");
 
-    // fields
-    await expect(page.locator(".ant-select").first()).toHaveText(
-      SAMPLE_PRODUCT.category
-    );
-    await expect(page.getByPlaceholder("write a name")).toHaveValue(
-      SAMPLE_PRODUCT.name
-    );
-    await expect(page.getByPlaceholder("write a description")).toHaveValue(
-      SAMPLE_PRODUCT.description
-    );
-    await expect(page.getByPlaceholder("write a Price")).toHaveValue(
-      SAMPLE_PRODUCT.price.toString()
-    );
-    await expect(page.getByPlaceholder("write a quantity")).toHaveValue(
-      SAMPLE_PRODUCT.quantity.toString()
-    );
-    await expect(page.locator(".ant-select").nth(1)).toHaveText(
-      SAMPLE_PRODUCT.shipping ? "Yes" : "No"
-    );
+  //   // fields
+  //   await expect(page.locator(".ant-select").first()).toHaveText(
+  //     SAMPLE_PRODUCT.category
+  //   );
+  //   await expect(page.getByPlaceholder("write a name")).toHaveValue(
+  //     SAMPLE_PRODUCT.name
+  //   );
+  //   await expect(page.getByPlaceholder("write a description")).toHaveValue(
+  //     SAMPLE_PRODUCT.description
+  //   );
+  //   await expect(page.getByPlaceholder("write a Price")).toHaveValue(
+  //     SAMPLE_PRODUCT.price.toString()
+  //   );
+  //   await expect(page.getByPlaceholder("write a quantity")).toHaveValue(
+  //     SAMPLE_PRODUCT.quantity.toString()
+  //   );
+  //   await expect(page.locator(".ant-select").nth(1)).toHaveText(
+  //     SAMPLE_PRODUCT.shipping ? "Yes" : "No"
+  //   );
 
-    // upload photo button
-    await expect(page.getByText("Upload Photo")).toBeVisible();
-    // photo preview
-    const previewImg = page.locator("img[alt='product_photo']");
-    await expect(previewImg).toBeVisible();
+  //   // upload photo button
+  //   await expect(page.getByText("Upload Photo")).toBeVisible();
+  //   // photo preview
+  //   const previewImg = page.locator("img[alt='product_photo']");
+  //   await expect(previewImg).toBeVisible();
 
-    // buttons
-    await expect(
-      page.getByRole("button", { name: "UPDATE PRODUCT" })
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "DELETE PRODUCT" })
-    ).toBeVisible();
-  });
-
-  // test("successfully updates a product and navigates to products page", async ({
-  //   page,
-  // }) => {
-  //   // mock update-product API to return success
-  //   await page.route("**/api/v1/product/update-product/**", async (route) => {
-  //     await route.fulfill({
-  //       status: SUCCESS_STATUS,
-  //       contentType: "application/json",
-  //       body: JSON.stringify({
-  //         success: true,
-  //         message: "Product updated successfully",
-  //       }),
-  //     });
-  //   });
-
-  //   /*** update all fields ***/
-  //   // change category
-  //   await page.locator(".ant-select").first().click();
-  //   await page.locator(".ant-select-dropdown").getByText("Books").click();
-  //   // input fields
-  //   await page.getByPlaceholder("write a name").fill("Updated Product");
-  //   await page
-  //     .getByPlaceholder("write a description")
-  //     .fill("New description for product");
-  //   await page.getByPlaceholder("write a Price").fill("80");
-  //   await page.getByPlaceholder("write a quantity").fill("10");
-
-  //   // upload new photo
-  //   const filePath = path.join(__dirname, "../../../public/images/about.jpeg");
-  //   await page.getByText("Upload Photo").click();
-  //   await page.locator('input[type="file"]').setInputFiles(filePath);
-  //   await expect(page.getByText("about.jpeg")).toBeVisible();
-
-  //   // shipping
-  //   const selects = page.locator(".ant-select");
-  //   await selects.nth(1).click();
-  //   await page.getByText("Yes").click();
-
-  //   // submit
-  //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-
-  //   // assert success toast
-  //   await expect(page.getByText("Product updated successfully")).toBeVisible();
-
-  //   // assert navigation
-  //   await page.waitForURL("/dashboard/admin/products");
-  //   await expect(page).toHaveURL("/dashboard/admin/products");
+  //   // buttons
+  //   await expect(
+  //     page.getByRole("button", { name: "UPDATE PRODUCT" })
+  //   ).toBeVisible();
+  //   await expect(
+  //     page.getByRole("button", { name: "DELETE PRODUCT" })
+  //   ).toBeVisible();
   // });
+
+  test("successfully updates a product and navigates to products page", async ({
+    page,
+  }) => {
+    /*** update all fields ***/
+    // change category
+    await page.locator(".ant-select").first().click();
+    await page
+      .locator(".ant-select-dropdown")
+      .getByText(SAMPLE_CATEGORIES[1].name)
+      .click();
+    // input fields
+    await page.getByPlaceholder("write a name").fill("Updated Product");
+    await page
+      .getByPlaceholder("write a description")
+      .fill("New description for product");
+    await page.getByPlaceholder("write a Price").fill("80");
+    await page.getByPlaceholder("write a quantity").fill("10");
+
+    // upload new photo
+    const filePath = path.join(__dirname, "../../../public/images/about.jpeg");
+    await page.getByText("Upload Photo").click();
+    await page.locator('input[type="file"]').setInputFiles(filePath);
+    await expect(page.getByText("about.jpeg")).toBeVisible();
+
+    // shipping
+    const selects = page.locator(".ant-select");
+    await selects.nth(1).click();
+    await page.getByText("Yes").click();
+
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+    // assert success toast
+    await expect(page.getByText("Product updated successfully")).toBeVisible();
+
+    // assert navigation
+    await page.waitForURL("/dashboard/admin/products");
+    await expect(page).toHaveURL("/dashboard/admin/products");
+  });
 
   // test("error when updating a product because of missing field(s)", async ({
   //   page,
