@@ -535,9 +535,10 @@ npm run test:all
          </td>
          <td>
             <ul>
+               <li><code>./client/src/pages/admin/CreateCategory.spec.js</code></li>
                <li><code>./client/src/pages/admin/CreateProduct.spec.js</code></li>
                <li><code>./client/src/pages/admin/UpdateProduct.spec.js</code></li>
-               <li><code>./client/src/pages/admin/CreateCategory.spec.js</code></li>
+               <li><code>./client/src/pages/admin/AdminOrders.spec.js</code></li>
             </ul>
          </td>
       </tr>
