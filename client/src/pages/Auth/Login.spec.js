@@ -119,4 +119,40 @@ test.describe("Login page", () => {
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByText(/something went wrong/i)).toBeVisible();
   });
+
+  test("navigates to forgot password page", async ({ page }) => {
+    await page.goto(LOGIN_URL);
+
+    await Promise.all([
+      page.waitForURL("**/forgot-password"),
+      page.getByRole("button", { name: /forgot password/i }).click(),
+    ]);
+
+    await expect(page).toHaveURL(/\/forgot-password$/);
+  });
+
+  test("persists login state across page refreshes", async ({ page }) => {
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+
+    // Should be on home page
+    await expect(page).toHaveURL(/\/$/);
+
+    // Refresh the page
+    await page.reload();
+
+    // Should still be logged in
+    await expect(page.getByRole("link", { name: /login/i })).not.toBeVisible();
+  });
+
+  test("handles network errors gracefully", async ({ page }) => {
+    // Intercept the login request and make it fail
+    await page.route("**/api/v1/auth/login", (route) => {
+      route.abort("failed");
+    });
+
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+
+    // Should show error message
+    await expect(page.getByText(/something went wrong/i)).toBeVisible();
+  });
 });
