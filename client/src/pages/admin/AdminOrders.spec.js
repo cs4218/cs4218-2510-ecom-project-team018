@@ -230,17 +230,26 @@ test.describe("Admin Orders Page", () => {
     }
   });
 
-  //   test("should update order status successfully", async ({ page }) => {
-  //     const select = page.locator(".ant-select").first();
-  //     await select.click();
-  //     await page.getByText("Processing").click();
+  test("should update order status successfully", async ({ page }) => {
+    const select = page.locator(".ant-select").first();
+    await select.click();
 
-  //     // wait for orders API to refresh after update
-  //     await page.waitForResponse(
-  //       (res) =>
-  //         res.url().includes("/api/v1/auth/order-status") && res.status() === 200
-  //     );
+    // scope to the dropdown
+    const dropdownOption = page
+      .locator(".ant-select-dropdown .ant-select-item")
+      .filter({
+        hasText: "Processing",
+      });
+    await dropdownOption.click();
 
-  //     await expect(select).toHaveText("Processing");
-  //   });
+    // wait for orders API to refresh after update
+    await page.waitForResponse(
+      (res) =>
+        res.url().includes("/api/v1/auth/order-status") && res.status() === 200
+    );
+
+    await expect(select.locator(".ant-select-selection-item")).toHaveText(
+      "Processing"
+    );
+  });
 });
