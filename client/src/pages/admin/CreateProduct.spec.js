@@ -163,19 +163,36 @@ test.describe("Create Category Page", () => {
   //   await expect(page.getByRole("main")).toContainText(/name is required/i);
   // });
 
-  test("missing description should return error message", async ({ page }) => {
+  // test("missing description should return error message", async ({ page }) => {
+  //   // fill in product name
+  //   await page
+  //     .getByRole("textbox", { name: "Write a name" })
+  //     .fill("Test Product");
+
+  //   // submit
+  //   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+  //   // assert error toast
+  //   await expect(page.getByRole("main")).toContainText(
+  //     /description is required/i
+  //   );
+  // });
+
+  test("missing price should return error message", async ({ page }) => {
     // fill in product name
     await page
       .getByRole("textbox", { name: "Write a name" })
       .fill("Test Product");
+    // fill in product description
+    await page
+      .getByRole("textbox", { name: "Write a description" })
+      .fill("Test Product Description");
 
     // submit
     await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
     // assert error toast
-    await expect(page.getByRole("main")).toContainText(
-      /description is required/i
-    );
+    await expect(page.getByRole("main")).toContainText(/price is required/i);
   });
 
   // test("successfully create a product and navigates to products page", async ({
