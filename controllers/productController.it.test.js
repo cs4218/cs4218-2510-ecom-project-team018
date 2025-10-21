@@ -442,4 +442,73 @@ describe("productController integration", () => {
       });
     });
   });
+
+  describe("checkInventoryController", () => {
+    it("confirms sufficient inventory", async () => {
+      const product = await createProduct({ name: "Monitor", quantity: 5 });
+      const req = createMockReq({
+        body: {
+          cart: [
+            {
+              _id: product._id.toString(),
+              quantity: 2,
+            },
+          ],
+        },
+      });
+      const res = createMockRes();
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.send).toHaveBeenCalledWith({ success: true });
+    });
+
+    it("returns conflict when insufficient stock", async () => {
+      const product = await createProduct({ name: "Printer", quantity: 1 });
+      const req = createMockReq({
+        body: {
+          cart: [
+            {
+              _id: product._id.toString(),
+              quantity: 3,
+            },
+          ],
+        },
+      });
+      const res = createMockRes();
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Insufficient stock",
+        itemId: product._id.toString(),
+        available: product.quantity,
+      });
+    });
+
+    it("rejects malformed cart payload", async () => {
+      const req = createMockReq({
+        body: {
+          cart: [
+            {
+              _id: "not-an-id",
+              quantity: 0,
+            },
+          ],
+        },
+      });
+      const res = createMockRes();
+
+      await checkInventoryController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Bad cart item",
+      });
+    });
+  });
 });
