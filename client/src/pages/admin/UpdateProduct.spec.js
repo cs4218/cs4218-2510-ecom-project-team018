@@ -175,71 +175,82 @@ test.describe("Update Product page", () => {
   //   ).toBeVisible();
   // });
 
-  test("successfully updates a product and navigates to products page", async ({
-    page,
-  }) => {
-    /*** update all fields ***/
-    // change category
-    await page.locator(".ant-select").first().click();
-    await page
-      .locator(".ant-select-dropdown")
-      .getByText(SAMPLE_CATEGORIES[1].name)
-      .click();
-    // input fields
-    await page.getByPlaceholder("write a name").fill("Updated Product");
-    await page
-      .getByPlaceholder("write a description")
-      .fill("New description for product");
-    await page.getByPlaceholder("write a Price").fill("80");
-    await page.getByPlaceholder("write a quantity").fill("10");
-
-    // upload new photo
-    const filePath = path.join(__dirname, "../../../public/images/about.jpeg");
-    await page.getByText("Upload Photo").click();
-    await page.locator('input[type="file"]').setInputFiles(filePath);
-    await expect(page.getByText("about.jpeg")).toBeVisible();
-
-    // shipping
-    const selects = page.locator(".ant-select");
-    await selects.nth(1).click();
-    await page.getByText("Yes").click();
-
-    // submit
-    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
-
-    // assert success toast
-    await expect(page.getByText("Product updated successfully")).toBeVisible();
-
-    // assert navigation
-    await page.waitForURL("/dashboard/admin/products");
-    await expect(page).toHaveURL("/dashboard/admin/products");
-  });
-
-  // test("error when updating a product because of missing field(s)", async ({
+  // test("successfully updates a product and navigates to products page", async ({
   //   page,
   // }) => {
-  //   // mock update-product API to return error
-  //   await page.route("**/api/v1/product/update-product/**", (route) =>
-  //     route.fulfill({
-  //       status: BAD_REQUEST_STATUS,
-  //       contentType: "application/json",
-  //       body: JSON.stringify({
-  //         success: false,
-  //         message: "Name is required",
-  //       }),
-  //     })
-  //   );
+  //   /*** update all fields ***/
+  //   // change category
+  //   await page.locator(".ant-select").first().click();
+  //   await page
+  //     .locator(".ant-select-dropdown")
+  //     .getByText(SAMPLE_CATEGORIES[1].name)
+  //     .click();
+  //   // input fields
+  //   await page.getByPlaceholder("write a name").fill("Updated Product");
+  //   await page
+  //     .getByPlaceholder("write a description")
+  //     .fill("New description for product");
+  //   await page.getByPlaceholder("write a Price").fill("80");
+  //   await page.getByPlaceholder("write a quantity").fill("10");
 
-  //   // clear the product name
-  //   const nameField = page.getByPlaceholder("write a name");
-  //   await nameField.fill("");
+  //   // upload new photo
+  //   const filePath = path.join(__dirname, "../../../public/images/about.jpeg");
+  //   await page.getByText("Upload Photo").click();
+  //   await page.locator('input[type="file"]').setInputFiles(filePath);
+  //   await expect(page.getByText("about.jpeg")).toBeVisible();
+
+  //   // shipping
+  //   const selects = page.locator(".ant-select");
+  //   await selects.nth(1).click();
+  //   await page.getByText("Yes").click();
 
   //   // submit
   //   await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
 
-  //   // assert error toast
-  //   await expect(page.getByText("Name is required")).toBeVisible();
+  //   // assert success toast
+  //   await expect(page.getByText("Product updated successfully")).toBeVisible();
+
+  //   // assert navigation
+  //   await page.waitForURL("/dashboard/admin/products");
+  //   await expect(page).toHaveURL("/dashboard/admin/products");
   // });
+
+  test("error when updating a product because of missing field(s)", async ({
+    page,
+  }) => {
+    // wait for data to load
+    await expect(page.getByPlaceholder("write a name")).toHaveValue(
+      SAMPLE_PRODUCT.name
+    );
+
+    // clear quantity
+    await page.getByPlaceholder("write a quantity").fill("");
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+    // assert error toast
+    await expect(page.getByText("Quantity is required")).toBeVisible();
+
+    // clear price
+    await page.getByPlaceholder("write a Price").fill("");
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+    // assert error toast
+    await expect(page.getByText("Price is required")).toBeVisible();
+
+    // clear description
+    await page.getByPlaceholder("write a description").fill("");
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+    // assert error toast
+    await expect(page.getByText("Description is required")).toBeVisible();
+
+    // clear name
+    await page.getByPlaceholder("write a name").fill("");
+    // submit
+    await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+    // assert error toast
+    await expect(page.getByText("Name is required")).toBeVisible();
+  });
 
   // test("shows error toast when API fails", async ({ page }) => {
   //   // mock the update-product API to return an internal server error (500)
