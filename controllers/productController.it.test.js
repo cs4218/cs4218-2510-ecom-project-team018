@@ -75,3 +75,18 @@ const createProduct = async (options = {}) => {
     category: resolvedCategory,
   });
 };
+
+describe("productController integration", () => {
+  beforeAll(async () => {
+    await connectTestDB();
+  });
+
+  beforeEach(async () => {
+    await clearDB();
+    jest.clearAllMocks();
+  });
+
+  afterAll(async () => {
+    await disconnectTestDB();
+  });
+});
