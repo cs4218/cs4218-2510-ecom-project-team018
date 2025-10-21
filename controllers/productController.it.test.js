@@ -160,4 +160,35 @@ describe("productController integration", () => {
       expect(payload.countTotal).toBe(2);
     });
   });
+
+  describe("getSingleProductController", () => {
+    it("returns one product by slug", async () => {
+      const product = await createProduct({ name: "Limited Edition" });
+      const req = createMockReq({
+        params: { slug: product.slug },
+      });
+      const res = createMockRes();
+
+      await getSingleProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.product._id.toString()).toBe(product._id.toString());
+    });
+
+    it("returns 404 when product missing", async () => {
+      const req = createMockReq({
+        params: { slug: "missing-product" },
+      });
+      const res = createMockRes();
+
+      await getSingleProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Product not found",
+      });
+    });
+  });
 });
