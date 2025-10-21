@@ -397,4 +397,49 @@ describe("productController integration", () => {
       expect(payload.category._id.toString()).toBe(category._id.toString());
     });
   });
+
+  describe("productPhotoController", () => {
+    it("returns photo data when available", async () => {
+      const category = await createCategory("Collectibles");
+      const photoData = Buffer.from("image-bytes");
+      const product = await productModel.create({
+        name: "Figurine",
+        slug: slugify("Figurine", { lower: true }),
+        description: "Limited edition",
+        price: 60,
+        quantity: 3,
+        shipping: false,
+        category: category._id,
+        photo: { data: photoData, contentType: "image/png" },
+      });
+      const req = createMockReq({
+        params: { pid: product._id.toString() },
+      });
+      const res = createMockRes();
+
+      await productPhotoController(req, res);
+
+      expect(res.set).toHaveBeenCalledWith("Content-Type", "image/png");
+      expect(res.status).toHaveBeenCalledWith(200);
+      const sentBuffer = res.send.mock.calls[0][0];
+      expect(Buffer.isBuffer(sentBuffer)).toBe(true);
+      expect(sentBuffer.equals(photoData)).toBe(true);
+    });
+
+    it("returns 404 when photo missing", async () => {
+      const product = await createProduct({ name: "No Photo Product" });
+      const req = createMockReq({
+        params: { pid: product._id.toString() },
+      });
+      const res = createMockRes();
+
+      await productPhotoController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Photo not found",
+      });
+    });
+  });
 });
