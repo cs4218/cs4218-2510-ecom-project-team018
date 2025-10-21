@@ -309,7 +309,7 @@ describe("productController integration", () => {
     });
   });
 
-    describe("searchProductController", () => {
+  describe("searchProductController", () => {
     it("finds products by keyword", async () => {
       const match = await createProduct({ name: "Amazing Lamp" });
       await createProduct({ name: "Ordinary Chair" });
@@ -323,6 +323,39 @@ describe("productController integration", () => {
       const results = res.json.mock.calls[0][0];
       expect(results).toHaveLength(1);
       expect(results[0]._id.toString()).toBe(match._id.toString());
+    });
+  });
+
+  describe("relatedProductController", () => {
+    it("returns other products from the same category", async () => {
+      const sharedCategory = await createCategory("Photography");
+      const primary = await createProduct({
+        name: "Camera Body",
+        category: sharedCategory._id,
+      });
+      const related = await createProduct({
+        name: "Prime Lens",
+        category: sharedCategory._id,
+      });
+      await createProduct({
+        name: "Mic",
+        category: await createCategory("Audio"),
+      });
+
+      const req = createMockReq({
+        params: {
+          pid: primary._id.toString(),
+          cid: sharedCategory._id.toString(),
+        },
+      });
+      const res = createMockRes();
+
+      await relatedProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.products).toHaveLength(1);
+      expect(payload.products[0]._id.toString()).toBe(related._id.toString());
     });
   });
 });
