@@ -28,6 +28,10 @@ export const createProductController = async (req, res) => {
 
     // validation
     switch (true) {
+      case !category:
+        return res
+          .status(400)
+          .send({ success: false, message: "Category is required" });
       case !name:
         return res
           .status(400)
@@ -40,10 +44,6 @@ export const createProductController = async (req, res) => {
         return res
           .status(400)
           .send({ success: false, message: "Price is required" });
-      case !category:
-        return res
-          .status(400)
-          .send({ success: false, message: "Category is required" });
       case !quantity:
         return res
           .status(400)
