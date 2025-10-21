@@ -5,6 +5,7 @@ import { hashPassword } from "../../../../helpers/authHelper.js";
 
 const DASHBOARD_URL = "/dashboard/user";
 const LOGIN_URL = "/login";
+const HOME_URL = "/";
 
 const TEST_USER = {
   name: "Test User",
@@ -50,7 +51,7 @@ test.describe("Dashboard Page", () => {
   test("redirects to home page when not authenticated", async ({ page }) => {
     await page.goto(DASHBOARD_URL);
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(HOME_URL);
   });
 
   test("maintains authentication state across page refreshes", async ({
@@ -58,7 +59,7 @@ test.describe("Dashboard Page", () => {
   }) => {
     // Login first
     await loginUser(page, TEST_USER.email, TEST_USER.password);
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL(HOME_URL);
 
     // Navigate to dashboard
     await page.goto(DASHBOARD_URL);
@@ -72,5 +73,79 @@ test.describe("Dashboard Page", () => {
     // Should still be logged in and show user data
     await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
     await expect(page.getByText(`email: ${TEST_USER.email}`)).toBeVisible();
+  });
+
+  test("displays user information when authenticated", async ({ page }) => {
+    // Login first
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+    await expect(page).toHaveURL(HOME_URL);
+
+    // Navigate to dashboard
+    await page.goto(DASHBOARD_URL);
+
+    // Check page title
+    await expect(page).toHaveTitle(/dashboard/i);
+
+    // Check that user information is displayed
+    await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
+    await expect(page.getByText(`email: ${TEST_USER.email}`)).toBeVisible();
+    await expect(page.getByText(`address: ${TEST_USER.address}`)).toBeVisible();
+  });
+
+  test("handles missing user data gracefully", async ({ page }) => {
+    // Create a user with minimal data
+    const minimalUser = {
+      name: "Minimal User",
+      email: `minimal${Date.now()}@example.com`,
+      password: "testpassword123",
+      phone: "phone",
+      address: "123",
+      DOB: "",
+      answer: "Test",
+    };
+
+    const hashedPassword = await hashPassword(minimalUser.password);
+    await userModel.create({
+      ...minimalUser,
+      password: hashedPassword,
+    });
+    await userModel.updateOne(
+      { email: minimalUser.email },
+      { $unset: { phone: "", address: "" } }
+    );
+
+    // Login with minimal user
+    await loginUser(page, minimalUser.email, minimalUser.password);
+    await expect(page).toHaveURL(HOME_URL);
+    // Navigate to dashboard
+    await page.goto(DASHBOARD_URL);
+
+    // Should show user name but fallback for missing data
+    await expect(page.getByText(`user: ${minimalUser.name}`)).toBeVisible();
+    await expect(page.getByText(`email: ${minimalUser.email}`)).toBeVisible();
+    await expect(page.getByText(/address: address not found/i)).toBeVisible();
+
+    // Clean up
+    await userModel.deleteMany({ email: minimalUser.email });
+  });
+
+  test("shows user menu on dashboard", async ({ page }) => {
+    // Login first
+    await loginUser(page, TEST_USER.email, TEST_USER.password);
+    await expect(page).toHaveURL(HOME_URL);
+
+    // Navigate to dashboard
+    await page.goto(DASHBOARD_URL);
+
+    // Check that user menu is present
+    const userMenu = page
+      .locator('[data-testid="user-menu"]')
+      .or(
+        page
+          .getByRole("navigation")
+          .or(page.locator(".user-menu").or(page.locator("nav")))
+      );
+
+    await expect(userMenu).toBeVisible();
   });
 });
