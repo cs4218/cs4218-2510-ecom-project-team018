@@ -234,4 +234,37 @@ describe("productController integration", () => {
       expect(remaining).toBeNull();
     });
   });
+
+  describe("productFiltersController", () => {
+    it("filters by category and price range", async () => {
+      const electronics = await createCategory("Electronics");
+      const books = await createCategory("Books");
+      const matched = await createProduct({
+        name: "Gaming Console",
+        price: 500,
+        category: electronics._id,
+      });
+      await createProduct({
+        name: "Novel",
+        price: 40,
+        category: books._id,
+      });
+
+      const req = createMockReq({
+        body: {
+          checked: [electronics._id.toString()],
+          radio: [100, 800],
+        },
+      });
+      const res = createMockRes();
+
+      await productFiltersController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.success).toBe(true);
+      expect(payload.products).toHaveLength(1);
+      expect(payload.products[0]._id.toString()).toBe(matched._id.toString());
+    });
+  });
 });
