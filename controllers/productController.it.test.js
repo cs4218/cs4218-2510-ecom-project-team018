@@ -379,4 +379,22 @@ describe("productController integration", () => {
       expect(payload.limit).toBe(1);
     });
   });
+
+  describe("productCategoryCountController", () => {
+    it("returns total count for a category", async () => {
+      const category = await createCategory("Accessories");
+      await createProduct({ name: "Case 1", category: category._id });
+      await createProduct({ name: "Case 2", category: category._id });
+
+      const req = createMockReq({
+        params: { slug: category.slug },
+      });
+      const res = createMockRes();
+      await productCategoryCountController(req, res);
+      expect(res.status).toHaveBeenCalledWith(200);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.total).toBe(2);
+      expect(payload.category._id.toString()).toBe(category._id.toString());
+    });
+  });
 });
