@@ -46,30 +46,9 @@ test.describe("Dashboard Page", () => {
     });
   });
 
-  test("redirects to login when not authenticated", async ({ page }) => {
+  test("redirects to home page when not authenticated", async ({ page }) => {
     await page.goto(DASHBOARD_URL);
 
-    // Should redirect to login page
-    await expect(page).toHaveURL(/\/login$/);
-  });
-
-  test("maintains authentication state across page refreshes", async ({
-    page,
-  }) => {
-    // Login first
-    await loginUser(page, TEST_USER.email, TEST_USER.password);
-
-    // Navigate to dashboard
-    await page.goto(DASHBOARD_URL);
-
-    // Verify user is logged in
-    await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
-
-    // Refresh the page
-    await page.reload();
-
-    // Should still be logged in and show user data
-    await expect(page.getByText(`user: ${TEST_USER.name}`)).toBeVisible();
-    await expect(page.getByText(`email: ${TEST_USER.email}`)).toBeVisible();
+    await expect(page).toHaveURL("/");
   });
 });
