@@ -191,4 +191,31 @@ describe("productController integration", () => {
       });
     });
   });
+
+  describe("updateProductController", () => {
+    it("updates existing product fields", async () => {
+      const product = await createProduct({ name: "Old Name" });
+      const req = createMockReq({
+        params: { pid: product._id.toString() },
+        fields: {
+          name: "New Name",
+          description: "Updated description",
+          price: 999,
+          category: product.category.toString(),
+          quantity: 15,
+          shipping: "0",
+        },
+      });
+      const res = createMockRes();
+
+      await updateProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      const updated = await productModel.findById(product._id);
+      expect(updated?.name).toBe("New Name");
+      expect(updated?.slug).toBe(slugify("New Name"));
+      expect(updated?.price).toBe(999);
+      expect(updated?.description).toBe("Updated description");
+    });
+  });
 });
