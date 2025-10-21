@@ -89,4 +89,57 @@ describe("productController integration", () => {
   afterAll(async () => {
     await disconnectTestDB();
   });
+
+  describe("createProductController", () => {
+    it("creates a product with persisted data", async () => {
+      const category = await createCategory("Wearables");
+      const req = createMockReq({
+        fields: {
+          name: "Smart Watch",
+          description: "Tracks fitness metrics",
+          price: 250,
+          category: category._id.toString(),
+          quantity: 20,
+          shipping: "1",
+        },
+      });
+      const res = createMockRes();
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      const payload = res.send.mock.calls[0][0];
+      expect(payload.success).toBe(true);
+      const saved = await productModel.findOne({
+        slug: slugify("Smart Watch"),
+      });
+      expect(saved).not.toBeNull();
+      expect(saved?.name).toBe("Smart Watch");
+      expect(saved?.category.toString()).toBe(category._id.toString());
+    });
+
+    it("rejects missing name", async () => {
+      const category = await createCategory("Audio");
+      const req = createMockReq({
+        fields: {
+          description: "Premium headset",
+          price: 120,
+          category: category._id.toString(),
+          quantity: 5,
+          shipping: "1",
+        },
+      });
+      const res = createMockRes();
+
+      await createProductController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Name is required",
+      });
+      const count = await productModel.countDocuments();
+      expect(count).toBe(0);
+    });
+  });
 });
