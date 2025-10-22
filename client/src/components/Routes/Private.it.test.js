@@ -8,7 +8,6 @@ import { AuthProvider } from "../../context/auth";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 import authRoutes from "../../../../routes/authRoute.js";
 import {
   clearDB,
