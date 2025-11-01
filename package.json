@@ -2,6 +2,7 @@
   "name": "ecom",
   "version": "1.0.0",
   "description": "ecommerce rest api",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,7 +10,7 @@
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
-    "test": "npm run test:backend && npm run test:frontend",
+    "test": "npm run test:backend && npm run test:frontend && node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.integration.config.js --runInBand",
     "test:playwright": "npx playwright test -c client/playwright.config.ts",
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
     "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js --passWithNoTests",
@@ -20,7 +21,7 @@
   "author": "RP",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "braintree": "^3.22.0",
     "colors": "^1.4.0",
     "concurrently": "^8.2.2",
@@ -29,6 +30,8 @@
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
+    "express-rate-limit": "^8.2.1",
+    "express-xss-sanitizer": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
     "mongodb-memory-server": "^10.2.3",
@@ -48,7 +51,6 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "mongodb-memory-server": "^10.2.3",
-    "sonarqube-scanner": "^4.3.0",
     "supertest": "^7.1.4"
   }
 }

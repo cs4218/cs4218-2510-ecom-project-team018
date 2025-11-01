@@ -125,14 +125,23 @@ export const forgotPasswordController = async (req, res) => {
     if (!answer) missing.push("Answer");
     if (!newPassword) missing.push("New Password");
 
+    // Protect Against Object-Based NoSQL Query Injection
+    if (typeof email !== "string" || typeof answer !== "string" || typeof newPassword !== "string")
+      return res.status(400).send({ message: "Invalid input type" });
+
     //validations
     if (missing.length > 0) {
       return res.status(400).send({
         message: `Missing required fields: ${missing.join(", ")}`,
       });
     }
-    //check
-    const user = await userModel.findOne({ email, answer });
+
+    // Prevent NoSQL injection
+    const user = await userModel.findOne({
+      email: { $eq: email },
+      answer: { $eq: answer }
+    });
+
     //validation
     if (!user) {
       return res.status(404).send({
