@@ -10,6 +10,7 @@ import {
   orderStatusController,
   getAllUsersController,
 } from "../controllers/authController.js";
+import { xss } from 'express-xss-sanitizer';
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 
 //router object
@@ -17,7 +18,7 @@ const router = express.Router();
 
 //routing
 //REGISTER || METHOD POST
-router.post("/register", registerController);
+router.post("/register", xss(), registerController);
 
 //LOGIN || POST
 router.post("/login", loginController);
