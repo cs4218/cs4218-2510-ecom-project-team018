@@ -127,7 +127,7 @@ export const forgotPasswordController = async (req, res) => {
 
     // Protect Against Object-Based NoSQL Query Injection
     if (typeof email !== "string" || typeof answer !== "string" || typeof newPassword !== "string")
-      return res.status(400).send({ message: "Invalid input type" });
+      return res.status(400).send({ message: "Missing required fields: Email, Answer, New Password" });
 
     //validations
     if (missing.length > 0) {
