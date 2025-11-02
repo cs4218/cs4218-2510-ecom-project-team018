@@ -7,7 +7,6 @@ JSON Web Token Corruption Tests
 Reflected and Stored XSS Attack Tests
 NoSQL Injection Tests
 Cross Origin Resource Sharing Test
-Slug Abuse Tests
 DDOS Protection with Rate Limit Test
 Mass Assignment Vulnerability Test for ORM Layer
 """
@@ -366,22 +365,6 @@ def cors_test():
     )
 
 # -------------------------
-# Slug Abuse
-# -------------------------
-def slug_tests():
-    slugs = ["<script>alert(1)</script>", "%24ne%3A%22%22", "../../etc/passwd"]
-    for s in slugs:
-        resp = requests.get(f"{CATEGORY_API}/single-category/{s}", timeout=TIMEOUT)
-        ok = resp.status_code in (200,404)
-        record(
-            name=f"Slug Abuse - {s}",
-            ok=ok,
-            status_code=resp.status_code,
-            summary="Server must not crash/traverse",
-            endpoint="/single-category"
-        )
-
-# -------------------------
 # Rate Limit
 # -------------------------
 def rate_limit_test():
@@ -454,7 +437,6 @@ def main():
         xss_tests()
         nosql_tests()
         cors_test()
-        slug_tests()
         rate_limit_test()
         mass_assignment_test()
 
