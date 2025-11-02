@@ -7,6 +7,7 @@ import {
   singleCategoryController,
   updateCategoryController,
 } from "./../controllers/categoryController.js";
+import { xss } from 'express-xss-sanitizer';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ const router = express.Router();
 // create category
 router.post(
   "/create-category",
+  xss(),
   requireSignIn,
   isAdmin,
   createCategoryController
@@ -22,6 +24,7 @@ router.post(
 //update category
 router.put(
   "/update-category/:id",
+  xss(),
   requireSignIn,
   isAdmin,
   updateCategoryController
@@ -31,11 +34,12 @@ router.put(
 router.get("/get-category", categoryController);
 
 //single category
-router.get("/single-category/:slug", singleCategoryController);
+router.get("/single-category/:slug", xss(), singleCategoryController);
 
 //delete category
 router.delete(
   "/delete-category/:id",
+  xss(),
   requireSignIn,
   isAdmin,
   deleteCategoryController
