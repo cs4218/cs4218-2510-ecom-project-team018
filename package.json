@@ -50,7 +50,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "mongodb-memory-server": "^10.2.3",
-    "sonarqube-scanner": "^4.3.2"
+    "sonarqube-scanner": "^4.3.2",
     "supertest": "^7.1.4"
   }
 }
