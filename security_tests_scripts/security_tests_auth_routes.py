@@ -1,5 +1,5 @@
 """
-security_tests_authRoutes.py
+security_tests_auth_routes.py
 Run basic automated security tests for a local MERN app and save results to ./reports/
 Tests included:
  - Rules Based Access Control (Normal and Admin User)
