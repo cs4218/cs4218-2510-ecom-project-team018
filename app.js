@@ -26,8 +26,8 @@ const createApp = () => {
   app.use(morgan("dev"));
 
   app.use("/api/v1/auth", limiter, authRoutes);
-  app.use("/api/v1/category",limiter, categoryRoutes);
-  app.use("/api/v1/product",limiter, productRoutes);
+  app.use("/api/v1/category", limiter, categoryRoutes);
+  app.use("/api/v1/product", limiter, productRoutes);
 
   app.get("/", (req, res) => {
     res.send("<h1>Welcome to ecommerce app</h1>");
