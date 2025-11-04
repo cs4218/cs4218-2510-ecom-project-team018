@@ -38,7 +38,7 @@ LOGIN_URL = f"{API}/login"
 
 # -------------------------
 
-os.makedirs(REPORT_DIR)
+os.makedirs(REPORT_DIR, exist_ok=True)
 
 results = {
     "meta": {
