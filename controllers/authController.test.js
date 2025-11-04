@@ -271,8 +271,8 @@ describe("Auth Controller", () => {
       await forgotPasswordController(mockReq, mockRes);
 
       expect(userModel.findOne).toHaveBeenCalledWith({
-        email: "nonexistent@example.com",
-        answer: "wrongAnswer",
+        email: {$eq : "nonexistent@example.com"},
+        answer: {$eq: "wrongAnswer"}
       });
       expect(mockRes.status).toHaveBeenCalledWith(404);
       expect(mockRes.send).toHaveBeenCalledWith({
