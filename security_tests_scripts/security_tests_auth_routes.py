@@ -94,7 +94,6 @@ def authed_put(url, token, **kw):
 # Get tokens
 ADMIN_TOKEN = get_token(ADMIN_EMAIL, ADMIN_PASSWORD)
 USER_TOKEN = get_token(USER_EMAIL, USER_PASSWORD)
-secret = os.environ.get("JWT_SECRET","your_secret_here")
 
 def test_admin_routes_no_token():
     for endpoint in ADMIN_ENDPOINTS_GET:
