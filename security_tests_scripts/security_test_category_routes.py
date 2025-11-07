@@ -109,8 +109,8 @@ def rbac_test_admin_create_category():
     
     try:
         categoryID = resp.json().get("category", {}).get("_id")
-    except:
-        pass
+    except Exception as e:
+        print(f"Error extracting category ID from response: {e}")
     
     if categoryID != None:
         created_category_id.append(categoryID)
