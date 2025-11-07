@@ -33,6 +33,39 @@ export const createProductController = async (req, res) => {
     let { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
 
+  // validation
+  switch (true) {
+    case !category:
+      return res
+        .status(400)
+        .send({ success: false, message: "Category is required" });
+    case !name:
+      return res
+        .status(400)
+        .send({ success: false, message: "Name is required" });
+    case !description:
+      return res
+        .status(400)
+        .send({ success: false, message: "Description is required" });
+    case !price:
+      return res
+        .status(400)
+        .send({ success: false, message: "Price is required" });
+    case !quantity:
+      return res
+        .status(400)
+        .send({ success: false, message: "Quantity is required" });
+    case shipping === undefined || shipping === "":
+      return res
+        .status(400)
+        .send({ success: false, message: "Shipping is required" });
+    case photo && photo.size > 1000000:
+      return res.status(413).send({
+        success: false,
+        message: "Photo is required and should be less than 1MB",
+      });
+    }
+
     const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
     if (mappedKeys.length != 0) {
       return res.status(403).send({ success: false, message: "Extra Fields are not allowed"})
@@ -46,41 +79,8 @@ export const createProductController = async (req, res) => {
     name = stripTags(name);
     description = stripTags(description);
 
-    // validation
-    switch (true) {
-      case !category:
-        return res
-          .status(400)
-          .send({ success: false, message: "Category is required" });
-      case !name:
-        return res
-          .status(400)
-          .send({ success: false, message: "Name is required" });
-      case !description:
-        return res
-          .status(400)
-          .send({ success: false, message: "Description is required" });
-      case !price:
-        return res
-          .status(400)
-          .send({ success: false, message: "Price is required" });
-      case !quantity:
-        return res
-          .status(400)
-          .send({ success: false, message: "Quantity is required" });
-      case shipping === undefined || shipping === "":
-        return res
-          .status(400)
-          .send({ success: false, message: "Shipping is required" });
-      case photo && photo.size > 1000000:
-        return res.status(413).send({
-          success: false,
-          message: "Photo is required and should be less than 1MB",
-        });
-    }
-
     // normalize shipping value ("1" => true, "0" => false)
-    shipping = shipping === 1;
+    shipping = shipping == 1 ;
 
     const products = new productModel({ name, description, price, category, quantity, shipping , slug: slugify(name) });
     if (photo) {
@@ -161,16 +161,20 @@ export const getSingleProductController = async (req, res) => {
 // Get photo
 export const productPhotoController = async (req, res) => {
   try {
-    if (mongoose.isValidObjectId(req.param.id)) {
+    const pid = req.params.pid; // use params and the correct key
+
+    // return 400 when the pid is NOT a valid ObjectId
+    if (!mongoose.isValidObjectId(pid)) {
       return res.status(400).send({
         success: false,
-        message: "No valid ObjectId",
+        message: "Invalid product id",
       });
     }
 
-    const product = await productModel.findById(req.params.pid).select("photo");
+    // call findById with pid (tests mock this)
+    const product = await productModel.findById(pid).select("photo");
 
-    if (!product || !product.photo?.data) {
+    if (!product || !product.photo || !product.photo.data) {
       return res.status(404).send({
         success: false,
         message: "Photo not found",
@@ -181,12 +185,14 @@ export const productPhotoController = async (req, res) => {
     return res.status(200).send(product.photo.data);
   } catch (error) {
     console.error(error);
-    res.status(500).send({
+    return res.status(500).send({
       success: false,
-      message: "Error while getting photo"
+      message: "Error while getting photo",
+      error: error.message,
     });
   }
 };
+
 
 // delete controller
 export const deleteProductController = async (req, res) => {
@@ -221,17 +227,7 @@ export const updateProductController = async (req, res) => {
     let { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
 
-    // Guard Against Mas Assignment Vulnerability Attacks
-    const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
-    if (mappedKeys.length != 0) {
-      return res.status(403).send({ message: "Extra Fields are not allowed"})
-    }
-
-    // XSS Sanitize with Strip Tags
-    name = stripTags(name)
-    description = stripTags(description)
-    
-    // validation
+        // validation
     switch (true) {
       case !category:
         return res
@@ -264,8 +260,18 @@ export const updateProductController = async (req, res) => {
         });
     }
 
+    // Guard Against Mas Assignment Vulnerability Attacks
+    const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
+    if (mappedKeys.length != 0) {
+      return res.status(403).send({ message: "Extra Fields are not allowed"})
+    }
+
+    // XSS Sanitize with Strip Tags
+    name = stripTags(name)
+    description = stripTags(description)
+
     // normalize shipping value ("1" => true, "0" => false)
-    shipping = shipping === 1;
+    shipping = shipping == 1;
 
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
@@ -313,7 +319,7 @@ export const productFiltersController = async (req, res) => {
       }
 
       for (const checkCategory of checked) {
-        if (checkCategory == null || (typeof checkCategory == "object" || !mongoose.isValidObjectId(checkCategory))) {
+        if (checkCategory == null || (typeof checkCategory !== "string" || !mongoose.isValidObjectId(checkCategory))) {
           return res.status(400).send({ success: false, message: "Invalid checked element (objects not allowed)" });
         }
       }
@@ -322,9 +328,10 @@ export const productFiltersController = async (req, res) => {
     }
 
     // Set category filters
-    if (Array.isArray(checked) && checked.length == 2) {
+    if (Array.isArray(checked) && checked.length >= 1) {
       args.category = { $in: checked };
     }
+
     // Set price range filter
     if (Array.isArray(radio) && radio.length === 2) {
       for (const price of radio) {
@@ -336,8 +343,10 @@ export const productFiltersController = async (req, res) => {
       if (!Number.isNaN(min) && !Number.isNaN(max)) {
         args.price = { $gte: min, $lte: max };
       }
-    } else {
-      return res.status(400).send({success: false, message: "price range must be provided"})
+    }
+
+    if (Array.isArray(radio) && radio.length === 1) {
+      return res.status(400).send({success: false, message: "radio length must be 2"})
     }
 
     const products = await productModel.find(args).select("-photo");
