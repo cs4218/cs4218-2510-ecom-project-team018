@@ -240,14 +240,13 @@ def rbac_update_product_no_token():
 delete_url = f"{PRODUCT_API}/delete-product"
 
 def create_delete_url(productId=None):
-    if productId != None:
+    if productId is not None:
         return delete_url + "/" + productId
     if len(created_product_ids) == 0:
         print("Warning no created test products found!")
+        return None
     else:
         return delete_url + "/" + created_product_ids[0]
-
-
 def rbac_delete_product_admin():
     resp = DELETE(create_delete_url(), ADMIN_TOKEN)
     ok = resp.status_code == 200
