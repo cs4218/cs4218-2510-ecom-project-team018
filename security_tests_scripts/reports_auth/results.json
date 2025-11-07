@@ -1,0 +1,410 @@
+{
+  "meta": {
+    "start_time": "2025-11-07 19:14:03",
+    "base": "http://localhost:3000"
+  },
+  "tests": [
+    {
+      "name": "Admin Route without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/test",
+      "timestamp": "2025-11-07 19:14:11"
+    },
+    {
+      "name": "Admin Route without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/admin-auth",
+      "timestamp": "2025-11-07 19:14:13"
+    },
+    {
+      "name": "Admin Route without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/all-orders",
+      "timestamp": "2025-11-07 19:14:15"
+    },
+    {
+      "name": "Admin Route without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/users",
+      "timestamp": "2025-11-07 19:14:17"
+    },
+    {
+      "name": "Admin Route without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/order-status/12345",
+      "timestamp": "2025-11-07 19:14:19"
+    },
+    {
+      "name": "Admin-auth with admin token",
+      "ok": true,
+      "status_code": 200,
+      "summary": "Expect 200",
+      "details": null,
+      "endpoint": "/admin-auth",
+      "timestamp": "2025-11-07 19:14:21"
+    },
+    {
+      "name": "Admin Routes with User Token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/test",
+      "timestamp": "2025-11-07 19:14:24"
+    },
+    {
+      "name": "Admin Routes with User Token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/admin-auth",
+      "timestamp": "2025-11-07 19:14:26"
+    },
+    {
+      "name": "Admin Routes with User Token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/all-orders",
+      "timestamp": "2025-11-07 19:14:28"
+    },
+    {
+      "name": "Admin Routes with User Token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/users",
+      "timestamp": "2025-11-07 19:14:30"
+    },
+    {
+      "name": "Admin Routes with User Token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/order-status/12345",
+      "timestamp": "2025-11-07 19:14:33"
+    },
+    {
+      "name": "User Routes without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/user-auth",
+      "timestamp": "2025-11-07 19:14:35"
+    },
+    {
+      "name": "User Routes without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/orders",
+      "timestamp": "2025-11-07 19:14:37"
+    },
+    {
+      "name": "User Routes without token",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/profile",
+      "timestamp": "2025-11-07 19:14:39"
+    },
+    {
+      "name": "User-auth with user token",
+      "ok": true,
+      "status_code": 200,
+      "summary": "Expect 200",
+      "details": null,
+      "endpoint": "user-auth",
+      "timestamp": "2025-11-07 19:14:41"
+    },
+    {
+      "name": "Corrupted JWT Token Admin Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/test",
+      "timestamp": "2025-11-07 19:14:43"
+    },
+    {
+      "name": "Corrupted JWT Token Admin Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/admin-auth",
+      "timestamp": "2025-11-07 19:14:45"
+    },
+    {
+      "name": "Corrupted JWT Token Admin Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/all-orders",
+      "timestamp": "2025-11-07 19:14:47"
+    },
+    {
+      "name": "Corrupted JWT Token Admin Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/users",
+      "timestamp": "2025-11-07 19:14:49"
+    },
+    {
+      "name": "Corrupted JWT Token Admin Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/order-status/12345",
+      "timestamp": "2025-11-07 19:14:51"
+    },
+    {
+      "name": "Corrupted JWT Token User Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/user-auth",
+      "timestamp": "2025-11-07 19:14:54"
+    },
+    {
+      "name": "Corrupted JWT Token User Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/orders",
+      "timestamp": "2025-11-07 19:14:56"
+    },
+    {
+      "name": "Corrupted JWT Token User Routes",
+      "ok": true,
+      "status_code": 401,
+      "summary": "Expect 401",
+      "details": null,
+      "endpoint": "/profile",
+      "timestamp": "2025-11-07 19:14:58"
+    },
+    {
+      "name": "Brute-force login simulation",
+      "ok": true,
+      "status_code": [
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        429,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        404,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429,
+        429
+      ],
+      "summary": "Pass if 429 or throttling observed; otherwise recommend rate-limiting",
+      "details": null,
+      "endpoint": "login",
+      "timestamp": "2025-11-07 19:15:02"
+    },
+    {
+      "name": "CORS probe",
+      "ok": true,
+      "status_code": 401,
+      "summary": "ACAO=http://localhost:3000",
+      "details": null,
+      "endpoint": "/user-auth",
+      "timestamp": "2025-11-07 19:15:04"
+    },
+    {
+      "name": "Reflected XSS via register",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Payload should not appear raw in response",
+      "details": null,
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:07"
+    },
+    {
+      "name": "Stored XSS Test - Register (submit)",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Register should create user but not reflect raw payload in response",
+      "details": "Reflected payload in register response: False",
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:09"
+    },
+    {
+      "name": "Stored XSS Verify - Register (login response)",
+      "ok": true,
+      "status_code": 200,
+      "summary": "Login response should NOT contain raw stored payload in user.name",
+      "details": null,
+      "endpoint": "/login",
+      "timestamp": "2025-11-07 19:15:12"
+    },
+    {
+      "name": "Nosql /forgot-password try1",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'email': {'$ne': ''}, 'answer': {'$ne': ''}, 'newPassword': 'NewPass123!'}",
+      "details": null,
+      "endpoint": "/forgot-password",
+      "timestamp": "2025-11-07 19:15:14"
+    },
+    {
+      "name": "Nosql /forgot-password try2",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'email': {'$regex': '.*'}, 'answer': {'$regex': '.*'}, 'newPassword': 'NewPass1",
+      "details": null,
+      "endpoint": "/forgot-password",
+      "timestamp": "2025-11-07 19:15:16"
+    },
+    {
+      "name": "Nosql /forgot-password try3",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'$or': [{'email': {'$ne': ''}}, {'answer': {'$ne': ''}}], 'newPassword': 'NewPa",
+      "details": null,
+      "endpoint": "/forgot-password",
+      "timestamp": "2025-11-07 19:15:18"
+    },
+    {
+      "name": "Nosql /login try1",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'email': {'$ne': ''}, 'password': 'doesntmatter'}",
+      "details": null,
+      "endpoint": "/login",
+      "timestamp": "2025-11-07 19:15:20"
+    },
+    {
+      "name": "Nosql /login try2",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'email': {'$gt': ''}, 'password': 'doesntmatter'}",
+      "details": null,
+      "endpoint": "/login",
+      "timestamp": "2025-11-07 19:15:22"
+    },
+    {
+      "name": "Nosql /login try3",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'email': {'$regex': '.*'}, 'password': 'doesntmatter'}",
+      "details": null,
+      "endpoint": "/login",
+      "timestamp": "2025-11-07 19:15:25"
+    },
+    {
+      "name": "Nosql /login try4",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'$or': [{'email': {'$ne': ''}}, {'password': {'$ne': ''}}]}",
+      "details": null,
+      "endpoint": "/login",
+      "timestamp": "2025-11-07 19:15:27"
+    },
+    {
+      "name": "Nosql /register try1",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'name': 'x', 'email': {'$ne': ''}, 'password': 'Password123', 'phone': '9876543",
+      "details": null,
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:29"
+    },
+    {
+      "name": "Nosql /register try2",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'name': 'x', 'email': {'$gt': ''}, 'password': 'Password123', 'phone': '9876543",
+      "details": null,
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:31"
+    },
+    {
+      "name": "Nosql /register try3",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'name': 'x', 'email': {'$regex': '.*'}, 'password': 'Password123', 'phone': '98",
+      "details": null,
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:34"
+    },
+    {
+      "name": "Nosql /register try4",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Payload: {'$or': [{'email': {'$ne': ''}}, {'name': {'$ne': ''}}], 'password': 'Password12",
+      "details": null,
+      "endpoint": "/register",
+      "timestamp": "2025-11-07 19:15:36"
+    }
+  ]
+}
