@@ -139,7 +139,7 @@ def rbac_test_user_create_category():
 
 def rbac_test_no_token_create_category():
     # Unique Category Name for Tests Only
-    resp = requests.post(create_url, json={"name": test_category_name})
+    resp = requests.post(create_url, json={"name": test_category_name}, timeout=TIMEOUT)
     
     record(
         name="RBAC - No Token create category not allowed",
