@@ -418,7 +418,7 @@ def mass_assignment_test():
         cid = resp.json().get("category", {}).get("_id")
         if cid:
             DELETE(f"{CATEGORY_API}/delete-category/{cid}", ADMIN_TOKEN)
-    except:
+    except Exception:
         pass
 
 # -------------------------
