@@ -185,7 +185,7 @@ def rbac_user_update_category():
 
 def rbac_no_token_update_category():
     unique_name = f"upd_admin_{int(time.time())}"
-    resp = requests.put(create_update_url(created_category_id[0]), json={"name": unique_name})
+    resp = requests.put(create_update_url(created_category_id[0]), json={"name": unique_name}, timeout=TIMEOUT)
     
     record(
         name="RBAC - No Token update category not allowed",
