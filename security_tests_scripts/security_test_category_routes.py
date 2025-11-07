@@ -401,7 +401,7 @@ def mass_assignment_test():
 
     resp = POST(create_url, ADMIN_TOKEN, json=payload)
     
-    # Mass Assiignment Attempt will result in request failure
+    # Mass Assignment Attempt will result in request failure
     ok = resp.status_code == 400
 
     record(
