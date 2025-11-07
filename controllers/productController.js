@@ -67,7 +67,7 @@ export const createProductController = async (req, res) => {
     }
 
     const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
-    if (mappedKeys.length != 0) {
+    if (mappedKeys.length !== 0) {
       return res.status(403).send({ success: false, message: "Extra Fields are not allowed"})
     }
 
