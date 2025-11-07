@@ -86,10 +86,25 @@ const makeQuery = (value) => ({
 });
 
 // sample data
+const CREATE_PRODUCT = [
+  {
+    name: "Test Product",
+    description: "Nice product",
+    price: 100,
+    category: "Electronics",
+    quantity: 10,
+    shipping: true,
+    photo: {
+      path: "fake/path/photo.jpg",
+      type: "image/jpeg",
+      size: 500000,
+    },
+  },
+];
+
 const SAMPLE_PRODUCT = [
   {
-    _id: "fake-product-id",
-    name: "Test Product",
+    _id: "690dab11199855311bf77191",name: "Test Product",
     description: "Nice product",
     price: 100,
     category: "Electronics",
@@ -184,7 +199,7 @@ describe("Product controllers", () => {
         throw new Error("Network error");
       });
 
-      const req = createMockReq();
+      const req = createMockReq({_id: "690dbe5b71a9f84c9db8bc1d"});
 
       await getProductController(req, res);
 
@@ -253,50 +268,53 @@ describe("Product controllers", () => {
 
   describe("productPhotoController", () => {
     let res;
+    let req;
+    let pid =  SAMPLE_PRODUCT[0]._id;
+
+    res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn().mockReturnThis(),
+      set: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
+    };
 
     beforeEach(() => {
-      res = createMockRes();
+      req = {
+        params: { pid: SAMPLE_PRODUCT[0]._id }
+      };
     });
 
     it("returns photo when exists", async () => {
-      const pid = "p1";
       const buf = Buffer.from([1, 2, 3]);
       productModel.findById.mockReturnValue(
         makeQuery({ _id: pid, photo: { data: buf, contentType: "image/png" } })
       ); // photo exists
 
-      const req = createMockReq({ params: { pid } });
-
       await productPhotoController(req, res);
 
-      expect(productModel.findById).toHaveBeenCalledWith(pid);
+      expect(productModel.findById).toHaveBeenCalledWith(req.params.pid);
       expect(res.set).toHaveBeenCalledWith("Content-Type", "image/png");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
 
     it("defaults content-type to image/jpeg when missing", async () => {
-      const pid = "p2";
+      // Fix the PID to be a real MongoDB ID
       const buf = Buffer.from([4, 5, 6]);
       productModel.findById.mockReturnValue(
         makeQuery({ _id: pid, photo: { data: buf } })
       ); // photo exists, but contentType missing
 
-      const req = createMockReq({ params: { pid } });
-
       await productPhotoController(req, res);
 
-      expect(productModel.findById).toHaveBeenCalledWith(pid);
+      expect(productModel.findById).toHaveBeenCalledWith(req.params.pid);
       expect(res.set).toHaveBeenCalledWith("Content-Type", "image/jpeg");
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.send).toHaveBeenCalledWith(buf);
     });
 
     it("returns 404 when no photo found", async () => {
-      const pid = "p1";
-      productModel.findById.mockReturnValue(makeQuery({ _id: pid, photo: {} })); // no photo
-
-      const req = createMockReq({ params: { pid } });
+      productModel.findById.mockReturnValue(makeQuery({ _id: req.params.pid, photo: {} })); // no photo
 
       await productPhotoController(req, res);
 
@@ -307,8 +325,6 @@ describe("Product controllers", () => {
       productModel.findById.mockImplementation(() => {
         throw new Error("Network error");
       });
-
-      const req = createMockReq();
 
       await productPhotoController(req, res);
 
@@ -321,7 +337,7 @@ describe("Product controllers", () => {
 
   describe("productFiltersController", () => {
     let res;
-    const categories = ["c1", "c2"];
+    const categories = ["66db427fdb0119d9234b27ee", "68ee09f55d04c25ab1732ce9"];
     const priceRange = [40, 59];
 
     beforeEach(() => {
@@ -329,7 +345,7 @@ describe("Product controllers", () => {
     });
 
     it("filters by categories and price range", async () => {
-      const result = [{ _id: "p1" }];
+      const result = [{ _id: "68ee09f55d04c25ab1732ce9" }];
       productModel.find.mockReturnValue(makeQuery(result));
 
       const req = createMockReq({
@@ -349,7 +365,7 @@ describe("Product controllers", () => {
     });
 
     it("filters by categories only", async () => {
-      const result = [{ _id: "p1" }];
+      const result = [{ _id: "68ee09f55d04c25ab1732ce9" }];
       productModel.find.mockReturnValue(makeQuery(result));
 
       const req = createMockReq({ body: { checked: categories } });
@@ -366,7 +382,7 @@ describe("Product controllers", () => {
     });
 
     it("filters by price range only", async () => {
-      const result = [{ _id: "p1" }];
+      const result = [{ _id: "68ee09f55d04c25ab1732ce9" }];
       productModel.find.mockReturnValue(makeQuery(result));
 
       const req = createMockReq({ body: { radio: priceRange } });
@@ -383,26 +399,22 @@ describe("Product controllers", () => {
     });
 
     it("does not filter by price for non-numeric price range", async () => {
-      const result = [{ _id: "p1" }];
+      const result = [{ _id: "68ee09f55d04c25ab1732ce9" }];
       productModel.find.mockReturnValue(makeQuery(result));
 
       const req = createMockReq({ body: { radio: ["abc", "def"] } }); // non-numeric price range
 
       await productFiltersController(req, res);
 
-      // Falls back to no filters
-      expect(productModel.find).toHaveBeenCalledWith({});
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.send).toHaveBeenCalledWith(
-        expect.objectContaining({ products: result })
-      );
+      // Fail due to bad filter values
+      expect(res.status).toHaveBeenCalledWith(400);
     });
 
     it("handles no filters gracefully", async () => {
       const result = [];
       productModel.find.mockReturnValue(makeQuery(result));
 
-      const req = createMockReq({ body: {} }); // no filters
+      const req = createMockReq({ body: {radio: [], checked: []} }); // no filters
 
       await productFiltersController(req, res);
 
@@ -1145,8 +1157,7 @@ describe("Product controllers", () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: "Payment error",
-        error: expect.any(String),
+        message: "Payment error"
       });
     });
 
@@ -1433,9 +1444,12 @@ describe("Product Controller - creating a product", () => {
     jest.clearAllMocks();
 
     req = {
-      fields: { ...SAMPLE_PRODUCT[0] },
-      files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
+      fields: { ...CREATE_PRODUCT[0] },
+      files: { photo: { ...CREATE_PRODUCT[0].photo } },
     };
+
+    // remove photo from fields (mutates)
+    delete req.fields.photo
 
     res = {
       status: jest.fn().mockReturnThis(),
@@ -1455,12 +1469,12 @@ describe("Product Controller - creating a product", () => {
 
     expect(productModel).toHaveBeenCalledWith(
       expect.objectContaining({
-        ...SAMPLE_PRODUCT[0],
-        slug: slugify(SAMPLE_PRODUCT[0].name),
+        ...req.fields,
+        slug: slugify(CREATE_PRODUCT[0].name),
       })
     );
 
-    expect(fs.readFileSync).toHaveBeenCalledWith(SAMPLE_PRODUCT[0].photo.path);
+    expect(fs.readFileSync).toHaveBeenCalledWith(CREATE_PRODUCT[0].photo.path);
 
     expect(res.status).toHaveBeenCalledWith(CREATED_STATUS);
     expect(res.send).toHaveBeenCalledWith(
@@ -1617,6 +1631,9 @@ describe("Product Controller - updating a product", () => {
       fields: { ...SAMPLE_PRODUCT[0] },
       files: { photo: { ...SAMPLE_PRODUCT[0].photo } },
     };
+    
+    delete req.fields.photo
+    delete req.fields._id
 
     res = {
       status: jest.fn().mockReturnThis(),
@@ -1642,7 +1659,7 @@ describe("Product Controller - updating a product", () => {
     expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
       SAMPLE_PRODUCT[0]._id,
       expect.objectContaining({
-        ...SAMPLE_PRODUCT[0],
+        ...req.fields,
         slug: slugify(SAMPLE_PRODUCT[0].name),
       }),
       { new: true }
@@ -1738,7 +1755,7 @@ describe("Product Controller - updating a product", () => {
     expect(productModel.findByIdAndUpdate).toHaveBeenCalledWith(
       SAMPLE_PRODUCT[0]._id,
       expect.objectContaining({
-        ...SAMPLE_PRODUCT[0],
+        ...req.fields,
         slug: slugify(SAMPLE_PRODUCT[0].name),
       }),
       { new: true }

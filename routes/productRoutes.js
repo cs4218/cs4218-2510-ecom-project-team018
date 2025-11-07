@@ -19,6 +19,7 @@ import {
 } from "../controllers/productController.js";
 import { isAdmin, requireSignIn } from "../middlewares/authMiddleware.js";
 import formidable from "express-formidable";
+import { xss } from "express-xss-sanitizer"
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.post(
   requireSignIn,
   isAdmin,
   formidable(),
+  xss(),
   createProductController
 );
 //routes
@@ -36,20 +38,27 @@ router.put(
   requireSignIn,
   isAdmin,
   formidable(),
+  xss(),
   updateProductController
+);
+
+//delete product
+router.delete(
+  "/delete-product/:pid",
+  xss(),
+  requireSignIn,
+  isAdmin,
+  deleteProductController
 );
 
 //get products
 router.get("/get-product", getProductController);
 
 //single product
-router.get("/get-product/:slug", getSingleProductController);
+router.get("/get-product/:slug", xss(), getSingleProductController);
 
 //get photo
-router.get("/product-photo/:pid", productPhotoController);
-
-//delete rproduct
-router.delete("/delete-product/:pid", deleteProductController);
+router.get("/product-photo/:pid", xss(), productPhotoController);
 
 //filter product
 router.post("/product-filters", productFiltersController);
@@ -58,19 +67,19 @@ router.post("/product-filters", productFiltersController);
 router.get("/product-count", productCountController);
 
 //product per page
-router.get("/product-list/:page", productListController);
+router.get("/product-list/:page", xss(), productListController);
 
 //search product
-router.get("/search/:keyword", searchProductController);
+router.get("/search/:keyword", xss(), searchProductController);
 
 //similar product
-router.get("/related-product/:pid/:cid", relatedProductController);
+router.get("/related-product/:pid/:cid", xss(), relatedProductController);
 
 //category wise product
-router.get("/product-category/:slug", productCategoryController);
+router.get("/product-category/:slug", xss(), productCategoryController);
 
 //category wise product count
-router.get("/product-category-count/:slug", productCategoryCountController);
+router.get("/product-category-count/:slug", xss(), productCategoryCountController);
 
 //payments routes
 //token
