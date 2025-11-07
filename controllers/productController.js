@@ -21,10 +21,30 @@ var gateway = new braintree.BraintreeGateway({
   privateKey: process.env.BRAINTREE_PRIVATE_KEY,
 });
 
+function stripTags(input) {
+  if (input === undefined || input === null) return input;
+  const s = String(input);
+  // remove HTML tags
+  return s.replace(/<\/?[^>]+(>|$)/g, "");
+}
+
 export const createProductController = async (req, res) => {
   try {
     let { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
+
+    const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
+    if (mappedKeys.length != 0) {
+      return res.status(403).send({ success: false, message: "Extra Fields are not allowed"})
+    }
+
+    if (photo && !["image/jpeg", "image/png"].includes(photo.type)) {
+      return res.status(403).send({ success: false, message:"Photo Content Type not Valid" })
+    }
+
+    // XSS Sanitize with Strip Tags
+    name = stripTags(name);
+    description = stripTags(description);
 
     // validation
     switch (true) {
@@ -62,7 +82,7 @@ export const createProductController = async (req, res) => {
     // normalize shipping value ("1" => true, "0" => false)
     shipping = shipping === 1;
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
+    const products = new productModel({ name, description, price, category, quantity, shipping , slug: slugify(name) });
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
@@ -77,7 +97,6 @@ export const createProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error in creating product",
     });
   }
@@ -142,6 +161,13 @@ export const getSingleProductController = async (req, res) => {
 // Get photo
 export const productPhotoController = async (req, res) => {
   try {
+    if (mongoose.isValidObjectId(req.param.id)) {
+      return res.status(400).send({
+        success: false,
+        message: "No valid ObjectId",
+      });
+    }
+
     const product = await productModel.findById(req.params.pid).select("photo");
 
     if (!product || !product.photo?.data) {
@@ -157,8 +183,7 @@ export const productPhotoController = async (req, res) => {
     console.error(error);
     res.status(500).send({
       success: false,
-      message: "Error while getting photo",
-      error: error.message,
+      message: "Error while getting photo"
     });
   }
 };
@@ -173,7 +198,7 @@ export const deleteProductController = async (req, res) => {
     if (!deletedProduct) {
       return res.status(404).send({
         success: false,
-        message: "Product not found",
+        message: "Product not found"
       });
     }
 
@@ -186,7 +211,6 @@ export const deleteProductController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "Error while deleting product",
-      error,
     });
   }
 };
@@ -196,6 +220,17 @@ export const updateProductController = async (req, res) => {
   try {
     let { name, description, price, category, quantity, shipping } = req.fields;
     const { photo } = req.files;
+
+    // Guard Against Mas Assignment Vulnerability Attacks
+    const mappedKeys = Object.keys(req.fields || {}).filter(key => !["name", "description", "price", "category", "quantity", "shipping"].includes(key))
+    if (mappedKeys.length != 0) {
+      return res.status(403).send({ message: "Extra Fields are not allowed"})
+    }
+
+    // XSS Sanitize with Strip Tags
+    name = stripTags(name)
+    description = stripTags(description)
+    
     // validation
     switch (true) {
       case !category:
@@ -234,7 +269,7 @@ export const updateProductController = async (req, res) => {
 
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
-      { ...req.fields, slug: slugify(name) },
+      { name, description, price, category, quantity, shipping, slug: slugify(name) },
       { new: true }
     );
 
@@ -259,7 +294,6 @@ export const updateProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error in updating product",
     });
   }
@@ -271,16 +305,39 @@ export const productFiltersController = async (req, res) => {
     const { checked = [], radio = [] } = req.body;
 
     const args = {};
+
+    // Validate Checked
+    if (checked !== undefined) {
+      if (!Array.isArray(checked)) {
+        return res.status(400).send({ success: false, message:"checked must be an array" })
+      }
+
+      for (const checkCategory of checked) {
+        if (checkCategory == null || (typeof checkCategory == "object" || !mongoose.isValidObjectId(checkCategory))) {
+          return res.status(400).send({ success: false, message: "Invalid checked element (objects not allowed)" });
+        }
+      }
+    } else {
+      return res.status(400).send({ success: false, message:"checked field must be provided"})
+    }
+
     // Set category filters
-    if (Array.isArray(checked) && checked.length > 0) {
+    if (Array.isArray(checked) && checked.length == 2) {
       args.category = { $in: checked };
     }
     // Set price range filter
     if (Array.isArray(radio) && radio.length === 2) {
+      for (const price of radio) {
+        if (typeof price != "number") {
+          return res.status(400).send({success: false, message: "price range must be numbers only"})
+        }
+      }
       const [min, max] = radio.map(Number);
       if (!Number.isNaN(min) && !Number.isNaN(max)) {
         args.price = { $gte: min, $lte: max };
       }
+    } else {
+      return res.status(400).send({success: false, message: "price range must be provided"})
     }
 
     const products = await productModel.find(args).select("-photo");
@@ -350,6 +407,10 @@ export const searchProductController = async (req, res) => {
     const searchKeyword = (req.params.keyword || "").trim();
     if (!searchKeyword) {
       return res.json([]);
+    }
+
+    if (searchKeyword.length > 100) {
+      return res.status(400).send({success: false, message: "search word has to be max 100 characters"})
     }
 
     const results = await productModel
@@ -616,8 +677,7 @@ export const brainTreePaymentController = async (req, res) => {
   } catch (error) {
     return res.status(500).send({
       success: false,
-      message: "Payment error",
-      error: String(error),
+      message: "Payment error"
     });
   }
 };
