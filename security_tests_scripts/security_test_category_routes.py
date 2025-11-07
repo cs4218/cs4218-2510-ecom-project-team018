@@ -1,5 +1,5 @@
 """
-security_tests_categoryRoutes.py
+security_test_category_routes.py
 Security tests for Category routes (MERN App)
 
 Rules Based Access Control Test for all guarded endpoints
