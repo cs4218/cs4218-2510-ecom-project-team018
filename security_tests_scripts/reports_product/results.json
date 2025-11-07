@@ -1,0 +1,351 @@
+{
+  "meta": {
+    "start_time": "2025-11-07 18:53:10",
+    "base": "http://localhost:3000",
+    "api": "http://localhost:3000/api/v1/product"
+  },
+  "tests": [
+    {
+      "name": "RBAC - Admin create product",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Admin should be able to create product (multipart/form-data)",
+      "details": "{\"success\":true,\"message\":\"Product created successfully\",\"products\":{\"name\":\"rbac_prod_1762512794\",\"slug\":\"rbac_prod_1762512794\",\"description\":\"products created for security testing\",\"price\":10,\"category\":\"66db427fdb0119d9234b27ee\",\"quantity\":100,\"photo\":{\"data\":{\"type\":\"Buffer\",\"data\":[137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1]},\"contentType\":\"image/png\"},\"shipping\":true,\"_id\":\"690dcf9ddd73b3ae126134a8\",\"createdAt\":\"2025-11-07T10:53:17.246Z\",\"updatedAt\":\"2025-11-07T10:53:17.246Z\",\"__v\":0}}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:17"
+    },
+    {
+      "name": "RBAC - User cannot create product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "User should not be able to create product (multipart/form-data)",
+      "details": "{\"success\":false,\"message\":\"Unauthorized Access\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:19"
+    },
+    {
+      "name": "RBAC - No Token cannot create product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "No Token should not be able to create product (multipart/form-data)",
+      "details": "{\"success\":false,\"error\":{\"name\":\"JsonWebTokenError\",\"message\":\"jwt must be provided\"},\"message\":\"Error in sign in verification\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:21"
+    },
+    {
+      "name": "RBAC - Admin can update product",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Admin should be able to update product (multipart/form-data)",
+      "details": "{\"success\":true,\"message\":\"Product updated successfully\",\"products\":{\"photo\":{\"data\":{\"type\":\"Buffer\",\"data\":[]},\"contentType\":\"image/png\"},\"_id\":\"690dcf9ddd73b3ae126134a8\",\"name\":\"rbac_prod_1762512794\",\"slug\":\"rbac_prod_1762512794\",\"description\":\"products created for security testing\",\"price\":10,\"category\":\"66db427fdb0119d9234b27ee\",\"quantity\":100,\"shipping\":true,\"createdAt\":\"2025-11-07T10:53:17.246Z\",\"updatedAt\":\"2025-11-07T10:53:24.420Z\",\"__v\":0}}",
+      "endpoint": "/update-product",
+      "timestamp": "2025-11-07 18:53:24"
+    },
+    {
+      "name": "RBAC - User cannot update product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "User should not be able to update product (multipart/form-data)",
+      "details": "{\"success\":false,\"message\":\"Unauthorized Access\"}",
+      "endpoint": "/update-product",
+      "timestamp": "2025-11-07 18:53:26"
+    },
+    {
+      "name": "RBAC - No Token cannot update product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "No Token should not be able to update product (multipart/form-data)",
+      "details": "{\"success\":false,\"error\":{\"name\":\"JsonWebTokenError\",\"message\":\"jwt must be provided\"},\"message\":\"Error in sign in verification\"}",
+      "endpoint": "/update-product",
+      "timestamp": "2025-11-07 18:53:29"
+    },
+    {
+      "name": "RBAC - Admin can delete product",
+      "ok": true,
+      "status_code": 200,
+      "summary": "Admin should be able to delete product",
+      "details": "{\"success\":true,\"message\":\"Product deleted successfully\"}",
+      "endpoint": "/delete-product",
+      "timestamp": "2025-11-07 18:53:31"
+    },
+    {
+      "name": "RBAC - User cannot delete product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "User should not be able to delete product",
+      "details": "{\"success\":false,\"message\":\"Unauthorized Access\"}",
+      "endpoint": "/delete-product",
+      "timestamp": "2025-11-07 18:53:33"
+    },
+    {
+      "name": "RBAC - No Token cannot delete product",
+      "ok": true,
+      "status_code": 401,
+      "summary": "No Token should not be able to delete product",
+      "details": "{\"success\":false,\"error\":{\"name\":\"JsonWebTokenError\",\"message\":\"jwt must be provided\"},\"message\":\"Error in sign in verification\"}",
+      "endpoint": "/delete-product",
+      "timestamp": "2025-11-07 18:53:36"
+    },
+    {
+      "name": "Mass Assignment Vulnerability- create product",
+      "ok": true,
+      "status_code": 403,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"Extra Fields are not allowed\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:40"
+    },
+    {
+      "name": "Mass Assignment - update",
+      "ok": true,
+      "status_code": 403,
+      "summary": null,
+      "details": "{\"message\":\"Extra Fields are not allowed\"}",
+      "endpoint": "/update-product/690dcfb7dd73b3ae126134b6",
+      "timestamp": "2025-11-07 18:53:45"
+    },
+    {
+      "name": "Image MIME rejected",
+      "ok": true,
+      "status_code": 403,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"Photo Content Type not Valid\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:50"
+    },
+    {
+      "name": "Image Size limit enforced",
+      "ok": true,
+      "status_code": 413,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"Photo is required and should be less than 1MB\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:53:52"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/get-product/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/get-product/",
+      "timestamp": "2025-11-07 18:53:54"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-photo/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-photo/",
+      "timestamp": "2025-11-07 18:53:57"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/search/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/search/",
+      "timestamp": "2025-11-07 18:53:59"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/related-product/",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/related-product/",
+      "timestamp": "2025-11-07 18:54:01"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-category/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-category/",
+      "timestamp": "2025-11-07 18:54:03"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-category-count/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <script>alert(1)</script>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-category-count/",
+      "timestamp": "2025-11-07 18:54:05"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/get-product/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/get-product/",
+      "timestamp": "2025-11-07 18:54:07"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-photo/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-photo/",
+      "timestamp": "2025-11-07 18:54:09"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/search/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/search/",
+      "timestamp": "2025-11-07 18:54:11"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/related-product/",
+      "ok": true,
+      "status_code": 400,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/related-product/",
+      "timestamp": "2025-11-07 18:54:13"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-category/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-category/",
+      "timestamp": "2025-11-07 18:54:15"
+    },
+    {
+      "name": "Reflected XSS - http://localhost:3000/api/v1/product/product-category-count/",
+      "ok": true,
+      "status_code": 404,
+      "summary": "Reflected XSS - <svg/onload=alert(1)>",
+      "details": null,
+      "endpoint": "http://localhost:3000/api/v1/product/product-category-count/",
+      "timestamp": "2025-11-07 18:54:17"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'checked': [{'$gt': ''}]}",
+      "ok": true,
+      "status_code": 400,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"Invalid checked element (objects not allowed)\"}",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:19"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'checked': ['$ne:']}",
+      "ok": true,
+      "status_code": 400,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"Invalid checked element (objects not allowed)\"}",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:21"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'checked': {'$gt': ''}}",
+      "ok": true,
+      "status_code": 400,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"checked must be an array\"}",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:23"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'radio': [{'$regex': '.*'}, 1000]}",
+      "ok": true,
+      "status_code": 400,
+      "summary": null,
+      "details": "{\"success\":false,\"message\":\"price range must be numbers only\"}",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:25"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'radio': {'$regex': '.*'}}",
+      "ok": false,
+      "status_code": 200,
+      "summary": null,
+      "details": "{\"success\":true,\"products\":[{\"_id\":\"66db427fdb0119d9234b27f3\",\"name\":\"Laptop\",\"slug\":\"laptop\",\"description\":\"A powerful laptop\",\"price\":1499.99,\"category\":\"68ee09f55d04c25ab1732ce9\",\"quantity\":70,\"shipping\":true,\"createdAt\":\"2024-09-06T17:57:19.971Z\",\"updatedAt\":\"2025-10-19T06:32:25.941Z\",\"__v\":0},{",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:28"
+    },
+    {
+      "name": "Product Filters NoSQL op - {'radio': '$regex : .*'}",
+      "ok": false,
+      "status_code": 200,
+      "summary": null,
+      "details": "{\"success\":true,\"products\":[{\"_id\":\"66db427fdb0119d9234b27f3\",\"name\":\"Laptop\",\"slug\":\"laptop\",\"description\":\"A powerful laptop\",\"price\":1499.99,\"category\":\"68ee09f55d04c25ab1732ce9\",\"quantity\":70,\"shipping\":true,\"createdAt\":\"2024-09-06T17:57:19.971Z\",\"updatedAt\":\"2025-10-19T06:32:25.941Z\",\"__v\":0},{",
+      "endpoint": "/product-filters",
+      "timestamp": "2025-11-07 18:54:30"
+    },
+    {
+      "name": "Search ReDoS / very long input",
+      "ok": true,
+      "status_code": 400,
+      "summary": null,
+      "details": "len=2000",
+      "endpoint": "/search/:keyword",
+      "timestamp": "2025-11-07 18:54:32"
+    },
+    {
+      "name": "JWT Corruption (create-product)",
+      "ok": true,
+      "status_code": 401,
+      "summary": null,
+      "details": "{\"success\":false,\"error\":{\"name\":\"JsonWebTokenError\",\"message\":\"invalid signature\"},\"message\":\"Error in sign in verification\"}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:54:34"
+    },
+    {
+      "name": "Stored XSS - create response should not contain raw payload",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Creation allowed; response must not echo raw payload",
+      "details": "{\"success\":true,\"message\":\"Product created successfully\",\"products\":{\"name\":\"alert('xss')1762512874\",\"slug\":\"alert('xss')1762512874\",\"description\":\"alert('xss')1762512874\",\"price\":1,\"category\":\"66db427fdb0119d9234b27ee\",\"quantity\":1,\"photo\":{\"data\":{\"type\":\"Buffer\",\"data\":[137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1]},\"contentType\":\"image/png\"},\"shipping\":true,\"_id\":\"690dcfecdd73b3ae126134c0\",\"createdAt\":\"2025-11-07T10:54:36.966Z\",\"updatedAt\":\"2025-11-07T10:54:36.966Z\",\"__v\":0}}",
+      "endpoint": "/create-product",
+      "timestamp": "2025-11-07 18:54:37"
+    },
+    {
+      "name": "Stored XSS - update response should not contain raw payload",
+      "ok": true,
+      "status_code": 201,
+      "summary": "Update allowed; response must not echo raw payload",
+      "details": "{\"success\":true,\"message\":\"Product updated successfully\",\"products\":{\"photo\":{\"data\":{\"type\":\"Buffer\",\"data\":[]},\"contentType\":\"image/png\"},\"_id\":\"690dcff2dd73b3ae126134c5\",\"name\":\"alert('xss')1762512882\",\"slug\":\"alert('xss')1762512882\",\"description\":\"alert('xss')1762512882\",\"price\":1,\"category\":\"66db427fdb0119d9234b27ee\",\"quantity\":1,\"shipping\":true,\"createdAt\":\"2025-11-07T10:54:42.053Z\",\"updatedAt\":\"2025-11-07T10:54:44.609Z\",\"__v\":0}}",
+      "endpoint": "/update-product/690dcff2dd73b3ae126134c5",
+      "timestamp": "2025-11-07 18:54:47"
+    },
+    {
+      "name": "Stored XSS - GET product list should not contain raw payload",
+      "ok": true,
+      "status_code": 200,
+      "summary": "Public list should not reflect raw XSS payload",
+      "details": "{\"success\":true,\"countTotal\":12,\"message\":\"All products \",\"products\":[{\"_id\":\"690dbd26c7be2dbbe34dd8d5\",\"name\":\"clothe 10\",\"slug\":\"clothe-10\",\"description\":\"clothe 10\",\"price\":100,\"category\":{\"_id\":\"66db427fdb0119d9234b27ee\",\"name\":\"Clothing\",\"slug\":\"clothing\",\"__v\":0},\"quantity\":10000000,\"shipping\":false,\"createdAt\":\"2025-11-07T09:34:30.854Z\",\"updatedAt\":\"2025-11-07T09:34:30.854Z\",\"__v\":0},{\"_id\":\"690dbd11c7be2dbbe34dd8c4\",\"name\":\"clothe 9\",\"slug\":\"clothe-9\",\"description\":\"clothe 9\",\"price\":1,\"",
+      "endpoint": "/get-product",
+      "timestamp": "2025-11-07 18:54:50"
+    },
+    {
+      "name": "Rate Limit - Get Product. Expect at least one Status 429",
+      "ok": true,
+      "status_code": null,
+      "summary": "[200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429, 429]",
+      "details": null,
+      "endpoint": "/get-product",
+      "timestamp": "2025-11-07 18:54:55"
+    },
+    {
+      "name": "CORS - Malicious origin denied",
+      "ok": true,
+      "status_code": 200,
+      "summary": "ACAO=http://localhost:3000",
+      "details": null,
+      "endpoint": "/get-product",
+      "timestamp": "2025-11-07 18:54:57"
+    }
+  ]
+}
