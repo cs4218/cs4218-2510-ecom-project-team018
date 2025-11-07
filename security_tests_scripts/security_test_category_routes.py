@@ -229,7 +229,7 @@ def rbac_no_token_delete_category():
     resp_create = POST(f"{CATEGORY_API}/create-category", ADMIN_TOKEN, json={"name": f"no_token_del_{time.time()}"})
     cid = resp_create.json().get("category", {}).get("_id")
 
-    resp = requests.delete(f"{CATEGORY_API}/delete-category/{cid}")
+    resp = requests.delete(f"{CATEGORY_API}/delete-category/{cid}", timeout=TIMEOUT)
 
     record(
         name="RBAC - No Token delete category not allowed",
