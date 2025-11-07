@@ -371,7 +371,7 @@ def rate_limit_test():
     url = f"{CATEGORY_API}/get-category"
 
     def run(i):
-        try: return requests.get(url).status_code
+        try: return requests.get(url, timeout=TIMEOUT).status_code
         except: return "ERR"
 
     with ThreadPoolExecutor(max_workers=50) as ex:
