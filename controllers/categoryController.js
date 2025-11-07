@@ -3,11 +3,32 @@ import slugify from "slugify";
 
 export const createCategoryController = async (req, res) => {
   try {
+    const allowedFields = ["name"];
     const { name } = req.body;
+
+    // Mass Assignment Vulnerability Guard
+    const extraFields = Object.keys(req.body).filter(
+      key => !allowedFields.includes(key)
+    );
+
+    if (extraFields.length > 0) {
+      return res.status(400).send({
+        success: false,
+        message: `Unexpected fields: ${extraFields.join(", ")}`,
+      });
+    }
     if (!name) {
       return res.status(401).send({ message: "Name is required" });
     }
-    const existingCategory = await categoryModel.findOne({ name });
+
+    if (typeof name !== "string") {
+      return res.status(401).send({ message: "Valid name is required" });
+    }
+
+    const existingCategory = await categoryModel.findOne({
+      name: { $eq: String(name) }
+    });
+
     if (existingCategory) {
       return res.status(200).send({
         success: true,
@@ -27,7 +48,6 @@ export const createCategoryController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error in category",
     });
   }
@@ -52,7 +72,6 @@ export const updateCategoryController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error while updating category",
     });
   }
@@ -71,7 +90,6 @@ export const categoryController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error while getting all categories",
     });
   }
@@ -90,7 +108,6 @@ export const singleCategoryController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      error,
       message: "Error while getting single category",
     });
   }
@@ -110,7 +127,6 @@ export const deleteCategoryController = async (req, res) => {
     res.status(500).send({
       success: false,
       message: "error while deleting category",
-      error,
     });
   }
 };

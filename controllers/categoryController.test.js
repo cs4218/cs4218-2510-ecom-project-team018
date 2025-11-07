@@ -83,7 +83,7 @@ describe("Creating a category", () => {
     await createCategoryController(req, res);
 
     expect(categoryModel.findOne).toHaveBeenCalledWith({
-      name: CATEGORY_NAME_0,
+      name: {"$eq": CATEGORY_NAME_0},
     });
     expect(res.status).toHaveBeenCalledWith(SUCCESS_STATUS);
     expect(res.send).toHaveBeenCalledWith({
@@ -175,7 +175,6 @@ describe("Getting all categories", () => {
     expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      error: err,
       message: "Error while getting all categories",
     });
 
@@ -212,7 +211,6 @@ describe("Getting single category", () => {
     expect(res.status).toHaveBeenCalledWith(SERVER_ERROR_STATUS);
     expect(res.send).toHaveBeenCalledWith({
       success: false,
-      error: err,
       message: "Error while getting single category",
     });
 
