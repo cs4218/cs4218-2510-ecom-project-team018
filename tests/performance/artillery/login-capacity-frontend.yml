@@ -18,7 +18,7 @@ config:
         headless: true
   plugins:
     expect: {}
-  processor: "./login-processor.js"
+  processor: "./artillery-processor.js"
 
 scenarios:
   - engine: playwright
