@@ -1,0 +1,27 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warmup: Maintain 1 concurrent user
+    - name: "warmup"
+      arrivalRate: 1
+      duration: 30
+    # Linear ramp-up: Gradually increase arrivalRate from 2 to 20 users/second
+    - name: "linear-ramp-up"
+      arrivalRate: 2
+      rampTo: 10
+      duration: 60
+  engines:
+    playwright:
+      aggregateByName: true
+      extendedMetrics: true
+      launchOptions:
+        headless: true
+  plugins:
+    expect: {}
+  processor: "./login-processor.js"
+
+scenarios:
+  - engine: playwright
+    name: "login_with_valid_credentials"
+    weight: 100
+    testFunction: "loginFlow"
