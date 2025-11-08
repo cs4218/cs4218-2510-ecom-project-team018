@@ -7,3 +7,5 @@ node_modules
 /.scannerwork/
 /coverage/
 .last-run.json
+/reports/*.csv
+/reports/*.json

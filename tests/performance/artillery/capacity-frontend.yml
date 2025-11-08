@@ -1,0 +1,42 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warmup: Maintain 1 concurrent user
+    - name: "warmup"
+      arrivalRate: 1
+      duration: 30
+    # Linear ramp-up: Gradually increase arrivalRate from 2 to 20 users/second
+    - name: "linear-ramp-up"
+      arrivalRate: 2
+      rampTo: 15
+      duration: 60
+  engines:
+    playwright:
+      aggregateByName: true
+      extendedMetrics: true
+      launchOptions:
+        headless: true
+  plugins:
+    expect: {}
+  processor: "./artillery-processor.js"
+
+scenarios:
+  - engine: playwright
+    name: "login_with_valid_credentials"
+    weight: 25
+    testFunction: "loginFlow"
+
+  - engine: playwright
+    name: "register_new_user"
+    weight: 10
+    testFunction: "registerFlow"
+
+  - engine: playwright
+    name: "search_products"
+    weight: 25
+    testFunction: "searchFlow"
+
+  - engine: playwright
+    name: "homepage_browse"
+    weight: 50
+    testFunction: "homepageFlow"
