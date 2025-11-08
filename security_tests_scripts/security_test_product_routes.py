@@ -394,20 +394,201 @@ def product_reflected_xss_tests():
             )
 
 def product_filters_nosql_operator_tests():
-    """Send operator-like payloads to product-filters to ensure operators are not executed"""
+    """
+    3D Equivalence Partition + NoSQL Injection tests for /product-filters
+
+    Dimensions:
+      1) Array vs non-array
+      2) Array length (1, 2)
+      3) Element type
+
+    For `checked`:
+      elem_type: "valid_id", "mongo_op", "number"
+    Valid combo (per controller): array, length >= 1, all valid ObjectId strings.
+
+    For `radio`:
+      elem_type: "number", "mongo_op", "string"
+    Valid combo (per controller): array, length == 2, both numbers.
+
+    We:
+      - Vary `checked` while keeping `radio` valid
+      - Vary `radio` while keeping `checked` valid
+      - Add extra explicit NoSQL injection payloads for both fields
+    """
     url = f"{PRODUCT_API}/product-filters"
-    payloads = [
-        {"checked":[{"$gt":""}]},
-        {"checked":["$ne:"]},
-        {"checked": {"$gt": ""}},
-        {"radio": [{"$regex": ".*"}, 1000]},
-        {"radio": {"$regex": ".*"}},
-        {"radio": "$regex : .*"}
+    cases = []
+
+    # Baseline valid values
+    valid_checked_ids = [
+        "66db427fdb0119d9234b27ee",
+        "66db427fdb0119d9234b27ef",
     ]
-    for p in payloads:
+    valid_radio = [10, 20]
+
+    # ---------- 3D EP for `checked` ----------
+    for is_array in (True, False):
+        for length in (1, 2):
+            for elem_type in ("valid_id", "mongo_op"):
+                # build checked value
+                elems = None
+                checked_val = None
+                if is_array:
+                    if elem_type == "valid_id":
+                        elems = valid_checked_ids[:length]
+                    elif elem_type == "mongo_op":
+                        elems = [{"$gt": ""}] * length
+                    checked_val = elems
+                else:
+                    if elem_type == "valid_id":
+                        checked_val = valid_checked_ids[0]
+                    elif elem_type == "mongo_op":
+                        checked_val = {"$gt": ""}
+
+                if isinstance(checked_val, list) and len(checked_val) >= 1 and elem_type == "valid_id":
+                    expected_status = 200
+                else:
+                    expected_status = 400
+
+                cases.append(
+                    {
+                        "payload": {
+                            "checked": checked_val,
+                            "radio": valid_radio,  # keep radio valid here
+                        },
+                        "expected": expected_status,
+                        "label": f"checked: array={is_array}, len={length}, type={elem_type}",
+                    }
+                )
+
+    # ---------- 3D EP for `radio` ----------
+    for is_array in (True, False):
+        for length in (1, 2):
+            for elem_type in ("number", "mongo_op"):
+                # build radio value
+                radio_val = None
+                if is_array:
+                    if elem_type == "number":
+                        radio_val = [10, 20][:length]
+                    elif elem_type == "mongo_op":
+                        radio_val = [{"$regex": ".*"}] * length
+                else:
+                    if elem_type == "number":
+                        radio_val = 10
+                    elif elem_type == "mongo_op":
+                        radio_val = {"$regex": ".*"}
+
+                if isinstance(radio_val, list):
+                    if len(radio_val) == 2 and elem_type == "number":
+                        expected_status = 200
+                    elif len(radio_val) == 1:
+                        expected_status = 400
+                    else:
+                        # len == 2 but wrong type (mongo_op)
+                        expected_status = 400
+                else:
+                    expected_status = 400
+
+                cases.append(
+                    {
+                        "payload": {
+                            "checked": valid_checked_ids,  # keep checked valid here
+                            "radio": radio_val,
+                        },
+                        "expected": expected_status,
+                        "label": f"radio: array={is_array}, len={length}, type={elem_type}",
+                    }
+                )
+
+    # ---------- Extra NoSQL injection cases ----------
+    nosql_cases = [
+        # checked-focused injections (radio kept valid)
+        (
+            "NoSQL op object in checked array",
+            {
+                "checked": [{"$gt": ""}],
+                "radio": valid_radio,
+            },
+            400,
+        ),
+        (
+            "NoSQL-like string in checked array",
+            {
+                "checked": ["$ne:''"],
+                "radio": valid_radio,
+            },
+            400,
+        ),
+        (
+            "NoSQL op object as checked non-array",
+            {
+                "checked": {"$or": [{"$gt": ""}]},
+                "radio": valid_radio,
+            },
+            400,
+        ),
+
+        # radio-focused injections (checked kept valid)
+        (
+            "NoSQL op object in radio[0]",
+            {
+                "checked": valid_checked_ids,
+                "radio": [{"$gt": 1}, 100],
+            },
+            400,
+        ),
+        (
+            "NoSQL regex object in radio[0]",
+            {
+                "checked": valid_checked_ids,
+                "radio": [{"$regex": ".*"}, 100],
+            },
+            400,
+        ),
+        (
+            "NoSQL-like string in radio[0]",
+            {
+                "checked": valid_checked_ids,
+                "radio": ["$gt:10", 100],
+            },
+            400,
+        ),
+        (
+            "NoSQL op as non-array radio (treated as no price filter)",
+            {
+                "checked": valid_checked_ids,
+                "radio": {"$gt": 10},
+            },
+            400,  # your controller ignores non-array radio for price, so this should be harmless
+        ),
+    ]
+
+    for label, payload, expected in nosql_cases:
+        cases.append(
+            {
+                "payload": payload,
+                "expected": expected,
+                "label": f"NoSQL injection - {label}",
+            }
+        )
+
+    # ---------- Execute all cases ----------
+    for c in cases:
+        p = c["payload"]
+        expected = c["expected"]
+        label = c["label"]
+
         r = requests.post(url, json=p, timeout=TIMEOUT)
-        ok = r.status_code == 400
-        record(f"Product Filters NoSQL op - {p}", ok=ok, status_code=r.status_code, details=(r.text or "")[:300], endpoint="/product-filters")
+        ok = (r.status_code == expected)
+
+        record(
+            name=f"Product Filters 3D EP/NoSQL - {label}",
+            ok=ok,
+            status_code=r.status_code,
+            summary=f"expected={expected}, got={r.status_code}",
+            details=(r.text or "")[:300],
+            endpoint="/product-filters",
+        )
+
 
 def search_redos_test():
     """Send very long search keywords to test ReDoS resilience"""

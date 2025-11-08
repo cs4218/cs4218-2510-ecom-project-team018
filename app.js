@@ -9,6 +9,7 @@ import { xss } from 'express-xss-sanitizer';
 
 const createApp = () => {
   const app = express();
+  app.set("trust proxy", 1);
 
   let limiter = rateLimit({
     max: 20,

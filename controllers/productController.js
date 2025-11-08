@@ -349,6 +349,10 @@ export const productFiltersController = async (req, res) => {
       return res.status(400).send({success: false, message: "radio length must be 2"})
     }
 
+    if (!Array.isArray(radio)){
+      return res.status(400).send({success: false, message: "radio must be array"})
+    }
+
     const products = await productModel.find(args).select("-photo");
 
     res.status(200).send({
