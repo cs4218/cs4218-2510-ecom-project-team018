@@ -23,5 +23,20 @@ config:
 scenarios:
   - engine: playwright
     name: "login_with_valid_credentials"
-    weight: 100
+    weight: 25
     testFunction: "loginFlow"
+
+  - engine: playwright
+    name: "register_new_user"
+    weight: 10
+    testFunction: "registerFlow"
+
+  - engine: playwright
+    name: "search_products"
+    weight: 25
+    testFunction: "searchFlow"
+
+  - engine: playwright
+    name: "homepage_browse"
+    weight: 50
+    testFunction: "homepageFlow"
