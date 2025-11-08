@@ -1,0 +1,41 @@
+config:
+  target: http://localhost:6060
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: warmup
+    - duration: 300
+      arrivalRate: 10
+      rampTo: 60
+      name: ramp-up
+  defaults:
+    headers:
+      Content-Type: application/json
+  plugins:
+    ensure:
+      thresholds:
+        - http.response_time.p95: 1500
+        - http.response_time.p99: 3000
+    apdex:
+      threshold: 99
+
+scenarios:
+  - name: Login and token validation
+    flow:
+      - post:
+          url: "/api/v1/auth/login"
+          json:
+            email: "chu@gmail.com"
+            password: "123456"
+          expect:
+            - statusCode: 200
+          capture:
+            - json: "$.token"
+              as: token
+      - think: 1
+      - get:
+          url: "/api/v1/auth/user-auth"
+          headers:
+            Authorization: "{{ token }}"
+          expect:
+            - statusCode: 200
