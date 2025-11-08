@@ -8,7 +8,7 @@ config:
     # Linear ramp-up: Gradually increase arrivalRate from 2 to 20 users/second
     - name: "linear-ramp-up"
       arrivalRate: 2
-      rampTo: 10
+      rampTo: 15
       duration: 60
   engines:
     playwright:
