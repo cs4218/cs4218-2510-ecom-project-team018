@@ -90,7 +90,6 @@ export const getProductController = async (req, res) => {
       .find({})
       .populate("category")
       .select("-photo")
-      .limit(12)
       .sort({ createdAt: -1 });
 
     res.status(200).send({
@@ -361,7 +360,10 @@ export const searchProductController = async (req, res) => {
       })
       .select("-photo");
 
-    res.json(results);
+    res.status(200).send({
+      success: true,
+      results,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send({
