@@ -1,3 +1,4 @@
+# This file was created by ChatGPT
 FROM node:20-alpine AS build
 
 WORKDIR /usr/src/app

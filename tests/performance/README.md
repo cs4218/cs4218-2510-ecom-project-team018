@@ -27,11 +27,31 @@
    docker compose down -v     # stop and remove named volumes if added later
    ```
 
-6. **Rebuilding With Changes**
-   When you update dependencies or frontend code, rebuild to refresh images:
-   ```bash
-   docker compose build frontend   # just the UI
-   docker compose build backend    # just the API
-   ```
-
 After running the containers, continue with performance tests.
+
+## Stress-testing  with JMeter
+
+1. Navigate to the stress test directory:
+    ```bash
+    cd tests/performance/stress
+    ```
+1. Run the bash script to execute the JMeter test plan for all APIs:
+    ```bash
+    ./run_jmeter.sh
+    ```
+    or execute individual JMeter test plans:
+    ```bash
+    ./run_jmeter.sh ./path/to/test_plan.jmx
+    ```
+1. After the tests complete, CSV results will be stored in the `results/` directory.
+1. To generate trend charts from the CSV results, run:
+    ```bash
+    python3 plot_api_trends.py
+    ```
+    This will create PNG charts in the `results/` directory.
+1. To generate the CPU and memory usage charts, run:
+    ```bash
+    python3 plot_resource_usage.py
+    ```
+    This will create PNG charts in the `results/` directory.
+> Note: Ensure you have the required Python packages installed (e.g., matplotlib) to run the plotting scripts.
